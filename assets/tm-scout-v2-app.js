@@ -533,8 +533,8 @@
     detailOther: true,
     maxSourcePages: 45,
     maxCandidates: 160,
-    u21MaxSourcePages: 45,
-    u21MaxCandidates: 160,
+    u21MaxSourcePages: 16,
+    u21MaxCandidates: 220,
     europeLeaguePages: true,
     lowerLeaguePages: true,
     lowerLeagueDepth: '2-3',
@@ -1677,12 +1677,7 @@
 
 
   function buildU21SourcePlan(settings) {
-    const canonical = 'https://www.transfermarkt.com';
-    const sourceSettings = Object.assign({}, settings, {
-      minAge: settings.u21MinAge,
-      maxAge: settings.u21MaxAge
-    });
-    const sourceFilters = buildSourceFilterCombos(sourceSettings);
+    const sourceFilters = buildU21CompactSourceFilters(settings);
     state.debug.sourceFilterCombos = sourceFilters.map(function debugCombo(combo) {
       return {
         ageClass: combo.ageClass,
@@ -1693,93 +1688,160 @@
       };
     });
 
-    const codes = [];
-    if (settings.europeLeaguePages) getEuropeCompetitionCodes().forEach(function addTop(code) { codes.push(code); });
-    if (settings.lowerLeaguePages) getStrongLowerCompetitionCodes(settings.lowerLeagueDepth).forEach(function addLower(code) { codes.push(code); });
-    if (!codes.length) getEuropeCompetitionCodes().forEach(function addDefault(code) { codes.push(code); });
-
+    const codes = buildU21CompactCompetitionCodes(settings);
     const seen = new Set();
     const plan = [];
-    const maxPages = Math.max(1, settings.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages || settings.maxSourcePages || DEFAULTS.maxSourcePages);
+    const requestedPages = Math.max(1, Number(settings.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages || 16));
 
-    function addSource(url, code, filter, pageLimit) {
-      for (let page = 1; page <= pageLimit; page += 1) {
-        const pagedUrl = addTransfermarktPage(url, page);
-        const key = pagedUrl.replace(/\/$/, '');
-        if (seen.has(key)) continue;
-        seen.add(key);
-        plan.push({
-          url: pagedUrl,
-          type: 'u21-prospect',
-          label: `U21 prospects ${code}${filter && filter.label ? ` · ${filter.label}` : ''}${page > 1 ? ` p.${page}` : ''}`,
-          sourceGroup: 'u21-market-values',
-          page: page,
-          plannedPageLimit: pageLimit,
-          sourceFilterWeight: filter ? filter.weight || 0 : 0
-        });
-      }
-    }
+    // U21-nél a nemzetiség NEM azt jelenti, hogy csak a hazai bajnokságban nézünk körül.
+    // Előbb minden bekapcsolt liga kap legalább egy esélyt, utána mélyítünk oldalanként.
+    // Így egy román/magyar/szerb U21 játékos akkor is előkerülhet, ha külföldön játszik.
+    const maxTotalSources = Math.max(160, Math.min(760, requestedPages * Math.max(10, sourceFilters.length * 7)));
+    const targets = [];
 
     unique(codes).forEach(function addCompetition(code) {
+      const codePriority = getU21CompetitionPriority(code, settings);
       sourceFilters.forEach(function addFilter(filter) {
         const url = buildCompetitionMarketValuesQueryUrl(code, filter);
-        const weight = Number(filter.weight || 0);
-        const pageLimit = getU21SourcePageLimit(code, weight, maxPages, settings);
+        const pageLimit = getU21SourcePageLimit(code, filter.weight || 0, requestedPages, settings, codePriority);
+        targets.push({ code, filter, url, pageLimit, codePriority });
         state.debug.adaptivePageLimits.push({
           group: 'u21-market-values',
           label: `U21 ${code} ${filter.label || ''}`.trim(),
-          filterWeight: weight,
-          pageLimit: pageLimit
+          filterWeight: filter.weight || 0,
+          pageLimit: pageLimit,
+          cappedTotalSources: maxTotalSources,
+          note: 'round-robin broad nationality search'
         });
-        addSource(url, code, filter, pageLimit);
       });
     });
 
-    parseExtraUrls(settings.extraSourceUrls).forEach(function addExtra(url) {
-      const normalized = normalizeTransfermarktUrl(url);
-      if (!normalized) return;
-      for (let page = 1; page <= maxPages; page += 1) {
-        const pagedUrl = addTransfermarktPage(normalized, page);
+    targets.sort(function bySignal(a, b) {
+      return (b.codePriority - a.codePriority)
+        || ((a.filter.weight || 0) - (b.filter.weight || 0))
+        || String(a.code).localeCompare(String(b.code));
+    });
+
+    for (let page = 1; page <= requestedPages && plan.length < maxTotalSources; page += 1) {
+      for (const target of targets) {
+        if (plan.length >= maxTotalSources) break;
+        if (page > target.pageLimit) continue;
+        const pagedUrl = addTransfermarktPage(target.url, page);
         const key = pagedUrl.replace(/\/$/, '');
         if (seen.has(key)) continue;
         seen.add(key);
         plan.push({
           url: pagedUrl,
           type: 'u21-prospect',
-          label: page > 1 ? `Extra U21 source p.${page}` : 'Extra U21 source',
-          sourceGroup: 'u21-extra',
+          label: `U21 ${target.code}${target.filter && target.filter.label ? ` · ${target.filter.label}` : ''}${page > 1 ? ` p.${page}` : ''}`,
+          sourceGroup: 'u21-broad-nationality-search',
           page: page,
-          plannedPageLimit: maxPages,
-          sourceFilterWeight: 0
+          plannedPageLimit: target.pageLimit,
+          sourceFilterWeight: target.filter ? target.filter.weight || 0 : 0
         });
       }
-    });
-
-    if (!plan.length) {
-      sourceFilters.forEach(function addFallback(filter) {
-        addSource(buildCompetitionMarketValuesQueryUrl('NL1', filter), 'NL1', filter, Math.min(maxPages, 3));
-        addSource(buildCompetitionMarketValuesQueryUrl('BE1', filter), 'BE1', filter, Math.min(maxPages, 3));
-        addSource(buildCompetitionMarketValuesQueryUrl('PO1', filter), 'PO1', filter, Math.min(maxPages, 3));
-      });
     }
 
-    // Keep a hard cap, otherwise U21 mode can explode when detailed position filters are all enabled.
-    return plan.slice(0, Math.max(20, maxPages * 90));
+    return plan;
   }
 
+  function buildU21CompactSourceFilters(settings) {
+    const ageClass = getTransfermarktAgeClassForRange(settings.u21MinAge, settings.u21MaxAge);
+    const base = { ageClass: ageClass, alignment: 'alle', detailId: 'alle', label: `age ${ageClass}`, weight: 0 };
+    const mode = normalizePositionFilterMode(settings.positionFilterMode);
 
-  function getU21SourcePageLimit(code, filterWeight, maxPages, settings) {
-    const max = Math.max(1, Number(maxPages || DEFAULTS.u21MaxSourcePages || 45));
-    const upperCode = String(code || '').toUpperCase();
-    const isLowerOrYouth = /2$|3$|3A$|3B$|3C$|E3|U19|U21|YL|JUN|RES/i.test(upperCode);
-    const isSelectedDetail = Number(filterWeight || 0) >= 1;
+    if (mode !== 'detail') {
+      const selected = [];
+      if (settings.posGK) selected.push({ ageClass, alignment: 'Torwart', detailId: 'alle', label: 'GK', weight: 1 });
+      if (settings.posDEF) selected.push({ ageClass, alignment: 'Abwehr', detailId: 'alle', label: 'DEF', weight: 1 });
+      if (settings.posMID) selected.push({ ageClass, alignment: 'Mittelfeld', detailId: 'alle', label: 'MID', weight: 1 });
+      if (settings.posFWD) selected.push({ ageClass, alignment: 'Sturm', detailId: 'alle', label: 'FWD', weight: 1 });
+      if (!selected.length || selected.length >= 4) return [base];
+      return selected.slice(0, 4);
+    }
 
-    // U21 módban a Max pages érték döntse el, meddig lapozunk.
-    // A felhasználó Max pages értéke legyen az igazi mélység, különben pont a
-    // román/magyar másodosztályos és U19/Primavera típusú játékosok vesznek el.
-    if (isLowerOrYouth) return max;
-    if (isSelectedDetail) return Math.min(max, 18);
-    return Math.min(max, 24);
+    const detailMap = [
+      ['detailGK', 'Torwart', '1', 'GK'],
+      ['detailCB', 'Abwehr', '3', 'CB'],
+      ['detailLB', 'Abwehr', '4', 'LB'],
+      ['detailRB', 'Abwehr', '5', 'RB'],
+      ['detailDM', 'Mittelfeld', '6', 'DM'],
+      ['detailCM', 'Mittelfeld', '7', 'CM'],
+      ['detailRM', 'Mittelfeld', '8', 'RM'],
+      ['detailLM', 'Mittelfeld', '9', 'LM'],
+      ['detailAM', 'Mittelfeld', '10', 'AM'],
+      ['detailLW', 'Sturm', '11', 'LW'],
+      ['detailRW', 'Sturm', '12', 'RW'],
+      ['detailSS', 'Sturm', '13', 'SS'],
+      ['detailCF', 'Sturm', '14', 'CF']
+    ];
+    const selected = detailMap
+      .filter(function enabled(item) { return Boolean(settings[item[0]]); })
+      .map(function toFilter(item) { return { ageClass, alignment: item[1], detailId: item[2], label: item[3], weight: 2 }; });
+
+    // If nearly everything is checked, one all-position source is much faster and avoids 5000+ URLs.
+    if (!selected.length || selected.length > 5 || (selected.length >= 4 && settings.detailWING && settings.detailOther)) return [base];
+    return uniquePositionSourceFilters(selected).slice(0, 5);
+  }
+
+  function getTransfermarktAgeClassForRange(minAge, maxAge) {
+    const min = Number(minAge || 0);
+    const max = Number(maxAge || 99);
+    if (max <= 16) return 'u17';
+    if (max <= 17) return 'u18';
+    if (max <= 18) return 'u19';
+    if (max <= 19) return 'u20';
+    if (max <= 20) return 'u21';
+    if (max <= 22) return 'u23';
+    if (min <= 22) return 'u23';
+    return 'alle';
+  }
+
+  function buildU21CompactCompetitionCodes(settings) {
+    const codes = [];
+    const add = function add(code) { if (code) codes.push(String(code).toUpperCase()); };
+    const addMany = function addMany(list) { (list || []).forEach(add); };
+
+    // A kiválasztott nemzetiség csak játékosfilter. Forrásoldalnál szélesen keresünk,
+    // mert egy román/magyar/szerb/ukrán U21 bárhol játszhat Európában.
+    if (settings.europeLeaguePages) addMany(getEuropeCompetitionCodes());
+    if (settings.lowerLeaguePages) addMany(getStrongLowerCompetitionCodes(settings.lowerLeagueDepth));
+
+    // Hasznos extra utánpótlás / alacsonyabb piaci források, ahol fiatal profilok gyakran vannak.
+    addMany(['GB3', 'L3', 'FR3', 'IT3A', 'IT3B', 'IT3C', 'E3G1', 'E3G2', 'PL3', 'SC3', 'C3']);
+
+    if (!codes.length) addMany(getEuropeCompetitionCodes().concat(getStrongLowerCompetitionCodes(settings.lowerLeagueDepth)));
+
+    return unique(codes).sort(function byPriority(a, b) {
+      return getU21CompetitionPriority(b, settings) - getU21CompetitionPriority(a, settings)
+        || String(a).localeCompare(String(b));
+    }).slice(0, 72);
+  }
+
+  function getU21CompetitionPriority(code, settings) {
+    const c = String(code || '').toUpperCase();
+
+    if (/^(GB1|ES1|IT1|L1|FR1)$/.test(c)) return 92;
+    if (/^(NL1|PO1|BE1|TR1|A1|C1|DK1|SE1|NO1|PL1|SC1|GR1)$/.test(c)) return 84;
+    if (/^(RO1|UNG1|SER1|KRO1|UKR1|SLO1|TS1|BUL1|ZYP1|ISR1|FIN1|IR1)$/.test(c)) return 78;
+    if (/^(GB2|ES2|IT2|L2|FR2|NL2|PO2|BE2|TR2|A2|C2|DK2|SE2|NO2|PL2|SC2|GR2)$/.test(c)) return 74;
+    if (/^(RO2|UNG2|SER2|KRO2|UKR2|SLO2|TS2|BUL2|ZYP2|ISR2|FIN2|IR2)$/.test(c)) return 72;
+    if (/^(GB3|L3|FR3|IT3A|IT3B|IT3C|E3G1|E3G2|PL3|SC3|C3)$/.test(c)) return 68;
+    if (/2$|3$|3A$|3B$|3C$|E3|USL/.test(c)) return 62;
+    return 55;
+  }
+
+  function getU21SourcePageLimit(code, filterWeight, maxPages, settings, priority) {
+    const requested = Math.max(1, Number(maxPages || DEFAULTS.u21MaxSourcePages || 16));
+    const c = String(code || '').toUpperCase();
+    const p = Number(priority || getU21CompetitionPriority(c, settings));
+    const filterPenalty = Number(filterWeight || 0) >= 2 ? 1 : 0;
+
+    if (p >= 90) return Math.max(1, Math.min(requested, 7 - filterPenalty));
+    if (p >= 78) return Math.max(1, Math.min(requested, 6 - filterPenalty));
+    if (p >= 70) return Math.max(1, Math.min(requested, 5 - filterPenalty));
+    if (p >= 62) return Math.max(1, Math.min(requested, 4 - filterPenalty));
+    return Math.max(1, Math.min(requested, 3 - filterPenalty));
   }
 
   function buildCompetitionMarketValuesQueryUrl(code, filter) {
@@ -4241,13 +4303,34 @@
     }).join('\r\n');
   }
 
+  function buildU21ExportFilterSummary(settings) {
+    const s = settings || {};
+    const countries = (s.u21Nationalities || []).length ? s.u21Nationalities.join(', ') : 'összes';
+    const posMode = normalizePositionFilterMode(s.positionFilterMode);
+    const position = posMode === 'detail'
+      ? DETAIL_POSITION_KEYS.filter(function enabled(key) { return Boolean(s[key]); }).map(function label(key) { return key.replace(/^detail/, ''); }).join(', ') || 'összes'
+      : ['GK', 'DEF', 'MID', 'FWD'].filter(function enabled(group) { return isGroupEnabled(group, s); }).join(', ') || 'összes';
+    return [
+      `Kor: ${s.u21MinAge || '—'}–${s.u21MaxAge || '—'}`,
+      `MV: ${formatEuro(s.u21MinMv || 0)} – ${formatEuro(s.u21MaxMv || 0)}`,
+      `Min meccsarány: ${s.u21MinMatchRatio || 0}%`,
+      `Nemzetiség: ${countries}`,
+      `Poszt: ${position}`,
+      `Források: ${s.europeLeaguePages ? '1. osztályok' : ''}${s.europeLeaguePages && s.lowerLeaguePages ? ' + ' : ''}${s.lowerLeaguePages ? '2–3. osztályok' : ''}` || 'Források: alap',
+      `Max oldalak: ${s.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages}`,
+      `Max jelöltek: ${s.u21MaxCandidates || DEFAULTS.u21MaxCandidates}`
+    ];
+  }
+
   function buildU21HtmlExport() {
     const results = state.results || [];
     const settings = state.settings || {};
     const rows = results.map(function renderRow(player, index) {
       const u21 = player.u21 || {};
-      return `<tr>
-        <td data-label="#">${index + 1}</td>
+      const mvAbs = player.mv && player.mv.absGrowth !== null && player.mv.absGrowth !== undefined ? Number(player.mv.absGrowth || 0) : 0;
+      const mvPct = player.mv && player.mv.pctGrowth !== null && player.mv.pctGrowth !== undefined ? Number(player.mv.pctGrowth || 0) : 0;
+      return `<tr data-row data-player-name="${escapeAttr(player.name || '')}" data-u21-score="${escapeAttr(u21.total || 0)}" data-match-ratio="${escapeAttr(u21.matchRatio || 0)}" data-mv-now="${escapeAttr(player.currentMarketValue || 0)}" data-mv-abs="${escapeAttr(mvAbs)}" data-mv-pct="${escapeAttr(mvPct)}" data-nationality="${escapeAttr(normalizeText(player.nationality || ''))}" data-broad-pos="${escapeAttr(player.positionGroup || '')}" data-detail-pos="${escapeAttr(player.positionDetail || '')}">
+        <td data-label="#"><span data-rank>${index + 1}</span></td>
         <td data-label="Játékos"><strong>${escapeHtml(player.name || '—')}</strong><a href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">TM profil</a></td>
         <td data-label="Poszt">${escapeHtml(`${player.positionGroup || '—'}${player.positionDetail ? `/${player.positionDetail}` : ''}${player.position ? ` · ${player.position}` : ''}`)}</td>
         <td data-label="Kor">${escapeHtml(player.age === null || player.age === undefined ? '—' : player.age)}</td>
@@ -4261,11 +4344,61 @@
       </tr>`;
     }).join('');
     const selectedCountries = (settings.u21Nationalities || []).length ? settings.u21Nationalities.join(', ') : 'összes';
-    return `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TM Scout V2 · U21 prospect export</title><style>${u21ExportCss()}</style></head><body><main><section class="hero"><p class="eyebrow">TM Scout V2 · U21 prospect mód</p><h1>U21 prospect lista</h1><p>Rendezés: U21 score. Fő súlyok: játszott meccsarány, MV-változás, életkor és játékvolumen. Nemzetiség: ${escapeHtml(selectedCountries)}.</p><div class="stats"><div><span>Találatok</span><strong>${results.length}</strong></div><div><span>Min meccsarány</span><strong>${escapeHtml(settings.u21MinMatchRatio || 0)}%</strong></div><div><span>Kor</span><strong>${escapeHtml(settings.u21MinAge || '')}-${escapeHtml(settings.u21MaxAge || '')}</strong></div><div><span>MV</span><strong>${escapeHtml(formatEuro(settings.u21MinMv || 0))} – ${escapeHtml(formatEuro(settings.u21MaxMv || 0))}</strong></div></div></section><section class="card"><table><thead><tr><th>#</th><th>Játékos</th><th>Poszt</th><th>Kor</th><th>Nemzetiség</th><th>U21 score</th><th>Klub / csapat</th><th>MV</th><th>MV változás</th><th>Meccsarány</th><th>Szezonok</th></tr></thead><tbody>${rows || '<tr><td colspan="11">Nincs találat.</td></tr>'}</tbody></table></section></main></body></html>`;
+    const criteria = buildU21ExportFilterSummary(settings);
+    const filterControls = `<section class="export-controls"><div class="export-control-head"><strong>Szűrők a listán</strong><span>Látható: <b id="visibleCount">${results.length}</b> / ${results.length}</span></div><div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div><div class="export-control-grid"><label>Rendezés<select id="sortBy"><option value="scoreDesc">U21 score ↓</option><option value="matchDesc">Meccsarány ↓</option><option value="mvGrowthDesc">MV növekedés ↓</option><option value="mvDesc">MV most ↓</option><option value="ageAsc">Fiatalabb előre</option><option value="nameAsc">Név A–Z</option></select></label><label>Posztcsoport<select id="broadFilter"><option value="all">Összes</option><option value="GK">GK</option><option value="DEF">DEF</option><option value="MID">MID</option><option value="FWD">FWD</option></select></label><label>Részletes poszt<select id="detailFilter"><option value="all">Összes</option><option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="DM">DM</option><option value="CM">CM</option><option value="AM">AM</option><option value="LW">LW</option><option value="RW">RW</option><option value="CF">CF/ST</option></select></label><label>Nemzetiség<select id="nationalityFilter"><option value="all">Összes</option>${unique(results.map(function nat(player) { return player.nationality || ''; }).filter(Boolean)).sort().map(function natOption(nat) { return `<option value="${escapeAttr(normalizeText(nat))}">${escapeHtml(nat)}</option>`; }).join('')}</select></label><button id="resetFilters" type="button">Reset</button></div></section>`;
+    return `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TM Scout V2 · U21 prospect export</title><style>${u21ExportCss()}</style></head><body><main><section class="hero"><p class="eyebrow">TM Scout V2 · U21 prospect mód</p><h1>U21 prospect lista</h1><p>Rendezés: U21 score. Fő súlyok: játszott meccsarány, MV-változás, életkor és játékvolumen. A nemzetiség csak játékosszűrő: a forráskeresés szélesen nézi a bekapcsolt bajnokságokat, nem csak a hazai ligát. Nemzetiség: ${escapeHtml(selectedCountries)}.</p><div class="stats"><div><span>Találatok</span><strong>${results.length}</strong></div><div><span>Min meccsarány</span><strong>${escapeHtml(settings.u21MinMatchRatio || 0)}%</strong></div><div><span>Kor</span><strong>${escapeHtml(settings.u21MinAge || '')}-${escapeHtml(settings.u21MaxAge || '')}</strong></div><div><span>MV</span><strong>${escapeHtml(formatEuro(settings.u21MinMv || 0))} – ${escapeHtml(formatEuro(settings.u21MaxMv || 0))}</strong></div></div></section>${filterControls}<section class="card"><table><thead><tr><th>#</th><th>Játékos</th><th>Poszt</th><th>Kor</th><th>Nemzetiség</th><th>U21 score</th><th>Klub / csapat</th><th>MV</th><th>MV változás</th><th>Meccsarány</th><th>Szezonok</th></tr></thead><tbody data-export-body>${rows || '<tr><td colspan="11">Nincs találat.</td></tr>'}</tbody></table></section></main><script>${u21ExportScript()}</script></body></html>`;
+  }
+
+  function u21ExportScript() {
+    return `(function(){
+      const tbody = document.querySelector('[data-export-body]');
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll('tr[data-row]'));
+      const sortBy = document.getElementById('sortBy');
+      const broadFilter = document.getElementById('broadFilter');
+      const detailFilter = document.getElementById('detailFilter');
+      const nationalityFilter = document.getElementById('nationalityFilter');
+      const visibleCount = document.getElementById('visibleCount');
+      const reset = document.getElementById('resetFilters');
+      function num(row,key){ const value = Number(row.dataset[key]); return Number.isFinite(value) ? value : -999999999; }
+      function name(row){ return String(row.dataset.playerName || ''); }
+      function compareRows(a,b){
+        const mode = sortBy ? sortBy.value : 'scoreDesc';
+        if (mode === 'matchDesc') return num(b,'matchRatio') - num(a,'matchRatio') || num(b,'u21Score') - num(a,'u21Score') || name(a).localeCompare(name(b));
+        if (mode === 'mvGrowthDesc') return num(b,'mvAbs') - num(a,'mvAbs') || num(b,'mvPct') - num(a,'mvPct') || name(a).localeCompare(name(b));
+        if (mode === 'mvDesc') return num(b,'mvNow') - num(a,'mvNow') || num(b,'u21Score') - num(a,'u21Score') || name(a).localeCompare(name(b));
+        if (mode === 'ageAsc') return num(a,'age') - num(b,'age') || num(b,'u21Score') - num(a,'u21Score') || name(a).localeCompare(name(b));
+        if (mode === 'nameAsc') return name(a).localeCompare(name(b));
+        return num(b,'u21Score') - num(a,'u21Score') || num(b,'matchRatio') - num(a,'matchRatio') || name(a).localeCompare(name(b));
+      }
+      function passes(row){
+        const broad = broadFilter ? broadFilter.value : 'all';
+        const detail = detailFilter ? detailFilter.value : 'all';
+        const nat = nationalityFilter ? nationalityFilter.value : 'all';
+        if (detail && detail !== 'all' && row.dataset.detailPos !== detail) return false;
+        if (broad && broad !== 'all' && row.dataset.broadPos !== broad) return false;
+        if (nat && nat !== 'all' && !String(row.dataset.nationality || '').includes(nat)) return false;
+        return true;
+      }
+      function apply(){
+        const filtered = rows.filter(passes).sort(compareRows);
+        rows.forEach(function(row){ row.classList.add('is-hidden'); });
+        filtered.forEach(function(row,index){
+          row.classList.remove('is-hidden');
+          tbody.appendChild(row);
+          const rank = row.querySelector('[data-rank]');
+          if (rank) rank.textContent = String(index + 1);
+        });
+        if (visibleCount) visibleCount.textContent = String(filtered.length);
+      }
+      [sortBy,broadFilter,detailFilter,nationalityFilter].forEach(function(el){ if (el) el.addEventListener('change', apply); });
+      if (reset) reset.addEventListener('click', function(){ if(sortBy) sortBy.value='scoreDesc'; if(broadFilter) broadFilter.value='all'; if(detailFilter) detailFilter.value='all'; if(nationalityFilter) nationalityFilter.value='all'; apply(); });
+      apply();
+    })();`;
   }
 
   function u21ExportCss() {
-    return `:root{color-scheme:dark;--bg:#071018;--card:#0d1b27;--card2:#102235;--line:#24415a;--line2:rgba(132,165,196,.18);--text:#eef6ff;--muted:#9bb2c7;--accent:#77d99a;--accent2:#8ec7ff;--good:#86dfa6}*{box-sizing:border-box}html{scrollbar-color:#31506b #071018}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at top left,rgba(119,217,154,.14),transparent 34rem),#071018;color:var(--text);font-size:13px;line-height:1.4}main{max-width:1640px;margin:0 auto;padding:24px 18px 40px}.hero{border:1px solid var(--line);background:#0a1621;border-radius:18px;padding:22px 24px;box-shadow:0 14px 50px rgba(0,0,0,.28)}.card{margin-top:20px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#08131d;box-shadow:0 12px 42px rgba(0,0,0,.24)}.eyebrow{margin:0 0 6px;color:var(--accent);font-weight:850;text-transform:uppercase;font-size:12px;letter-spacing:.08em}h1{margin:0;font-size:clamp(28px,4vw,46px);letter-spacing:-.03em}p{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.stats div{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#08131d}.stats span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:750}.stats strong{font-size:24px;color:#fff;letter-spacing:-.02em}table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:1320px;background:#08131d}th,td{padding:12px 11px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top;font-size:12.5px;line-height:1.38;overflow-wrap:anywhere;word-break:normal}th{position:sticky;top:0;z-index:2;background:#102235;color:#d7e7f5;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:800}tbody tr:nth-child(odd) td{background:#0a1722}tbody tr:nth-child(even) td{background:#0c1b27}tbody tr:hover td{background:#10263a}td a{display:block;margin-top:4px;color:#9bd2ff;text-decoration:none;font-weight:800}td strong{color:#fff}@media(max-width:900px){main{padding:14px 10px}.hero{padding:17px;border-radius:16px}h1{font-size:34px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.card{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}@media(max-width:540px){.stats{grid-template-columns:1fr}}`;
+    return `:root{color-scheme:dark;--bg:#071018;--card:#0d1b27;--card2:#102235;--line:#24415a;--line2:rgba(132,165,196,.18);--text:#eef6ff;--muted:#9bb2c7;--accent:#77d99a;--accent2:#8ec7ff;--good:#86dfa6}*{box-sizing:border-box}html{scrollbar-color:#31506b #071018}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at top left,rgba(119,217,154,.14),transparent 34rem),#071018;color:var(--text);font-size:13px;line-height:1.4}main{max-width:1640px;margin:0 auto;padding:24px 18px 40px}.hero{border:1px solid var(--line);background:#0a1621;border-radius:18px;padding:22px 24px;box-shadow:0 14px 50px rgba(0,0,0,.28)}.card{margin-top:20px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#08131d;box-shadow:0 12px 42px rgba(0,0,0,.24)}.eyebrow{margin:0 0 6px;color:var(--accent);font-weight:850;text-transform:uppercase;font-size:12px;letter-spacing:.08em}h1{margin:0;font-size:clamp(28px,4vw,46px);letter-spacing:-.03em}p{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.stats div{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#08131d}.stats span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:750}.stats strong{font-size:24px;color:#fff;letter-spacing:-.02em}.export-controls{margin-top:18px;border:1px solid var(--line);border-radius:16px;background:#0a1621;padding:14px 16px}.export-control-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.criteria span{border:1px solid rgba(119,217,154,.28);background:rgba(119,217,154,.08);border-radius:999px;padding:6px 9px;color:#d9f6e4;font-size:11.5px;font-weight:800}.export-control-grid{display:grid;grid-template-columns:minmax(170px,1fr) minmax(145px,.8fr) minmax(145px,.8fr) minmax(170px,1fr) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.is-hidden{display:none!important}table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:1320px;background:#08131d}th,td{padding:12px 11px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top;font-size:12.5px;line-height:1.38;overflow-wrap:anywhere;word-break:normal}th{position:sticky;top:0;z-index:2;background:#102235;color:#d7e7f5;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:800}tbody tr:nth-child(odd) td{background:#0a1722}tbody tr:nth-child(even) td{background:#0c1b27}tbody tr:hover td{background:#10263a}td a{display:block;margin-top:4px;color:#9bd2ff;text-decoration:none;font-weight:800}td strong{color:#fff}@media(max-width:900px){main{padding:14px 10px}.hero{padding:17px;border-radius:16px}h1{font-size:34px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.card{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}@media(max-width:540px){.stats,.export-control-grid{grid-template-columns:1fr}}`;
   }
 
   function buildHtmlExport() {
