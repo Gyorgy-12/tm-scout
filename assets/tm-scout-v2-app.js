@@ -193,6 +193,7 @@
     "Kiválasztott szezonok": "Selected seasons",
     "Keresés": "Search",
     "HTML letöltés": "Download HTML",
+    "HTML nézet megnyitása": "Open HTML view",
     "CSV export": "CSV export",
     "JSON export": "JSON export",
     "Cache törlés": "Clear cache",
@@ -329,6 +330,7 @@
     "Kiválasztott szezonok": "Sezoanele selectate",
     "Keresés": "Căutare",
     "HTML letöltés": "Descarcă HTML",
+    "HTML nézet megnyitása": "Deschide vizualizarea HTML",
     "CSV export": "Export CSV",
     "JSON export": "Export JSON",
     "Cache törlés": "Șterge cache",
@@ -935,6 +937,7 @@
       '      <div class="tm-scout-v2-actions">',
       '        <button type="button" data-action="search" class="tm-scout-v2-primary">Keresés</button>',
       '        <button type="button" data-action="download-html">HTML letöltés</button>',
+      '        <button type="button" data-action="open-html-view">HTML nézet megnyitása</button>',
       '        <button type="button" data-action="download-csv">CSV export</button>',
       '        <button type="button" data-action="download-json">JSON export</button>',
       '        <button type="button" data-action="clear-cache">Cache törlés</button>',
@@ -1067,6 +1070,11 @@
           downloadText(`tm-scout-v2-${dateStamp()}.html`, 'text/html;charset=utf-8', buildHtmlExport());
           return;
         }
+        if (action === 'open-html-view') {
+          ensureHasResults();
+          openHtmlView();
+          return;
+        }
         if (action === 'download-csv') {
           ensureHasResults();
           downloadText(`tm-scout-v2-${dateStamp()}.csv`, 'text/csv;charset=utf-8', buildCsvExport(state.results));
@@ -1092,6 +1100,7 @@
   async function runScout(panel) {
     if (state.running) return;
     state.running = true;
+    panel.classList.add('tm-scout-v2-running');
     state.debug = makeDebug();
     state.results = [];
     state.rawCandidates = [];
@@ -1255,6 +1264,7 @@
       window.alert(`${APP.logPrefix} error: ${stringifyError(error)}`);
     } finally {
       state.running = false;
+      panel.classList.remove('tm-scout-v2-running');
       if (searchButton) searchButton.disabled = false;
       renderStats(panel);
     }
@@ -4559,6 +4569,34 @@
     if (!state.results.length) throw new Error('Nincs exportálható találat. Előbb futtasd a keresést.');
   }
 
+
+  function openHtmlView() {
+    const html = buildHtmlExport();
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const popup = window.open(url, 'tmScoutV2HtmlView', 'noopener,noreferrer,width=1280,height=900');
+    if (!popup) {
+      const overlay = document.createElement('div');
+      overlay.className = 'tm-scout-v2-html-modal';
+      overlay.innerHTML = [
+        '<div class="tm-scout-v2-html-modal-head">',
+        '<strong>HTML nézet</strong>',
+        '<button type="button" data-close-html-view>Bezárás</button>',
+        '</div>',
+        `<iframe title="TM Scout V2 HTML nézet" src="${escapeAttr(url)}"></iframe>`
+      ].join('');
+      document.body.appendChild(overlay);
+      overlay.querySelector('[data-close-html-view]').addEventListener('click', function closeHtmlView() {
+        overlay.remove();
+        URL.revokeObjectURL(url);
+      });
+      return;
+    }
+    window.setTimeout(function cleanupHtmlViewUrl() {
+      URL.revokeObjectURL(url);
+    }, 60000);
+  }
+
   function downloadText(filename, mime, text) {
     const blob = new Blob([text], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -4720,7 +4758,8 @@
       .tm-scout-v2-collapsed{inset:auto 16px 16px auto;width:min(520px,calc(100vw - 32px));height:auto}.tm-scout-v2-collapsed .tm-scout-v2-body{display:none}.tm-scout-v2-collapsed .tm-scout-v2-shell{height:auto}.tm-scout-v2-collapsed .tm-scout-v2-head{border-bottom:0}
       @media(max-width:520px){.tm-scout-v2-actions{grid-template-columns:1fr 1fr!important}.tm-scout-v2-actions button{white-space:normal!important}}
       @media(max-width:1100px){.tm-scout-v2-body{grid-template-columns:420px minmax(0,1fr)}}
-      @media(max-width:900px){#tmScoutMount .tm-scout-v2-panel,.tm-scout-v2-panel{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important}.tm-scout-v2-shell{height:auto!important;min-height:0!important;overflow:visible!important;border-radius:18px!important}.tm-scout-v2-body{display:block!important}.tm-scout-v2-controls{max-height:none!important;overflow:visible!important;border-right:0!important;border-bottom:1px solid rgba(125,166,200,.18)!important;padding:12px!important;scroll-padding-bottom:0!important}.tm-scout-v2-output{overflow:visible!important}.tm-scout-v2-table-wrap{max-height:68vh!important;overflow:auto!important}.tm-scout-v2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tm-scout-v2-head{display:block;padding:15px!important}.tm-scout-v2-head-actions{margin-top:12px;justify-content:flex-start!important}.tm-scout-v2-head-lang select{min-width:0;width:100%}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr 1fr}.tm-scout-v2-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+      .tm-scout-v2-html-modal{position:fixed!important;inset:18px!important;z-index:2147483647!important;display:flex!important;flex-direction:column!important;background:#071018!important;border:1px solid rgba(125,166,200,.35)!important;border-radius:18px!important;box-shadow:0 30px 90px rgba(0,0,0,.55)!important;overflow:hidden!important}.tm-scout-v2-html-modal-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:10px 12px!important;background:#102235!important;color:#eef7ff!important}.tm-scout-v2-html-modal-head button{border:1px solid rgba(125,166,200,.35)!important;border-radius:9px!important;background:#0a1722!important;color:#eef7ff!important;font-weight:800!important;padding:7px 10px!important;cursor:pointer!important}.tm-scout-v2-html-modal iframe{width:100%!important;height:100%!important;border:0!important;background:#071018!important}
+      @media(max-width:900px){#tmScoutMount .tm-scout-v2-panel,.tm-scout-v2-panel{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important}.tm-scout-v2-shell{height:auto!important;min-height:0!important;overflow:visible!important;border-radius:18px!important}.tm-scout-v2-body{display:block!important}.tm-scout-v2-controls{max-height:none!important;overflow:visible!important;border-right:0!important;border-bottom:1px solid rgba(125,166,200,.18)!important;padding:12px!important;scroll-padding-bottom:0!important}.tm-scout-v2-output{overflow:visible!important}.tm-scout-v2-table-wrap{max-height:68vh!important;overflow:auto!important}.tm-scout-v2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tm-scout-v2-head{display:block;padding:15px!important}.tm-scout-v2-head-actions{margin-top:12px;justify-content:flex-start!important}.tm-scout-v2-head-lang select{min-width:0;width:100%}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr 1fr}.tm-scout-v2-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.tm-scout-v2-panel.tm-scout-v2-running .tm-scout-v2-table-wrap{display:none!important}}
       @media(max-width:560px){.tm-scout-v2-head h2{font-size:24px!important}.tm-scout-v2-head p{font-size:12px!important;line-height:1.4!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:1fr!important}.tm-scout-v2-checks,.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr!important}.tm-scout-v2-stats{grid-template-columns:1fr 1fr!important;padding:10px!important}.tm-scout-v2-statusbar{padding:12px!important}.tm-scout-v2-actions{grid-template-columns:1fr 1fr!important}.tm-scout-v2-table{min-width:980px!important}.tm-scout-v2-table th,.tm-scout-v2-table td{font-size:11px!important;padding:8px!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{min-height:180px!important;max-height:260px!important}}    `;
     (document.head || document.documentElement).appendChild(style);
   }
