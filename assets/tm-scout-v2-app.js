@@ -550,7 +550,7 @@
     extraSourceUrls: '',
     concurrency: 4,
 
-    // U21 prospect mode: not contract-first, but league/club/playing-ratio first.
+    // U21 prospect mode: broad youth search. MV is useful, but missing MV is not an exclusion reason.
     scoutMode: 'contract',
     u21MinAge: 16,
     u21MaxAge: 21,
@@ -1015,6 +1015,11 @@
       state.settings.detailRW = true;
     }
 
+    // Do not restore nationality multi-select from localStorage.
+    // It was confusing: the first click could suddenly re-apply old saved countries
+    // and jump the native select scroll position. Nationalities are now session/manual only.
+    state.settings.u21Nationalities = [];
+
     Object.keys(DEFAULTS).forEach(function setInput(name) {
       const input = form.elements[name];
       if (!input) return;
@@ -1369,7 +1374,11 @@
 
   function saveUiSettings(settings) {
     try {
-      window.localStorage.setItem('tmScoutV2SelectReadableFixUiSettings', JSON.stringify(settings));
+      const stored = Object.assign({}, settings || {});
+      // Keep the nationality multi-choice manual for each run.
+      // This avoids old localStorage selections popping back in on click/refresh.
+      stored.u21Nationalities = [];
+      window.localStorage.setItem('tmScoutV2SelectReadableFixUiSettings', JSON.stringify(stored));
     } catch (error) {
       pushError('ui settings save failed', stringifyError(error));
     }
@@ -1676,6 +1685,70 @@
   }
 
 
+
+  function getU21NationalTeamSourceUrls(settings) {
+    const selected = (settings.u21Nationalities || []).map(function normalizeCountry(value) {
+      const n = normalizeText(value);
+      if (n === 'usa' || n === 'united states') return 'united states';
+      return n;
+    }).filter(Boolean);
+
+    if (!selected.length) return [];
+
+    const nationalSources = {
+      'romania': [
+        ['Romania U21', 'https://www.transfermarkt.com/romania-u21/startseite/verein/16864/sort/marketValueRaw'],
+        ['Romania U21', 'https://www.transfermarkt.com/romania-u21/startseite/verein/16864/sort/name'],
+        ['Romania U19', 'https://www.transfermarkt.com/romania-u19/startseite/verein/21428/sort/marketValueRaw'],
+        ['Romania U19', 'https://www.transfermarkt.com/romania-u19/startseite/verein/21428/sort/name'],
+        ['Romania U19', 'https://www.transfermarkt.com/romania-u19/startseite/verein/21428/sort/dateOfBirthTimestamp']
+      ],
+      'hungary': [
+        ['Hungary U21', 'https://www.transfermarkt.com/hungary-u21/startseite/verein/22514/sort/marketValueRaw'],
+        ['Hungary U21', 'https://www.transfermarkt.com/hungary-u21/startseite/verein/22514/sort/name'],
+        ['Hungary U19', 'https://www.transfermarkt.com/ungarn-u19/startseite/verein/22513/sort/marketValueRaw'],
+        ['Hungary U19', 'https://www.transfermarkt.com/ungarn-u19/startseite/verein/22513/sort/name']
+      ],
+      'serbia': [
+        ['Serbia U21', 'https://www.transfermarkt.com/serbia-u21/startseite/verein/9566/sort/marketValueRaw'],
+        ['Serbia U21', 'https://www.transfermarkt.com/serbia-u21/startseite/verein/9566/sort/name'],
+        ['Serbia U19', 'https://www.transfermarkt.com/serbia-u19/startseite/verein/17383/sort/marketValueRaw'],
+        ['Serbia U19', 'https://www.transfermarkt.com/serbia-u19/startseite/verein/17383/sort/name'],
+        ['Serbia U19', 'https://www.transfermarkt.com/serbien-u19/startseite/verein/17383/sort/marketValueRaw']
+      ],
+      'croatia': [
+        ['Croatia U21', 'https://www.transfermarkt.com/croatia-u21/startseite/verein/11943/sort/marketValueRaw'],
+        ['Croatia U21', 'https://www.transfermarkt.com/croatia-u21/startseite/verein/11943/sort/name'],
+        ['Croatia U19', 'https://www.transfermarkt.com/kroatien-u19/startseite/verein/17379/sort/marketValueRaw'],
+        ['Croatia U19', 'https://www.transfermarkt.com/kroatien-u19/startseite/verein/17379/sort/name']
+      ],
+      'ukraine': [
+        ['Ukraine U21', 'https://www.transfermarkt.com/ukraine-u21/startseite/verein/16274/sort/marketValueRaw'],
+        ['Ukraine U21', 'https://www.transfermarkt.com/ukraine-u21/startseite/verein/16274/sort/name']
+      ]
+    };
+
+    const out = [];
+    selected.forEach(function addSelected(countryKey) {
+      (nationalSources[countryKey] || []).forEach(function addEntry(entry) {
+        out.push({ label: entry[0], url: entry[1] });
+      });
+    });
+
+    return unique(out.map(function toKeyed(item) { return item.label + '|' + item.url; })).map(function fromKey(key) {
+      const parts = key.split('|');
+      return {
+        url: parts.slice(1).join('|'),
+        type: 'u21-prospect',
+        label: parts[0] + ' squad seed',
+        sourceGroup: 'u21-national-squad-seed',
+        page: 1,
+        plannedPageLimit: 1,
+        sourceFilterWeight: 0
+      };
+    });
+  }
+
   function buildU21SourcePlan(settings) {
     const sourceFilters = buildU21CompactSourceFilters(settings);
     state.debug.sourceFilterCombos = sourceFilters.map(function debugCombo(combo) {
@@ -1692,6 +1765,23 @@
     const seen = new Set();
     const plan = [];
     const requestedPages = Math.max(1, Number(settings.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages || 16));
+
+    // A kiválasztott nemzetiségekhez tartozó U21/U19 válogatott keretoldalak seedként mennek be.
+    // Ez nem hazai liga-szűkítés: csak plusz belépési pont, hogy a Techereș-szerű profilok ne essenek ki,
+    // ha épp nem kerültek fel elég magasra valamelyik liga market-value listáján.
+    for (const seed of getU21NationalTeamSourceUrls(settings)) {
+      const key = seed.url.replace(/\/$/, '');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      plan.push(seed);
+      state.debug.adaptivePageLimits.push({
+        group: seed.sourceGroup,
+        label: seed.label,
+        filterWeight: 0,
+        pageLimit: 1,
+        note: 'selected-nationality youth squad seed'
+      });
+    }
 
     // U21-nél a nemzetiség NEM azt jelenti, hogy csak a hazai bajnokságban nézünk körül.
     // Előbb minden bekapcsolt liga kap legalább egy esélyt, utána mélyítünk oldalanként.
@@ -2411,16 +2501,22 @@
     const ba = Number(b.age || 99);
     const am = Number(a.marketValue || 0);
     const bm = Number(b.marketValue || 0);
-    const ak = am > 0 ? 0 : 1;
-    const bk = bm > 0 ? 0 : 1;
+    const as = getU21CandidateSeedPriority(a);
+    const bs = getU21CandidateSeedPriority(b);
 
-    // U21-nél ne a legdrágábbak jussanak be először az enrich limitbe.
-    // Fiatalabb + ismert MV + alacsonyabb/közepesebb MV irányból indulunk,
-    // hogy a Petculescu-szerű RO2/U19/lower-league profilok ne essenek le a listáról.
+    // U21-nél nem a legdrágábbak és nem csak az ismert MV-s játékosok mennek előre.
+    // Előny: fiatalabb, U21/U19 válogatott vagy utánpótlás-seed forrás, majd csak utána MV.
     return (aa - ba)
-      || (ak - bk)
+      || (bs - as)
       || (am - bm)
       || String(a.name || '').localeCompare(String(b.name || ''));
+  }
+
+  function getU21CandidateSeedPriority(candidate) {
+    const text = String([].concat(candidate.sourceLabels || [], candidate.sourceUrls || [], candidate.sourceTypes || []).join(' ')).toLowerCase();
+    if (/u21-national-squad-seed|u19|u21|youth|academy|u-19|u-21/.test(text)) return 35;
+    if (/u21-prospect/.test(text)) return 12;
+    return 0;
   }
 
   async function enrichCandidate(candidate, settings) {
@@ -3785,7 +3881,8 @@
     const detail = player.positionDetail || positionDetail(player.position);
     const u21 = player.u21 || buildU21Metrics(player, settings);
 
-    if (mv === null || mv === undefined || mv < settings.u21MinMv || mv > settings.u21MaxMv) reasons.push('u21-mv-out-of-range');
+    // Missing/zero MV is allowed in U21 mode. If TM has a real MV, then the MV filter applies.
+    if (mv !== null && mv !== undefined && Number(mv) > 0 && (mv < settings.u21MinMv || mv > settings.u21MaxMv)) reasons.push('u21-mv-out-of-range');
     if (age === null || age === undefined || age < settings.u21MinAge || age > settings.u21MaxAge) reasons.push('u21-age-out-of-range');
     if (!matchesU21Nationality(player.nationality, settings)) reasons.push('u21-nationality-disabled');
     const mode = normalizePositionFilterMode(settings.positionFilterMode);
@@ -3803,7 +3900,8 @@
 
   function computeU21MvTrendScore(mv, currentValue) {
     if (!mv || mv.absGrowth === null || mv.absGrowth === undefined) {
-      return Number(currentValue || 0) > 0 ? 42 : 25;
+      // No MV / no MV history should not kill a youth profile. Treat it as neutral.
+      return 50;
     }
     const absGrowth = Number(mv.absGrowth || 0);
     const pctGrowth = Number(mv.pctGrowth || 0);
@@ -3958,6 +4056,7 @@
     if (!input || !input.options) return;
     const selected = new Set((Array.isArray(values) ? values : []).map(String));
     Array.from(input.options).forEach(function mark(option) { option.selected = selected.has(String(option.value)); });
+    input.dataset.manualTouched = selected.size ? '1' : '0';
   }
 
   function bindToggleableMultiSelect(panel) {
@@ -3965,15 +4064,41 @@
     if (!select || select.dataset.toggleBound === '1') return;
     select.dataset.toggleBound = '1';
 
-    // Chrome natív multiple selectnél a sima kattintás sokszor nem toggle,
-    // hanem újraszelektál. Itt minden opció kattintása ki/be kapcsolja az adott sort.
-    select.addEventListener('mousedown', function toggleOption(event) {
+    function toggleOption(option) {
+      if (!option || option.disabled) return;
+      const scrollTop = select.scrollTop;
+      option.selected = !option.selected;
+      select.dataset.manualTouched = '1';
+      select.focus({ preventScroll: true });
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      window.requestAnimationFrame(function restoreSelectScroll() {
+        select.scrollTop = scrollTop;
+      });
+    }
+
+    // Chrome native multiple select can jump around and re-apply stale selections.
+    // We keep it stable: one click toggles one country and the scroll position is restored.
+    select.addEventListener('pointerdown', function toggleOptionPointer(event) {
       const option = event.target && event.target.closest ? event.target.closest('option') : null;
       if (!option || option.disabled) return;
       event.preventDefault();
-      option.selected = !option.selected;
-      select.focus();
-      select.dispatchEvent(new Event('change', { bubbles: true }));
+      event.stopPropagation();
+      toggleOption(option);
+    });
+
+    select.addEventListener('mousedown', function blockNativeMouseSelection(event) {
+      const option = event.target && event.target.closest ? event.target.closest('option') : null;
+      if (!option || option.disabled) return;
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+    select.addEventListener('keydown', function toggleOptionKeyboard(event) {
+      if (event.key !== ' ' && event.key !== 'Enter') return;
+      const option = select.options[select.selectedIndex];
+      if (!option) return;
+      event.preventDefault();
+      toggleOption(option);
     });
   }
 
