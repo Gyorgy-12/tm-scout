@@ -1,76 +1,156 @@
-# TM Scout V2 GitHub Pages projekt
+# TM Scout V2
 
-Ez a csomag a Tampermonkey userscriptből kiszedett, GitHub Pagesen futtatható frontend változat.
+TM Scout V2 is a GitHub Pages frontend for scouting Transfermarkt players through two separate modes:
 
-## Miért kell Worker?
+- **Contract / free agent scout**: finds players with contracts ending in a selected year, plus current free agents.
+- **U21 prospect scout**: ranks younger players by league level, match involvement, academy/club environment, age and market-value context.
 
-A GitHub Pages statikus oldal. A Transfermarkt oldalait böngészőből közvetlenül általában blokkolja a CORS, ezért a projekt mellé adtam egy Cloudflare Worker proxyt:
+The app was originally built from a Tampermonkey userscript, but this version is structured as a normal version-controlled GitHub project.
 
-- `worker/tm-proxy-worker.js`
+## Why a Cloudflare Worker is required
 
-## Telepítés
+GitHub Pages is a static frontend. Browser requests from GitHub Pages to Transfermarkt are usually blocked by CORS, so the frontend uses a small Cloudflare Worker proxy:
 
-1. Hozz létre egy GitHub repót.
-2. Másold fel a projekt gyökerébe ezeket:
-   - `index.html`
-   - `assets/site.css`
-   - `assets/tm-scout-v2-app.js`
-   - `.nojekyll`
-3. GitHub repo → Settings → Pages → Deploy from branch → `main` / root.
-4. Cloudflare Workersben hozz létre egy új Workert, és másold bele a `worker/tm-proxy-worker.js` tartalmát.
-5. Nyisd meg a GitHub Pages oldalt, majd felül illeszd be a Worker URL-t, például:
-   - `https://tm-proxy.valami.workers.dev`
-6. Mentés után mehet a keresés.
+```txt
+worker/tm-proxy-worker.js
+```
 
-## Megjegyzés
+The frontend sends Transfermarkt URLs to the Worker. The Worker fetches the HTML and returns it to the app.
 
-Ez nem Tampermonkey-scriptként fut, hanem külön HTML appként. A korábbi GM storage hívások localStorage shimre vannak rakva, a `GM_xmlhttpRequest` pedig Worker proxyn keresztül fetch-el.
+## Project structure
 
+```txt
+index.html
+assets/
+  site.css
+  tm-scout-v2-app.js
+worker/
+  tm-proxy-worker.js
+wrangler.toml
+package.json
+.nojekyll
+README.md
+DEV-STEPS.md
+```
 
-## U21 prospect mód
+## Frontend deployment with GitHub Pages
 
-Az appban a **Scout mód** mezőnél választható az `U21 prospect` mód. Ebben nem a lejáró szerződés és nem az MV-drop a fő szűrő, hanem:
+1. Create a GitHub repository, for example `tm-scout-v2`.
+2. Clone it locally.
+3. Copy the project files into the repository root.
+4. Commit and push:
 
-- liga-szint score,
-- játszott meccsarány,
-- akadémia / klubkörnyezet score,
-- opcionális nemzetiség multiple choice,
-- U21 életkor- és market value-sáv.
+```bat
+git add .
+git commit -m "Initial TM Scout V2 app"
+git push
+```
 
-A végeredmény U21 score szerint rendeződik. A két mód menüje szét van választva: U21 módban nem látszanak a contract/MV-drop/Játékidő+szezonok szűrők, contract módban pedig nem látszik az U21 prospect blokk. A Transfermarkt oldalak olvasásához továbbra is kell a Cloudflare Worker proxy.
+5. In GitHub, open:
 
+```txt
+Settings -> Pages
+```
 
-## U21 / Contract menü javítás
+6. Set:
 
-Ebben a buildben a módváltás már nem csak `hidden` attribútumot állít, hanem `display:none!important`-et is. Ez javítja azt, hogy U21 módban a contract/MV-drop blokkok ne látszódjanak, contract módban pedig az U21 blokk ne látszódjon. Az `index.html` cache-bust query stringgel tölti a friss JS-t.
+```txt
+Source: Deploy from a branch
+Branch: main
+Folder: /root
+```
 
+7. Open the GitHub Pages URL after deployment finishes.
 
-## U21 nemzetiség-választó és gombsor javítás
+## Worker deployment with Wrangler
 
-Ebben a buildben a nemzetiség-listában egy sima kattintás ki/be kapcsolja az adott országot, nem kell Ctrl-kattintás. A keresés/export/cache gombsor már nem lebeg sticky elemként a szűrők felett, hanem a bal oldali űrlap alján marad a normál folyamban.
+Install dependencies and deploy the Worker:
 
-## Többnyelvű felület
+```bat
+npm install
+npx wrangler login
+npx wrangler deploy
+```
 
-A felület három nyelven váltható:
+The Worker name is configured in `wrangler.toml`:
 
-- magyar,
-- English,
-- română.
+```txt
+name = "tm-scout-v2-proxy"
+main = "worker/tm-proxy-worker.js"
+```
 
-A nyelvválasztó fent, a proxy mezőnél és az appon belül is elérhető. A választás localStorage-ban marad, ezért újratöltés után is megmarad.
+After deployment, use the Worker URL in the frontend proxy field, for example:
 
+```txt
+https://tm-scout-v2-proxy.wc26-guesses.workers.dev
+```
 
-## Frissítés
+## Contract / free agent mode
 
-- A lebegő TM Scout V2 indítógomb ki lett véve GitHub Pages módban.
-- A nyelvválasztó a megnyitott app jobb felső sarkába került.
+This mode searches Transfermarkt contract-ending and free-agent sources.
 
+Main filters include:
 
-## 2026-07-05
+- contract expiry year, such as 2026 or 2027;
+- market-value range;
+- age range;
+- market-value reference date;
+- maximum market-value drop percentage;
+- minimum minutes or appearances per season;
+- broad or detailed position filters;
+- first-tier and selected lower-league source coverage;
+- current free agents.
 
-Removed the extra source links textarea from the public UI.
+The contract expiry year is applied directly to the generated Transfermarkt source URLs, so the app does not accidentally fall back to Transfermarkt's default year view.
 
-## Frissítés: szerződés lejárati év
+## U21 prospect mode
 
-A lejáró szerződés / free agent módban külön választható a szerződés lejárati éve.
-A source URL-ek kizárólag a kiválasztott évvel épülnek, így a Transfermarkt alapértelmezett 2027-es nézete nem keveredik bele a 2026-os keresésbe.
+This mode is separated from the contract/free-agent filters. It focuses on prospect context rather than contract expiry.
+
+The U21 ranking uses:
+
+- league-level score;
+- match involvement ratio;
+- academy or club-environment score;
+- age context;
+- market-value context;
+- optional nationality multiple-choice filtering.
+
+The U21 interface hides the contract-specific filters, and contract mode hides the U21-specific block.
+
+## Localization
+
+The interface supports three languages:
+
+- Hungarian;
+- English;
+- Romanian.
+
+The language selector is placed in the top-right area of the opened app. The selected language is saved in `localStorage`.
+
+## Current UI behavior
+
+- The old floating `TM Scout V2` launcher button is removed in the GitHub Pages build.
+- The app opens directly.
+- The extra source-link textarea is removed from the public UI.
+- The nationality multiple-select supports normal click-to-toggle selection, so Ctrl-click is not required.
+- The search/export/cache button row stays in the normal form flow and does not float above the fields.
+
+## Development workflow
+
+For normal frontend changes:
+
+```bat
+git status
+git add .
+git commit -m "Describe the change"
+git push
+```
+
+For Worker changes:
+
+```bat
+npx wrangler deploy
+```
+
+More detailed local workflow notes are in `DEV-STEPS.md`.
