@@ -174,7 +174,8 @@
     "U21 max MV": "U21 max MV",
     "Min liga-szint score": "Min league-level score",
     "Min játszott meccsarány %": "Min played-match ratio %",
-    "Min akadémia/klub score": "Min academy/club score",
+    "Min klubszint score": "Min club score",
+    
     "Nemzetiségek, opcionális multiple choice": "Nationalities, optional multiple choice",
     "U21 oldalak": "U21 pages",
     "U21 max játékosjelöltek": "U21 max candidates",
@@ -218,7 +219,7 @@
     "TM profil": "TM profile",
     "Profil": "Profile",
     "U21 score": "U21 score",
-    "Akadémia / klubkörnyezet": "Academy / club environment",
+    "Klubkörnyezet": "Club environment",
     "Liga-szint": "League level",
     "Játszott meccsarány": "Played-match ratio",
     "Nincs találat még. Vagy túl szigorú a filter, vagy Transfermarkt épp trollkodik.": "No results yet. Either the filters are too strict or Transfermarkt is acting up.",
@@ -314,7 +315,8 @@
     "U21 max MV": "MV maxim U21",
     "Min liga-szint score": "Scor minim nivel ligă",
     "Min játszott meccsarány %": "Procent minim meciuri jucate %",
-    "Min akadémia/klub score": "Scor minim academie/club",
+    "Min klubszint score": "Scor minim club",
+    
     "Nemzetiségek, opcionális multiple choice": "Naționalități, selecție multiplă opțională",
     "U21 oldalak": "Pagini U21",
     "U21 max játékosjelöltek": "Candidați U21 maximi",
@@ -358,7 +360,7 @@
     "TM profil": "Profil TM",
     "Profil": "Profil",
     "U21 score": "Scor U21",
-    "Akadémia / klubkörnyezet": "Academie / mediu de club",
+    "Klubkörnyezet": "Mediu de club",
     "Liga-szint": "Nivel ligă",
     "Játszott meccsarány": "Procent meciuri jucate",
     "Nincs találat még. Vagy túl szigorú a filter, vagy Transfermarkt épp trollkodik.": "Nu există rezultate încă. Fie filtrele sunt prea stricte, fie Transfermarkt face figuri.",
@@ -550,15 +552,15 @@
     extraSourceUrls: '',
     concurrency: 4,
 
-    // U21 prospect mode: not contract-first, but league/academy/playing-ratio first.
+    // U21 prospect mode: not contract-first, but league/club/playing-ratio first.
     scoutMode: 'contract',
     u21MinAge: 16,
     u21MaxAge: 21,
     u21MinMv: 0,
     u21MaxMv: 5000000,
     u21MinLeagueScore: 55,
-    u21MinMatchRatio: 35,
-    u21MinAcademyScore: 0,
+    u21MinMatchRatio: 65,
+    u21MinClubScore: 0,
     u21Nationalities: []
   });
 
@@ -914,7 +916,7 @@
       '        <label>U21 max MV <input name="u21MaxMv" type="number" min="0" step="50000"></label>',
       '        <label>Min liga-szint score <input name="u21MinLeagueScore" type="number" min="0" max="100" step="1"></label>',
       '        <label>Min játszott meccsarány % <input name="u21MinMatchRatio" type="number" min="0" max="100" step="1"></label>',
-      '        <label>Min akadémia/klub score <input name="u21MinAcademyScore" type="number" min="0" max="100" step="1"></label>',
+      '        <label>Min klubszint score <input name="u21MinClubScore" type="number" min="0" max="100" step="1"></label>',
       '        <label class="tm-scout-v2-wide">Nemzetiségek, opcionális multiple choice',
       '          <select class="tm-scout-v2-multi-select" name="u21Nationalities" multiple size="10">',
       '            <option value="Argentina">Argentina</option><option value="Austria">Austria</option><option value="Belgium">Belgium</option><option value="Brazil">Brazil</option><option value="Croatia">Croatia</option><option value="Czech Republic">Czech Republic</option>',
@@ -1293,7 +1295,7 @@
       u21MaxMv: readNumber(form.elements.u21MaxMv, DEFAULTS.u21MaxMv),
       u21MinLeagueScore: clampNumber(readNumber(form.elements.u21MinLeagueScore, DEFAULTS.u21MinLeagueScore), 0, 100),
       u21MinMatchRatio: clampNumber(readNumber(form.elements.u21MinMatchRatio, DEFAULTS.u21MinMatchRatio), 0, 100),
-      u21MinAcademyScore: clampNumber(readNumber(form.elements.u21MinAcademyScore, DEFAULTS.u21MinAcademyScore), 0, 100),
+      u21MinClubScore: clampNumber(readNumber(form.elements.u21MinClubScore, DEFAULTS.u21MinClubScore), 0, 100),
       u21MaxSourcePages: readNumber(form.elements.u21MaxSourcePages, DEFAULTS.u21MaxSourcePages),
       u21MaxCandidates: readNumber(form.elements.u21MaxCandidates, DEFAULTS.u21MaxCandidates),
       u21Nationalities: readMultiSelectValues(form.elements.u21Nationalities),
@@ -3705,60 +3707,78 @@
     }
     if ((u21.leagueScore || 0) < settings.u21MinLeagueScore) reasons.push('u21-league-score-too-low');
     if ((u21.matchRatio || 0) < settings.u21MinMatchRatio) reasons.push('u21-match-ratio-too-low');
-    if ((u21.academyScore || 0) < settings.u21MinAcademyScore) reasons.push('u21-academy-score-too-low');
+    if ((u21.clubScore || 0) < settings.u21MinClubScore) reasons.push('u21-club-score-too-low');
     if (settings.futureExclude && player.futureTransferDetected) reasons.push('future-transfer-detected');
     if (shouldApplyOwnTeamFilter(settings) && player.ownTeamExclusion && player.ownTeamExclusion.detected) reasons.push('own-team-recent-history');
 
     return { ok: reasons.length === 0, reasons: reasons };
   }
 
+  function computeU21MvTrendScore(mv, currentValue) {
+    if (!mv || mv.absGrowth === null || mv.absGrowth === undefined) {
+      return Number(currentValue || 0) > 0 ? 42 : 25;
+    }
+    const absGrowth = Number(mv.absGrowth || 0);
+    const pctGrowth = Number(mv.pctGrowth || 0);
+    let score = 50;
+    if (absGrowth > 0) score += Math.min(28, Math.log10(Math.max(1, absGrowth)) * 7);
+    if (pctGrowth > 0) score += Math.min(22, pctGrowth / 3);
+    if (absGrowth < 0) score -= Math.min(26, Math.log10(Math.max(1, Math.abs(absGrowth))) * 7);
+    if (pctGrowth < 0) score -= Math.min(18, Math.abs(pctGrowth) / 4);
+    return Math.max(0, Math.min(100, score));
+  }
+
   function buildU21Metrics(player, settings) {
     const codes = unique([].concat(player.competitionCodes || [], collectCodesFromLabels(player.sourceUrls || [])));
     const leagueScore = leagueLevelScoreFromCodes(codes);
-    const academyScore = inferAcademyScore(player, leagueScore);
-    const matchRatio = estimateU21MatchRatio(player.playingTime, leagueScore);
+    const clubScore = inferClubContextScore(player, leagueScore);
+    const matchRatio = estimateU21MatchRatio(player.playingTime, leagueScore, player);
     const age = Number(player.age || 0);
     const mv = Number(player.currentMarketValue || player.sourceMarketValue || player.profileMarketValue || 0);
     const ageBonus = age > 0 ? Math.max(0, Math.min(100, (22 - age) * 12 + 40)) : 35;
-    const mvContext = mv > 0 ? Math.max(0, Math.min(100, Math.log10(Math.max(1, mv)) * 16 - 45)) : 25;
+    const mvTrend = computeU21MvTrendScore(player.mv, mv);
+
     const total = Math.round(
-      (leagueScore * 0.34) +
-      (matchRatio * 0.30) +
-      (academyScore * 0.18) +
-      (ageBonus * 0.10) +
-      (mvContext * 0.08)
+      (leagueScore * 0.30) +
+      (matchRatio * 0.32) +
+      (clubScore * 0.16) +
+      (mvTrend * 0.14) +
+      (ageBonus * 0.08)
     );
+
     return {
       total: Math.max(0, Math.min(100, total)),
       leagueScore: Math.round(leagueScore),
       matchRatio: Math.round(matchRatio),
-      academyScore: Math.round(academyScore),
+      clubScore: Math.round(clubScore),
       ageBonus: Math.round(ageBonus),
-      mvContext: Math.round(mvContext),
+      mvTrend: Math.round(mvTrend),
       leagueLabel: describeLeagueLevel(codes),
-      academyLabel: describeAcademyContext(player, academyScore)
+      clubLabel: describeClubContext(player, clubScore)
     };
   }
 
   function buildU21Availability(player) {
     const u21 = player.u21 || {};
-    return `U21 score ${u21.total || 0}/100 · Liga ${u21.leagueScore || 0} · Meccsarány ${u21.matchRatio || 0}% · Akadémia ${u21.academyScore || 0}`;
+    return `U21 score ${u21.total || 0}/100 · Liga ${u21.leagueScore || 0} · Meccsarány ${u21.matchRatio || 0}% · MV ${u21.mvTrend || 0}`;
   }
 
-  function estimateU21MatchRatio(playingTime, leagueScore) {
+  function estimateU21MatchRatio(playingTime, leagueScore, player) {
     const pt = playingTime || emptyPlayingTime();
     const latest = pt.recentSeasons && pt.recentSeasons.length ? pt.recentSeasons[0] : null;
     const apps = Number((latest && latest.apps) || pt.latestSeasonApps || pt.apps || 0);
     const minutes = Number((latest && latest.minutes) || pt.latestSeasonMinutes || pt.minutes || 0);
-    const appRatio = Math.max(0, Math.min(100, (apps / 34) * 100));
-    const minuteRatio = Math.max(0, Math.min(100, (minutes / 3060) * 100));
+    const expectedMatches = leagueScore >= 85 ? 38 : 34;
+    const expectedMinutes = expectedMatches * 90;
+    const appRatio = Math.max(0, Math.min(100, (apps / expectedMatches) * 100));
+    const minuteRatio = Math.max(0, Math.min(100, (minutes / expectedMinutes) * 100));
     const raw = Math.max(appRatio, minuteRatio);
-    // In a top league, even 25-35% real minutes as a teenager is meaningful.
-    const leagueAdjustment = leagueScore >= 90 ? 8 : leagueScore >= 75 ? 5 : 0;
-    return Math.max(0, Math.min(100, raw + leagueAdjustment));
+    const clubBoost = inferClubContextScore(player || {}, leagueScore) >= 78 ? 8 : 0;
+    const leagueBoost = leagueScore >= 90 ? 12 : leagueScore >= 75 ? 8 : leagueScore >= 60 ? 4 : 0;
+    return Math.max(0, Math.min(100, raw + leagueBoost + clubBoost));
   }
 
-  function inferAcademyScore(player, leagueScore) {
+  function inferClubContextScore(player, leagueScore) {
     const blob = normalizeText([
       player.club,
       player.nationality,
@@ -3766,12 +3786,15 @@
       (player.sourceUrls || []).join(' '),
       (player.playingTime && player.playingTime.competitionsSample || []).join(' ')
     ].join(' '));
-    let score = 42;
-    if (/u23|u21|u20|u19|academy|youth|jong|b team|ii\b|reserve|primavera|castilla|barca athletic|barca b|benfica b|porto b|sporting b|ajax u21|psv u21|az u21/.test(blob)) score = Math.max(score, 78);
-    if (/ajax|psv|az alkmaar|benfica|porto|sporting|anderlecht|genk|salzburg|dinamo zagreb|partizan|red star|crvena zvezda|nordsjaelland|midtjylland|copenhagen|basel|young boys|rangers|celtic|feyenoord|twente|heerenveen|gne/.test(blob)) score = Math.max(score, 72);
-    if (/barcelona|real madrid|manchester city|man utd|manchester united|chelsea|arsenal|liverpool|tottenham|bayern|dortmund|leipzig|psg|monaco|lyon|juventus|inter|milan|atalanta|roma/.test(blob)) score = Math.max(score, 68);
-    if (leagueScore >= 90 && Number(player.age || 99) <= 19) score += 12;
-    if (leagueScore >= 75 && Number(player.age || 99) <= 20) score += 7;
+
+    let score = Math.max(36, Math.min(82, Number(leagueScore || 0) - 6));
+
+    if (/u23|u21|u20|u19|youth|jong|b team|ii|reserve|primavera|castilla|barca athletic|barca b|benfica b|porto b|sporting b|ajax u21|psv u21|az u21/.test(blob)) score = Math.max(score, 70);
+    if (/ajax|psv|az alkmaar|benfica|porto|sporting|anderlecht|genk|salzburg|dinamo zagreb|partizan|red star|crvena zvezda|nordsjaelland|midtjylland|copenhagen|basel|young boys|rangers|celtic|feyenoord|twente|heerenveen|gne/.test(blob)) score = Math.max(score, 74);
+    if (/barcelona|real madrid|manchester city|man utd|manchester united|chelsea|arsenal|liverpool|tottenham|bayern|dortmund|leipzig|psg|monaco|lyon|juventus|inter|milan|atalanta|roma/.test(blob)) score = Math.max(score, 82);
+    if (leagueScore >= 90 && Number(player.age || 99) <= 19) score += 10;
+    if (leagueScore >= 75 && Number(player.age || 99) <= 20) score += 6;
+
     return Math.max(0, Math.min(100, score));
   }
 
@@ -3801,11 +3824,12 @@
     return 'Ismeretlen / alacsonyabb szint';
   }
 
-  function describeAcademyContext(player, score) {
-    if (score >= 78) return 'Akadémia / B-csapat jelleg erős';
-    if (score >= 70) return 'Jó nevelőklub-környezet';
-    if (score >= 55) return 'Korrekt klubkörnyezet';
-    return 'Nincs erős akadémia-jel';
+  function describeClubContext(player, score) {
+    const club = cleanText(player && player.club ? player.club : '');
+    if (score >= 82) return club ? `Erős klubszint: ${club}` : 'Erős klubszint';
+    if (score >= 70) return club ? `Jó klubkörnyezet: ${club}` : 'Jó klubkörnyezet';
+    if (score >= 55) return club ? `Korrekt klubszint: ${club}` : 'Korrekt klubszint';
+    return club || 'Ismeretlen klubszint';
   }
 
   function collectCodesFromLabels(values) {
@@ -3826,7 +3850,7 @@
 
   function formatU21Score(u21) {
     if (!u21) return '—';
-    return `${u21.total || 0}/100 · Liga ${u21.leagueScore || 0} · Meccs ${u21.matchRatio || 0}% · Akadémia ${u21.academyScore || 0}`;
+    return `${u21.total || 0}/100 · Liga ${u21.leagueScore || 0} · Meccs ${u21.matchRatio || 0}% · MV ${u21.mvTrend || 0}`;
   }
 
   function formatU21League(u21) {
@@ -3834,9 +3858,13 @@
     return `${u21.leagueLabel || '—'} (${u21.leagueScore || 0}/100)`;
   }
 
-  function formatU21Academy(u21) {
-    if (!u21) return '—';
-    return `${u21.academyLabel || '—'} (${u21.academyScore || 0}/100)`;
+  function formatU21Club(u21, player) {
+    if (!u21 && !player) return '—';
+    const score = u21 && u21.clubScore !== undefined ? u21.clubScore : 0;
+    const label = u21 && u21.clubLabel ? u21.clubLabel : '';
+    const club = player && player.club ? player.club : '';
+    if (label) return `${label} (${score}/100)`;
+    return club ? `${club} (${score}/100)` : '—';
   }
 
   function formatU21MatchRatio(u21, playingTime) {
@@ -3949,7 +3977,7 @@
     const note = panel.querySelector('[data-role="mode-note"]');
     if (note) {
       note.textContent = normalized === 'u21'
-        ? tx('U21 mód: csak U21 prospect menü; liga-szint + játszott meccsarány + akadémia/klub-környezet. MV csak kiegészítő szűrő.')
+        ? tx('U21 mód: életkor + MV + liga-szint + játszott meccsarány + klubszint. Nem kell lejáró szerződés.')
         : tx('Contract mód: csak lejáró/free agent menü; U21 prospect szűrők elrejtve.');
     }
   }
@@ -4047,10 +4075,11 @@
   }
 
   function renderU21Results(panel, results) {
-    setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','U21 score','Akadémia / klubkörnyezet','MV most','Liga-szint','Játszott meccsarány','Utolsó szezonok','Forrás','TM profil']);
+    setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','U21 score','Klub / csapat','MV most','MV változás','Liga-szint','Játszott meccsarány','Utolsó szezonok','TM profil']);
     const tbody = panel.querySelector('[data-role="results"]');
     if (!tbody) return;
     tbody.textContent = '';
+
     if (!results.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
@@ -4061,6 +4090,7 @@
       tbody.appendChild(tr);
       return;
     }
+
     results.forEach(function addRow(player) {
       const tr = document.createElement('tr');
       const u21 = player.u21 || buildU21Metrics(player, state.settings || DEFAULTS);
@@ -4070,14 +4100,14 @@
         player.age === null || player.age === undefined ? '—' : String(player.age),
         player.nationality || '—',
         formatU21Score(u21),
-        formatU21Academy(u21),
+        formatU21Club(u21, player),
         formatEuro(player.currentMarketValue),
+        formatGrowth(player.mv),
         formatU21League(u21),
         formatU21MatchRatio(u21, player.playingTime),
-        formatRecentSeasons(player.playingTime),
-        unique(player.sourceLabels || player.sourceTypes || []).join(', ') || '—'
+        formatRecentSeasons(player.playingTime)
       ];
-      const cellClasses = ['player','position','age','nation','u21-score','academy','mv','league','playing','seasons','source'];
+      const cellClasses = ['player','position','age','nation','u21-score','club','mv','growth','league','playing','seasons'];
       cells.forEach(function addCell(value, index) {
         const td = document.createElement('td');
         td.className = 'tm-scout-v2-cell-' + (cellClasses[index] || 'plain');
@@ -4085,6 +4115,7 @@
         td.title = String(value || '');
         tr.appendChild(td);
       });
+
       const linkTd = document.createElement('td');
       const link = document.createElement('a');
       link.href = player.profileUrl;
@@ -4220,7 +4251,7 @@
 
 
   function buildU21CsvExport(results) {
-    const headers = ['Játékos','Poszt','Kor','Nemzetiség','U21 score','Akadémia / klubkörnyezet','MV most','Liga-szint','Játszott meccsarány','Utolsó szezonok','Forrás','TM profil'];
+    const headers = ['Játékos','Poszt','Kor','Nemzetiség','U21 score','Klub / csapat','MV most','MV változás','Liga-szint','Játszott meccsarány','Utolsó szezonok','TM profil'];
     const rows = results.map(function row(player) {
       const u21 = player.u21 || {};
       return [
@@ -4229,12 +4260,12 @@
         player.age,
         player.nationality,
         formatU21Score(u21),
-        formatU21Academy(u21),
+        formatU21Club(u21, player),
         formatEuro(player.currentMarketValue),
+        formatGrowth(player.mv),
         formatU21League(u21),
         formatU21MatchRatio(u21, player.playingTime),
         formatRecentSeasons(player.playingTime),
-        unique(player.sourceLabels || player.sourceTypes || []).join(', '),
         player.profileUrl
       ];
     });
@@ -4255,20 +4286,20 @@
         <td data-label="Kor">${escapeHtml(player.age === null || player.age === undefined ? '—' : player.age)}</td>
         <td data-label="Nemzetiség">${escapeHtml(player.nationality || '—')}</td>
         <td data-label="U21 score"><strong>${escapeHtml(formatU21Score(u21))}</strong></td>
-        <td data-label="Akadémia">${escapeHtml(formatU21Academy(u21))}</td>
+        <td data-label="Klub / csapat">${escapeHtml(formatU21Club(u21, player))}</td>
         <td data-label="MV">${escapeHtml(formatEuro(player.currentMarketValue))}</td>
+        <td data-label="MV változás">${escapeHtml(formatGrowth(player.mv))}</td>
         <td data-label="Liga-szint">${escapeHtml(formatU21League(u21))}</td>
         <td data-label="Meccsarány">${escapeHtml(formatU21MatchRatio(u21, player.playingTime))}</td>
         <td data-label="Szezonok">${escapeHtml(formatRecentSeasons(player.playingTime))}</td>
-        <td data-label="Lista">${escapeHtml(unique(player.sourceLabels || player.sourceTypes || []).join(', ') || '—')}</td>
       </tr>`;
     }).join('');
     const selectedCountries = (settings.u21Nationalities || []).length ? settings.u21Nationalities.join(', ') : 'összes';
-    return `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TM Scout V2 · U21 prospect export</title><style>${u21ExportCss()}</style></head><body><main><section class="hero"><p class="eyebrow">TM Scout V2 · U21 prospect mód</p><h1>U21 prospect lista</h1><p>Rendezés: U21 score. Fő súlyok: liga-szint, játszott meccsarány, akadémia/klub-környezet. Nemzetiség: ${escapeHtml(selectedCountries)}.</p><div class="stats"><div><span>Találatok</span><strong>${results.length}</strong></div><div><span>Min liga</span><strong>${escapeHtml(settings.u21MinLeagueScore || 0)}</strong></div><div><span>Min meccsarány</span><strong>${escapeHtml(settings.u21MinMatchRatio || 0)}%</strong></div><div><span>Kor</span><strong>${escapeHtml(settings.u21MinAge || '')}-${escapeHtml(settings.u21MaxAge || '')}</strong></div></div></section><section class="card"><table><thead><tr><th>#</th><th>Játékos</th><th>Poszt</th><th>Kor</th><th>Nemzetiség</th><th>U21 score</th><th>Akadémia</th><th>MV</th><th>Liga-szint</th><th>Meccsarány</th><th>Szezonok</th><th>Lista</th></tr></thead><tbody>${rows || '<tr><td colspan="12">Nincs találat.</td></tr>'}</tbody></table></section></main></body></html>`;
+    return `<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TM Scout V2 · U21 prospect export</title><style>${u21ExportCss()}</style></head><body><main><section class="hero"><p class="eyebrow">TM Scout V2 · U21 prospect mód</p><h1>U21 prospect lista</h1><p>Rendezés: U21 score. Fő súlyok: liga-szint, játszott meccsarány, klubszint és MV-változás. Nemzetiség: ${escapeHtml(selectedCountries)}.</p><div class="stats"><div><span>Találatok</span><strong>${results.length}</strong></div><div><span>Min liga</span><strong>${escapeHtml(settings.u21MinLeagueScore || 0)}</strong></div><div><span>Min meccsarány</span><strong>${escapeHtml(settings.u21MinMatchRatio || 0)}%</strong></div><div><span>Kor</span><strong>${escapeHtml(settings.u21MinAge || '')}-${escapeHtml(settings.u21MaxAge || '')}</strong></div></div></section><section class="card"><table><thead><tr><th>#</th><th>Játékos</th><th>Poszt</th><th>Kor</th><th>Nemzetiség</th><th>U21 score</th><th>Klub / csapat</th><th>MV</th><th>MV változás</th><th>Liga-szint</th><th>Meccsarány</th><th>Szezonok</th></tr></thead><tbody>${rows || '<tr><td colspan="12">Nincs találat.</td></tr>'}</tbody></table></section></main></body></html>`;
   }
 
   function u21ExportCss() {
-    return `:root{color-scheme:dark;--bg:#07111f;--panel:#0d1b2f;--line:rgba(255,255,255,.14);--text:#eef5ff;--muted:rgba(238,245,255,.66);--accent:#28d17c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(40,209,124,.16),transparent 30rem),var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,sans-serif}.hero,.card{width:min(1500px,calc(100% - 24px));margin:18px auto;padding:18px;border:1px solid var(--line);border-radius:22px;background:rgba(13,27,47,.9);box-shadow:0 20px 60px rgba(0,0,0,.25)}.eyebrow{margin:0 0 6px;color:var(--accent);font-weight:850;text-transform:uppercase;font-size:12px;letter-spacing:.08em}h1{margin:0;font-size:clamp(26px,4vw,44px)}p{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.stats div{border:1px solid var(--line);border-radius:16px;padding:12px;background:rgba(255,255,255,.04)}.stats span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase}.stats strong{font-size:22px}table{width:100%;border-collapse:collapse;min-width:1250px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{position:sticky;top:0;background:#11233d;color:var(--muted);font-size:11px;text-transform:uppercase}td a{display:block;margin-top:4px;color:#9ad7ff;text-decoration:none}tbody tr:nth-child(even) td{background:rgba(255,255,255,.025)}@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.card{overflow-x:auto}}`;
+    return `:root{color-scheme:dark;--bg:#071018;--card:#0d1b27;--card2:#102235;--line:#24415a;--line2:rgba(132,165,196,.18);--text:#eef6ff;--muted:#9bb2c7;--accent:#77d99a;--accent2:#8ec7ff;--good:#86dfa6}*{box-sizing:border-box}html{scrollbar-color:#31506b #071018}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at top left,rgba(119,217,154,.14),transparent 34rem),#071018;color:var(--text);font-size:13px;line-height:1.4}main{max-width:1640px;margin:0 auto;padding:24px 18px 40px}.hero{border:1px solid var(--line);background:#0a1621;border-radius:18px;padding:22px 24px;box-shadow:0 14px 50px rgba(0,0,0,.28)}.card{margin-top:20px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#08131d;box-shadow:0 12px 42px rgba(0,0,0,.24)}.eyebrow{margin:0 0 6px;color:var(--accent);font-weight:850;text-transform:uppercase;font-size:12px;letter-spacing:.08em}h1{margin:0;font-size:clamp(28px,4vw,46px);letter-spacing:-.03em}p{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.stats div{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#08131d}.stats span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:750}.stats strong{font-size:24px;color:#fff;letter-spacing:-.02em}table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:1320px;background:#08131d}th,td{padding:12px 11px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top;font-size:12.5px;line-height:1.38;overflow-wrap:anywhere;word-break:normal}th{position:sticky;top:0;z-index:2;background:#102235;color:#d7e7f5;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:800}tbody tr:nth-child(odd) td{background:#0a1722}tbody tr:nth-child(even) td{background:#0c1b27}tbody tr:hover td{background:#10263a}td a{display:block;margin-top:4px;color:#9bd2ff;text-decoration:none;font-weight:800}td strong{color:#fff}@media(max-width:900px){main{padding:14px 10px}.hero{padding:17px;border-radius:16px}h1{font-size:34px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.card{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}@media(max-width:540px){.stats{grid-template-columns:1fr}}`;
   }
 
   function buildHtmlExport() {
