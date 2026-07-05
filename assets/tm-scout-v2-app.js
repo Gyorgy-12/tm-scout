@@ -1,4 +1,5 @@
 /*
+ * nationality-custom-picker-no-jump-20260706
  * TM Scout V2 GitHub Pages build
  * Source: Tampermonkey userscript converted to static frontend.
  * Network: GM_xmlhttpRequest shim -> hardcoded Cloudflare Worker proxy endpoint.
@@ -108,6 +109,7 @@
 
 (function tmScoutV2CleanScope() {
   'use strict';
+  // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
@@ -931,9 +933,9 @@
       '        <label class="tm-scout-v2-wide">Alsóbb osztály mélység <select name="lowerLeagueDepth"><option value="2">Csak 2. osztály</option><option value="2-3">2–3. osztály</option></select></label>',
       '        <label data-contract-settings="true"><input name="includeFreeAgents" type="checkbox"> Aktuális free agentek is (alapból ON)</label>',
       '        <label data-contract-settings="true"><input name="futureExclude" type="checkbox"> Jövőbeli igazolással rendelkezők kizárása</label>',
-      '        <label data-contract-settings="true"><input name="excludeOwnTeam" type="checkbox"> Saját csapat kizárása</label>',
-      '        <label class="tm-scout-v2-wide" data-contract-settings="true">Saját csapat név vagy TM club ID <input name="ownTeamFilter" type="text" placeholder="pl. DAC 1904, APOEL vagy 829"></label>',
-      '        <label class="tm-scout-v2-wide" data-contract-settings="true">Saját csapat időablak <select name="ownTeamLookback"><option value="latestSeason">Utolsó szezon</option><option value="selectedSeasons">Kiválasztott szezonok</option></select></label>',
+      '        <label><input name="excludeOwnTeam" type="checkbox"> Saját csapat kizárása</label>',
+      '        <label class="tm-scout-v2-wide">Saját csapat név vagy TM club ID <input name="ownTeamFilter" type="text" placeholder="pl. DAC 1904, APOEL vagy 829"></label>',
+      '        <label class="tm-scout-v2-wide">Saját csapat időablak <select name="ownTeamLookback"><option value="latestSeason">Utolsó szezon</option><option value="selectedSeasons">Kiválasztott szezonok</option></select></label>',
       '        ',
       '      </fieldset>',
       '      <div class="tm-scout-v2-actions">',
@@ -2486,6 +2488,13 @@
     } else {
       if (detail && !isDetailEnabled(detail, settings)) reasons.push('detail-position-disabled-source');
     }
+
+    // U21-ben is működjön a saját csapat kizárás már a source-szinten,
+    // ugyanazzal a logikával, mint a lejáró szerződéses scoutban.
+    if (shouldApplyOwnTeamFilter(settings) && matchesOwnTeamSourceCandidate(candidate, settings)) {
+      reasons.push('own-team-source-club');
+    }
+
     return { ok: reasons.length === 0, reasons: reasons };
   }
 
@@ -4057,6 +4066,20 @@
     const selected = new Set((Array.isArray(values) ? values : []).map(String));
     Array.from(input.options).forEach(function mark(option) { option.selected = selected.has(String(option.value)); });
     input.dataset.manualTouched = selected.size ? '1' : '0';
+    syncNationalityPickerFromSelect(input);
+  }
+
+  function syncNationalityPickerFromSelect(select) {
+    if (!select || !select.dataset || !select.dataset.pickerId) return;
+    const picker = document.getElementById(select.dataset.pickerId);
+    if (!picker) return;
+    Array.from(picker.querySelectorAll('[data-nationality-value]')).forEach(function syncItem(item) {
+      const value = item.getAttribute('data-nationality-value');
+      const option = Array.from(select.options).find(function findOption(opt) { return String(opt.value) === String(value); });
+      const selected = Boolean(option && option.selected);
+      item.classList.toggle('is-selected', selected);
+      item.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
   }
 
   function bindToggleableMultiSelect(panel) {
@@ -4064,41 +4087,58 @@
     if (!select || select.dataset.toggleBound === '1') return;
     select.dataset.toggleBound = '1';
 
-    function toggleOption(option) {
+    // Native <select multiple> jumps badly in Chrome when it is scrolled and an
+    // off-screen option is toggled. Use a stable custom checklist while keeping
+    // the original select hidden, so readSettings() can keep reading the same values.
+    const pickerId = 'tm-scout-v2-nationality-picker-' + Math.random().toString(36).slice(2);
+    select.dataset.pickerId = pickerId;
+    select.classList.add('tm-scout-v2-native-multi-hidden');
+    select.setAttribute('aria-hidden', 'true');
+    select.tabIndex = -1;
+
+    const picker = document.createElement('div');
+    picker.id = pickerId;
+    picker.className = 'tm-scout-v2-nationality-picker';
+    picker.setAttribute('role', 'group');
+    picker.setAttribute('aria-label', 'Nemzetiségek');
+
+    Array.from(select.options).forEach(function buildNationalityItem(option) {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'tm-scout-v2-nationality-option';
+      item.setAttribute('data-nationality-value', option.value);
+      item.setAttribute('aria-pressed', option.selected ? 'true' : 'false');
+      item.innerHTML = [
+        '<span class="tm-scout-v2-nationality-check" aria-hidden="true"></span>',
+        `<span class="tm-scout-v2-nationality-name">${escapeHtml(tx(cleanText(option.textContent) || option.value))}</span>`
+      ].join('');
+      if (option.selected) item.classList.add('is-selected');
+      picker.appendChild(item);
+    });
+
+    select.insertAdjacentElement('afterend', picker);
+
+    picker.addEventListener('click', function onNationalityPickerClick(event) {
+      const item = event.target && event.target.closest ? event.target.closest('[data-nationality-value]') : null;
+      if (!item) return;
+      event.preventDefault();
+      const scrollTop = picker.scrollTop;
+      const value = item.getAttribute('data-nationality-value');
+      const option = Array.from(select.options).find(function findOption(opt) { return String(opt.value) === String(value); });
       if (!option || option.disabled) return;
-      const scrollTop = select.scrollTop;
       option.selected = !option.selected;
       select.dataset.manualTouched = '1';
-      select.focus({ preventScroll: true });
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-      window.requestAnimationFrame(function restoreSelectScroll() {
-        select.scrollTop = scrollTop;
-      });
-    }
-
-    // Chrome native multiple select can jump around and re-apply stale selections.
-    // We keep it stable: one click toggles one country and the scroll position is restored.
-    select.addEventListener('pointerdown', function toggleOptionPointer(event) {
-      const option = event.target && event.target.closest ? event.target.closest('option') : null;
-      if (!option || option.disabled) return;
-      event.preventDefault();
-      event.stopPropagation();
-      toggleOption(option);
+      syncNationalityPickerFromSelect(select);
+      picker.scrollTop = scrollTop;
+      window.requestAnimationFrame(function restoreNationalityPickerScroll() { picker.scrollTop = scrollTop; });
     });
 
-    select.addEventListener('mousedown', function blockNativeMouseSelection(event) {
-      const option = event.target && event.target.closest ? event.target.closest('option') : null;
-      if (!option || option.disabled) return;
-      event.preventDefault();
-      event.stopPropagation();
-    });
-
-    select.addEventListener('keydown', function toggleOptionKeyboard(event) {
+    picker.addEventListener('keydown', function onNationalityPickerKeydown(event) {
       if (event.key !== ' ' && event.key !== 'Enter') return;
-      const option = select.options[select.selectedIndex];
-      if (!option) return;
+      const item = event.target && event.target.closest ? event.target.closest('[data-nationality-value]') : null;
+      if (!item) return;
       event.preventDefault();
-      toggleOption(option);
+      item.click();
     });
   }
 
@@ -5246,7 +5286,7 @@
       .tm-scout-v2-panel button{border:1px solid rgba(125,166,200,.28);border-radius:10px;background:#102235;color:#eaf4ff;padding:8px 10px;font:700 12px/1 Inter,system-ui,-apple-system,Segoe UI,sans-serif;cursor:pointer}.tm-scout-v2-panel button:hover{background:#152d42}.tm-scout-v2-panel button:disabled{opacity:.55;cursor:wait}.tm-scout-v2-primary{background:#1f8f64!important;border-color:#2ab07b!important;color:#fff!important}
       .tm-scout-v2-body{min-height:0;flex:1;display:grid;grid-template-columns:440px minmax(0,1fr);gap:0}.tm-scout-v2-controls{overflow:auto;padding:15px 15px 140px!important;border-right:1px solid rgba(125,166,200,.18);background:#08121b;scrollbar-color:#31516b #08121b;scroll-padding-bottom:150px}
       .tm-scout-v2-controls fieldset{border:1px solid rgba(125,166,200,.24)!important;border-radius:15px!important;margin:0 0 13px!important;padding:15px 15px 14px!important;background:#0a1621!important;box-shadow:none!important;min-width:0!important}.tm-scout-v2-controls legend{display:inline-block!important;background:#0a1621!important;color:#9bd8ab!important;border:0!important;border-radius:0!important;font:800 11px/1.1 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;letter-spacing:.02em!important;margin:0!important;padding:0 7px!important;white-space:normal!important;width:auto!important;max-width:100%!important}
-      .tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 12px!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks)>legend{grid-column:1/-1!important}.tm-scout-v2-controls [hidden],.tm-scout-v2-controls .tm-scout-v2-mode-hidden{display:none!important}.tm-scout-v2-controls label{display:block!important;color:#c8d8e7!important;font:700 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;margin:0!important;min-width:0!important}.tm-scout-v2-controls input,.tm-scout-v2-controls select,.tm-scout-v2-controls textarea{width:100%!important;max-width:100%!important;min-width:0!important;border:1px solid rgba(125,166,200,.32)!important;border-radius:9px!important;background:#07111a!important;color:#eef6ff!important;padding:7px 8px!important;font:650 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;box-shadow:none!important;outline:none!important}.tm-scout-v2-controls label>input:not([type="checkbox"]),.tm-scout-v2-controls label>select,.tm-scout-v2-controls label>textarea{display:block!important;margin-top:6px!important}.tm-scout-v2-controls input:focus,.tm-scout-v2-controls select:focus,.tm-scout-v2-controls textarea:focus{border-color:#73add7!important;background:#091722!important}.tm-scout-v2-controls select{display:block!important;height:36px!important;min-height:36px!important;line-height:1.2!important;padding:8px 34px 8px 10px!important;font-size:12px!important;font-weight:750!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-appearance:menulist!important;appearance:auto!important;background-color:#07111a!important;color:#eef6ff!important}.tm-scout-v2-controls select option{background:#07111a!important;color:#eef6ff!important;font:700 13px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{height:auto!important;min-height:220px!important;max-height:320px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:8px 10px!important;white-space:normal!important;text-overflow:clip!important;-webkit-appearance:listbox!important;appearance:auto!important;background-image:none!important}.tm-scout-v2-controls select[multiple] option,.tm-scout-v2-controls .tm-scout-v2-multi-select option{padding:5px 8px!important;min-height:24px!important;line-height:1.25!important;white-space:normal!important}.tm-scout-v2-controls input[type="checkbox"]{width:15px!important;height:15px!important;flex:0 0 15px!important;padding:0!important;margin:0!important;accent-color:#3cae78!important}.tm-scout-v2-controls textarea{resize:vertical;min-height:92px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}.tm-scout-v2-controls label.tm-scout-v2-wide{grid-column:1/-1!important;display:block!important}.tm-scout-v2-controls label.tm-scout-v2-checkline{grid-column:1/-1!important;display:flex!important;align-items:center!important;gap:9px!important;margin:2px 0!important;color:#d1e1ee!important}
+      .tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 12px!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks)>legend{grid-column:1/-1!important}.tm-scout-v2-controls [hidden],.tm-scout-v2-controls .tm-scout-v2-mode-hidden{display:none!important}.tm-scout-v2-controls label{display:block!important;color:#c8d8e7!important;font:700 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;margin:0!important;min-width:0!important}.tm-scout-v2-controls input,.tm-scout-v2-controls select,.tm-scout-v2-controls textarea{width:100%!important;max-width:100%!important;min-width:0!important;border:1px solid rgba(125,166,200,.32)!important;border-radius:9px!important;background:#07111a!important;color:#eef6ff!important;padding:7px 8px!important;font:650 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;box-shadow:none!important;outline:none!important}.tm-scout-v2-controls label>input:not([type="checkbox"]),.tm-scout-v2-controls label>select,.tm-scout-v2-controls label>textarea{display:block!important;margin-top:6px!important}.tm-scout-v2-controls input:focus,.tm-scout-v2-controls select:focus,.tm-scout-v2-controls textarea:focus{border-color:#73add7!important;background:#091722!important}.tm-scout-v2-controls select{display:block!important;height:36px!important;min-height:36px!important;line-height:1.2!important;padding:8px 34px 8px 10px!important;font-size:12px!important;font-weight:750!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-appearance:menulist!important;appearance:auto!important;background-color:#07111a!important;color:#eef6ff!important}.tm-scout-v2-controls select option{background:#07111a!important;color:#eef6ff!important;font:700 13px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{height:auto!important;min-height:220px!important;max-height:320px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:8px 10px!important;white-space:normal!important;text-overflow:clip!important;-webkit-appearance:listbox!important;appearance:auto!important;background-image:none!important}.tm-scout-v2-controls select[multiple] option,.tm-scout-v2-controls .tm-scout-v2-multi-select option{padding:5px 8px!important;min-height:24px!important;line-height:1.25!important;white-space:normal!important}.tm-scout-v2-native-multi-hidden{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;min-height:1px!important;max-height:1px!important;opacity:0!important;pointer-events:none!important}.tm-scout-v2-nationality-picker{grid-column:1/-1!important;display:grid!important;grid-template-columns:1fr!important;gap:4px!important;max-height:260px!important;overflow:auto!important;padding:7px!important;border:1px solid rgba(125,166,200,.32)!important;border-radius:10px!important;background:#07111a!important;scrollbar-color:#31516b #07111a!important}.tm-scout-v2-nationality-option{display:flex!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:28px!important;padding:6px 8px!important;border:0!important;border-radius:8px!important;background:transparent!important;color:#eef6ff!important;text-align:left!important;font:800 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;cursor:pointer!important}.tm-scout-v2-nationality-option:hover{background:#0e2233!important}.tm-scout-v2-nationality-option.is-selected{background:#235f8d!important;color:#fff!important}.tm-scout-v2-nationality-check{width:14px!important;height:14px!important;border:1px solid rgba(125,166,200,.55)!important;border-radius:4px!important;background:#101f2d!important;flex:0 0 14px!important}.tm-scout-v2-nationality-option.is-selected .tm-scout-v2-nationality-check{background:#56f097!important;border-color:#56f097!important;box-shadow:inset 0 0 0 3px #235f8d!important}.tm-scout-v2-nationality-name{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.tm-scout-v2-controls input[type="checkbox"]{width:15px!important;height:15px!important;flex:0 0 15px!important;padding:0!important;margin:0!important;accent-color:#3cae78!important}.tm-scout-v2-controls textarea{resize:vertical;min-height:92px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}.tm-scout-v2-controls label.tm-scout-v2-wide{grid-column:1/-1!important;display:block!important}.tm-scout-v2-controls label.tm-scout-v2-checkline{grid-column:1/-1!important;display:flex!important;align-items:center!important;gap:9px!important;margin:2px 0!important;color:#d1e1ee!important}
       .tm-scout-v2-checks{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px 14px!important}.tm-scout-v2-checks legend{grid-column:1/-1!important}.tm-scout-v2-checks label{display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;color:#c9d8e5!important;font-weight:700!important;line-height:1.2!important}.tm-scout-v2-source-options{display:block!important}.tm-scout-v2-source-options label{display:flex!important;align-items:center!important;gap:8px!important;margin:9px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide{display:block!important;margin:10px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide select,.tm-scout-v2-source-options label.tm-scout-v2-wide input{margin-top:6px!important}.tm-scout-v2-detail-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;position:static!important;bottom:auto!important;z-index:1!important;margin:14px 0 0!important;padding:9px!important;background:#091722!important;border:1px solid rgba(125,166,200,.24)!important;border-radius:14px!important;box-shadow:none!important}.tm-scout-v2-actions button{width:100%!important;min-height:32px!important;padding:7px 6px!important;border-radius:9px!important;font-size:11px!important;line-height:1.05!important;white-space:nowrap!important}.tm-scout-v2-actions .tm-scout-v2-primary{grid-column:auto!important}
       .tm-scout-v2-output{min-width:0;display:flex;flex-direction:column;overflow:hidden}.tm-scout-v2-statusbar{padding:13px 16px;border-bottom:1px solid rgba(125,166,200,.18);background:#0b1722}.tm-scout-v2-status{color:#d7e8f8;font-size:13px;font-weight:750;margin-bottom:9px}.tm-scout-v2-progress{height:8px;background:#071018;border-radius:999px;overflow:hidden;border:1px solid rgba(125,166,200,.18)}.tm-scout-v2-progress span{display:block;height:100%;width:0;background:#3a97d4;transition:width .2s ease}
       .tm-scout-v2-note-mini{font-size:11px;line-height:1.35;color:#95aabd;grid-column:1/-1;margin:2px 0 0}.tm-scout-v2-muted-block{opacity:.45}.tm-scout-v2-muted-block legend::after{content:' (inaktív)';font-weight:700;color:#c49d51}.tm-scout-v2-note{border:1px solid rgba(125,166,200,.22);background:#0a1621;border-radius:11px;padding:9px 11px;margin-bottom:12px;color:#bdd4e7;font-size:12px;line-height:1.35}.tm-scout-v2-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid rgba(125,166,200,.18)}.tm-scout-v2-stat{background:#0a1621;border:1px solid rgba(125,166,200,.18);border-radius:11px;padding:9px 10px}.tm-scout-v2-stat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#95aabd;font-weight:800}.tm-scout-v2-stat strong{display:block;margin-top:3px;color:#fff;font-size:18px}
