@@ -1,0 +1,14 @@
+{
+  "name": "tm-scout-v2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TM Scout V2 GitHub Pages frontend + Cloudflare Worker proxy.",
+  "scripts": {
+    "check": "node --check assets/tm-scout-v2-app.js && node --check worker/tm-proxy-worker.js",
+    "worker:deploy": "wrangler deploy",
+    "worker:dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

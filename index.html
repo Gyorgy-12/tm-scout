@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TM Scout V2</title>
+  <link rel="stylesheet" href="assets/site.css?v=u21-contract-year-1">
+</head>
+<body>
+  <noscript>Ehhez az apphoz JavaScript kell.</noscript>
+
+  <div class="site-shell">
+    <header class="site-hero">
+      <div>
+        <p class="eyebrow">TM Scout V2</p>
+        <h1>TM Scout V2</h1>
+        <p class="lead" data-i18n="lead">Lejáró szerződéses játékosok és U21 prospectek keresése.</p>
+      </div>
+      <div class="proxy-card">
+        <label for="tmProxyInput" data-i18n="proxyLabel">Cloudflare Worker proxy URL</label>
+        <div class="proxy-row">
+          <input id="tmProxyInput" type="url" placeholder="https://tm-proxy.valami.workers.dev">
+          <button id="tmProxySave" type="button" data-i18n="save">Mentés</button>
+        </div>
+        <p id="tmProxyStatus" class="proxy-status"></p>
+      </div>
+    </header>
+
+    <section class="notice">
+      <strong data-i18n="important">Fontos:</strong> <span data-i18n="notice">a kereséshez be kell állítani a Cloudflare Worker URL-t. Ezt egyszer kell megadni fent.</span>
+    </section>
+
+    <section id="tmScoutMount" class="app-mount" aria-live="polite">
+      <p class="boot-note" data-i18n="boot">A TM Scout V2 betölt...</p>
+    </section>
+  </div>
+
+  <script src="assets/tm-scout-v2-app.js?v=u21-contract-year-1"></script>
+  <script>
+    (function setupProxyBox(){
+      const input = document.getElementById('tmProxyInput');
+      const save = document.getElementById('tmProxySave');
+      const status = document.getElementById('tmProxyStatus');
+      const langSelect = document.getElementById('tmLangSelect');
+      const key = 'tmScoutProxyEndpoint';
+      const langKey = 'tmScoutV2UiLanguage';
+      const siteI18n = {
+        hu: {
+          lead: 'Lejáró szerződéses játékosok és U21 prospectek keresése.',
+          langLabel: 'Felület nyelve',
+          proxyLabel: 'Cloudflare Worker proxy URL',
+          save: 'Mentés',
+          important: 'Fontos:',
+          notice: 'a kereséshez be kell állítani a Cloudflare Worker URL-t. Ezt egyszer kell megadni fent.',
+          boot: 'A TM Scout V2 betölt...',
+          proxyActive: 'Proxy aktív: ',
+          proxyMissing: 'Nincs proxy beállítva.'
+        },
+        en: {
+          lead: 'Find contract-expiring players and U21 prospects.',
+          langLabel: 'Interface language',
+          proxyLabel: 'Cloudflare Worker proxy URL',
+          save: 'Save',
+          important: 'Important:',
+          notice: 'set the Cloudflare Worker URL before searching. You only need to do this once.',
+          boot: 'TM Scout V2 is loading...',
+          proxyActive: 'Proxy active: ',
+          proxyMissing: 'No proxy configured.'
+        },
+        ro: {
+          lead: 'Caută jucători cu contracte aproape de final și prospecte U21.',
+          langLabel: 'Limba interfeței',
+          proxyLabel: 'URL proxy Cloudflare Worker',
+          save: 'Salvează',
+          important: 'Important:',
+          notice: 'trebuie setat URL-ul Cloudflare Worker înainte de căutare. Trebuie introdus o singură dată.',
+          boot: 'TM Scout V2 se încarcă...',
+          proxyActive: 'Proxy activ: ',
+          proxyMissing: 'Nu este configurat niciun proxy.'
+        }
+      };
+      function normalizeLang(value){ return value === 'en' || value === 'ro' ? value : 'hu'; }
+      function currentLang(){ return normalizeLang(localStorage.getItem(langKey) || 'hu'); }
+      function applySiteLanguage(){
+        const lang = currentLang();
+        document.documentElement.lang = lang;
+        if (langSelect) langSelect.value = lang;
+        document.querySelectorAll('[data-i18n]').forEach(function(el){
+          const text = siteI18n[lang][el.getAttribute('data-i18n')];
+          if (text) el.textContent = text;
+        });
+        paint();
+      }
+      input.value = localStorage.getItem(key) || '';
+      function paint(){
+        const lang = currentLang();
+        const value = (localStorage.getItem(key) || '').trim();
+        status.textContent = value ? siteI18n[lang].proxyActive + value : siteI18n[lang].proxyMissing;
+        status.className = 'proxy-status ' + (value ? 'ok' : 'warn');
+      }
+      save.addEventListener('click', function(){
+        const value = input.value.trim().replace(/\/$/, '');
+        if (value) localStorage.setItem(key, value);
+        else localStorage.removeItem(key);
+        paint();
+      });
+      if (langSelect) {
+        langSelect.value = currentLang();
+        langSelect.addEventListener('change', function(){
+          localStorage.setItem(langKey, normalizeLang(langSelect.value));
+          applySiteLanguage();
+          window.dispatchEvent(new CustomEvent('tmScoutV2LanguageChange', { detail: { language: currentLang() } }));
+        });
+      }
+      applySiteLanguage();
+      window.addEventListener('tmScoutV2LanguageApplied', applySiteLanguage);
+    })();
+  </script>
+</body>
+</html>
