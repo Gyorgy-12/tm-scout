@@ -1,13 +1,15 @@
 /*
  * TM Scout V2 GitHub Pages build
  * Source: Tampermonkey userscript converted to static frontend.
- * Network: GM_xmlhttpRequest shim -> Cloudflare Worker proxy endpoint from localStorage key tmScoutProxyEndpoint.
+ * Network: GM_xmlhttpRequest shim -> hardcoded Cloudflare Worker proxy endpoint.
  */
 (function installGithubPageShims(){
   'use strict';
 
+  const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
+
   function proxyEndpoint(){
-    return String(window.localStorage.getItem('tmScoutProxyEndpoint') || '').trim().replace(/\/$/, '');
+    return TM_SCOUT_PROXY_ENDPOINT.trim().replace(/\/$/, '');
   }
 
   function isTransfermarktLike(url){
@@ -57,7 +59,7 @@
     }
 
     if (isTransfermarktLike(targetUrl) && !endpoint) {
-      const message = 'Nincs Cloudflare Worker proxy URL beállítva. Add meg fent a proxy URL-t, különben a GitHub Pages frontend CORS miatt nem tud Transfermarkt HTML-t olvasni.';
+      const message = 'A Cloudflare Worker proxy nincs beállítva a kódban. Ellenőrizd a TM_SCOUT_PROXY_ENDPOINT értékét az assets/tm-scout-v2-app.js fájl elején.';
       if (opts.onerror) opts.onerror({ error: message });
       return;
     }
@@ -228,7 +230,7 @@
     "Profil enrich indul": "Profile enrichment starting",
     "Kész": "Done",
     "Hiba": "Error",
-    "Nincs Cloudflare Worker proxy URL beállítva. Add meg fent a proxy URL-t, különben a GitHub Pages frontend CORS miatt nem tud Transfermarkt HTML-t olvasni.": "No Cloudflare Worker proxy URL is set. Add the proxy URL above, otherwise the GitHub Pages frontend cannot read Transfermarkt HTML because of CORS.",
+    "A Cloudflare Worker proxy nincs beállítva a kódban. Ellenőrizd a TM_SCOUT_PROXY_ENDPOINT értékét az assets/tm-scout-v2-app.js fájl elején.": "No Cloudflare Worker proxy URL is set. Add the proxy URL above, otherwise the GitHub Pages frontend cannot read Transfermarkt HTML because of CORS.",
     "Argentina": "Argentina",
     "Austria": "Austria",
     "Belgium": "Belgium",
@@ -364,7 +366,7 @@
     "Profil enrich indul": "Începe completarea profilurilor",
     "Kész": "Gata",
     "Hiba": "Eroare",
-    "Nincs Cloudflare Worker proxy URL beállítva. Add meg fent a proxy URL-t, különben a GitHub Pages frontend CORS miatt nem tud Transfermarkt HTML-t olvasni.": "Nu este setat URL-ul proxy Cloudflare Worker. Adaugă URL-ul proxy sus, altfel frontendul GitHub Pages nu poate citi HTML-ul Transfermarkt din cauza CORS.",
+    "A Cloudflare Worker proxy nincs beállítva a kódban. Ellenőrizd a TM_SCOUT_PROXY_ENDPOINT értékét az assets/tm-scout-v2-app.js fájl elején.": "Nu este setat URL-ul proxy Cloudflare Worker. Adaugă URL-ul proxy sus, altfel frontendul GitHub Pages nu poate citi HTML-ul Transfermarkt din cauza CORS.",
     "Argentina": "Argentina",
     "Austria": "Austria",
     "Belgium": "Belgia",
@@ -4702,7 +4704,7 @@
     style.textContent = `
       .tm-scout-v2-launcher,#tm-scout-v2rescue-launcher{display:none!important}
       .tm-scout-v2-panel{position:fixed!important;inset:18px;z-index:2147483646;color:#e8f2fb;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;}
-      #tmScoutMount .tm-scout-v2-panel{position:fixed!important;inset:18px!important}
+      #tmScoutMount .tm-scout-v2-panel{position:relative!important;inset:auto!important;z-index:1!important;width:100%!important;height:calc(100vh - 150px)!important;min-height:680px!important}
       .tm-scout-v2-panel[hidden]{display:none!important}
       .tm-scout-v2-shell{height:100%;display:flex;flex-direction:column;background:#071018;border:1px solid rgba(125,166,200,.30);border-radius:20px;overflow:hidden;box-shadow:0 24px 86px rgba(0,0,0,.56)}
       .tm-scout-v2-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 18px;border-bottom:1px solid rgba(125,166,200,.18);background:#09131d;backdrop-filter:blur(10px)}
@@ -4718,7 +4720,8 @@
       .tm-scout-v2-collapsed{inset:auto 16px 16px auto;width:min(520px,calc(100vw - 32px));height:auto}.tm-scout-v2-collapsed .tm-scout-v2-body{display:none}.tm-scout-v2-collapsed .tm-scout-v2-shell{height:auto}.tm-scout-v2-collapsed .tm-scout-v2-head{border-bottom:0}
       @media(max-width:520px){.tm-scout-v2-actions{grid-template-columns:1fr 1fr!important}.tm-scout-v2-actions button{white-space:normal!important}}
       @media(max-width:1100px){.tm-scout-v2-body{grid-template-columns:420px minmax(0,1fr)}}
-      @media(max-width:900px){.tm-scout-v2-panel{inset:8px}.tm-scout-v2-body{grid-template-columns:1fr}.tm-scout-v2-controls{max-height:52vh;border-right:0;border-bottom:1px solid rgba(125,166,200,.18);scroll-padding-bottom:110px}.tm-scout-v2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tm-scout-v2-head{display:block}.tm-scout-v2-head-actions{margin-top:12px}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr 1fr}.tm-scout-v2-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}}    `;
+      @media(max-width:900px){#tmScoutMount .tm-scout-v2-panel,.tm-scout-v2-panel{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important}.tm-scout-v2-shell{height:auto!important;min-height:0!important;overflow:visible!important;border-radius:18px!important}.tm-scout-v2-body{display:block!important}.tm-scout-v2-controls{max-height:none!important;overflow:visible!important;border-right:0!important;border-bottom:1px solid rgba(125,166,200,.18)!important;padding:12px!important;scroll-padding-bottom:0!important}.tm-scout-v2-output{overflow:visible!important}.tm-scout-v2-table-wrap{max-height:68vh!important;overflow:auto!important}.tm-scout-v2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tm-scout-v2-head{display:block;padding:15px!important}.tm-scout-v2-head-actions{margin-top:12px;justify-content:flex-start!important}.tm-scout-v2-head-lang select{min-width:0;width:100%}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr 1fr}.tm-scout-v2-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+      @media(max-width:560px){.tm-scout-v2-head h2{font-size:24px!important}.tm-scout-v2-head p{font-size:12px!important;line-height:1.4!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:1fr!important}.tm-scout-v2-checks,.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr!important}.tm-scout-v2-stats{grid-template-columns:1fr 1fr!important;padding:10px!important}.tm-scout-v2-statusbar{padding:12px!important}.tm-scout-v2-actions{grid-template-columns:1fr 1fr!important}.tm-scout-v2-table{min-width:980px!important}.tm-scout-v2-table th,.tm-scout-v2-table td{font-size:11px!important;padding:8px!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{min-height:180px!important;max-height:260px!important}}    `;
     (document.head || document.documentElement).appendChild(style);
   }
 

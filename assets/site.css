@@ -1,2 +1,82 @@
-:root{color-scheme:dark;--bg:#071018;--panel:#0b1722;--line:rgba(125,166,200,.24);--text:#eef7ff;--muted:#9fb3c7;--green:#56f097;--blue:#9bd2ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.site-shell{width:min(1420px,calc(100% - 24px));margin:0 auto;padding:18px 0 42px}.site-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,520px);gap:14px;align-items:stretch;margin-bottom:12px}.site-hero>div,.notice,.app-mount{border:1px solid var(--line);border-radius:20px;background:rgba(11,23,34,.78);box-shadow:0 22px 70px rgba(0,0,0,.24)}.site-hero>div:first-child{padding:20px}.eyebrow{margin:0 0 6px;color:var(--green);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.14em}h1{margin:0;font-size:clamp(30px,5vw,56px);letter-spacing:-.05em;line-height:.95}.lead{margin:10px 0 0;color:var(--muted);font-size:14px;line-height:1.45}.proxy-card{padding:16px}.proxy-card label{display:block;font-size:12px;font-weight:900;color:#dcecff;margin-bottom:8px}.proxy-row{display:flex;gap:8px}.proxy-row input{min-width:0;flex:1;border:1px solid var(--line);border-radius:12px;background:#071018;color:var(--text);padding:10px 12px;font:700 13px/1.2 inherit}.proxy-row button{border:1px solid rgba(86,240,151,.45);border-radius:12px;background:#1f8f64;color:white;font-weight:900;padding:10px 13px;cursor:pointer}.proxy-status{margin:9px 0 0;font-size:12px;line-height:1.35}.proxy-status.ok{color:#a9ffc9}.proxy-status.warn{color:#ffd58a}.notice{padding:13px 16px;margin-bottom:12px;color:#cfe1f3;font-size:13px;line-height:1.45}.notice code{background:#071018;border:1px solid var(--line);padding:2px 5px;border-radius:6px;color:var(--blue)}.app-mount{min-height:90px;padding:14px 16px}.boot-note{margin:0;color:var(--muted);font-size:13px}@media(max-width:840px){.site-hero{grid-template-columns:1fr}.proxy-row{flex-direction:column}.proxy-row button{width:100%}}
-.proxy-lang-label{margin-top:10px}.proxy-lang-select{width:100%;border:1px solid var(--line);border-radius:12px;background:#071018;color:var(--text);padding:10px 12px;font:800 13px/1.2 inherit;margin-bottom:10px;outline:none}.proxy-lang-select:focus{border-color:rgba(86,240,151,.8);box-shadow:0 0 0 3px rgba(86,240,151,.12)}
+
+:root{
+  color-scheme:dark;
+  --bg:#071018;
+  --panel:#0b1722;
+  --line:rgba(125,166,200,.24);
+  --text:#eef7ff;
+  --muted:#9fb3c7;
+  --green:#56f097;
+  --blue:#9bd2ff;
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg)}
+body{
+  margin:0;
+  min-height:100%;
+  background:
+    radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),
+    radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  overflow-x:hidden;
+}
+.site-shell{
+  width:min(1480px,calc(100% - 24px));
+  margin:0 auto;
+  padding:18px 0 34px;
+}
+.site-hero{margin-bottom:12px}
+.hero-card{
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(11,23,34,.78);
+  box-shadow:0 22px 70px rgba(0,0,0,.24);
+  padding:20px 22px;
+}
+.eyebrow{
+  margin:0 0 6px;
+  color:var(--green);
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+}
+h1{
+  margin:0;
+  font-size:clamp(30px,5vw,56px);
+  letter-spacing:-.05em;
+  line-height:.95;
+}
+.lead{
+  margin:10px 0 0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+}
+.app-mount{
+  min-height:calc(100vh - 150px);
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.boot-note{
+  margin:0;
+  padding:14px 16px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(11,23,34,.78);
+  color:var(--muted);
+  font-size:13px;
+}
+@media(max-width:760px){
+  .site-shell{width:100%;padding:10px 8px 22px}
+  .site-hero{margin-bottom:10px}
+  .hero-card{border-radius:18px;padding:16px}
+  h1{font-size:34px}
+  .lead{font-size:13px}
+  .app-mount{min-height:0}
+}
