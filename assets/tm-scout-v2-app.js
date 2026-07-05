@@ -194,6 +194,9 @@
     "Keresés": "Search",
     "HTML letöltés": "Download HTML",
     "HTML nézet megnyitása": "Open HTML view",
+    "Megnyitás": "Open",
+    "Oké": "OK",
+    "Nincs exportálható találat. Előbb futtasd a keresést.": "No exportable results. Run the search first.",
     "CSV export": "CSV export",
     "JSON export": "JSON export",
     "Cache törlés": "Clear cache",
@@ -331,6 +334,9 @@
     "Keresés": "Căutare",
     "HTML letöltés": "Descarcă HTML",
     "HTML nézet megnyitása": "Deschide vizualizarea HTML",
+    "Megnyitás": "Deschide",
+    "Oké": "OK",
+    "Nincs exportálható találat. Előbb futtasd a keresést.": "Nu există rezultate exportabile. Rulează mai întâi căutarea.",
     "CSV export": "Export CSV",
     "JSON export": "Export JSON",
     "Cache törlés": "Șterge cache",
@@ -703,7 +709,7 @@
       GM_registerMenuCommand(APP.menuOpen, openPanel);
       GM_registerMenuCommand(APP.menuClear, async function clearFromMenu() {
         const count = await clearOwnCache();
-        window.alert(`${APP.name}: ${tx('Cache törölve')} (${count} elem).`);
+        showUiModal(`${APP.name}: ${tx('Cache törölve')} (${count} elem).`, { title: APP.name, variant: 'success' });
       });
     } catch (error) {
       logError('menu command registration failed', error);
@@ -807,7 +813,7 @@
       console.info(`${APP.logPrefix} panel opened`);
     } catch (error) {
       logError('panel open failed', error);
-      window.alert(`${APP.logPrefix} error: ${stringifyError(error)}`);
+      showUiModal(stringifyError(error), { title: APP.name, variant: 'error' });
     }
   }
 
@@ -937,7 +943,7 @@
       '      <div class="tm-scout-v2-actions">',
       '        <button type="button" data-action="search" class="tm-scout-v2-primary">Keresés</button>',
       '        <button type="button" data-action="download-html">HTML letöltés</button>',
-      '        <button type="button" data-action="open-html-view">HTML nézet megnyitása</button>',
+      '        <button type="button" data-action="open-html-view">Megnyitás</button>',
       '        <button type="button" data-action="download-csv">CSV export</button>',
       '        <button type="button" data-action="download-json">JSON export</button>',
       '        <button type="button" data-action="clear-cache">Cache törlés</button>',
@@ -1087,12 +1093,12 @@
         if (action === 'clear-cache') {
           const count = await clearOwnCache();
           setStatus(panel, `${tx('Cache törölve')} (${count} elem).`, 0);
-          window.alert(`${APP.name}: ${tx('Cache törölve')} (${count} elem).`);
+          showUiModal(`${APP.name}: ${tx('Cache törölve')} (${count} elem).`, { title: APP.name, variant: 'success' });
         }
       } catch (error) {
         logError(`panel action failed: ${action}`, error);
         setStatus(panel, `Hiba: ${stringifyError(error)}`, null);
-        window.alert(`${APP.logPrefix} error: ${stringifyError(error)}`);
+        showUiModal(stringifyError(error), { title: APP.name, variant: 'error' });
       }
     });
   }
@@ -1261,7 +1267,7 @@
       pushError('run failed', stringifyError(error));
       logError('run failed', error);
       setStatus(panel, `Hiba: ${stringifyError(error)}`, null);
-      window.alert(`${APP.logPrefix} error: ${stringifyError(error)}`);
+      showUiModal(stringifyError(error), { title: APP.name, variant: 'error' });
     } finally {
       state.running = false;
       panel.classList.remove('tm-scout-v2-running');
@@ -4565,6 +4571,39 @@
     ].join('\n');
   }
 
+
+  function showUiModal(message, options) {
+    const opts = options || {};
+    const overlay = document.createElement('div');
+    overlay.className = `tm-scout-v2-ui-modal${opts.variant ? ' is-' + opts.variant : ''}`;
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    const title = opts.title || (opts.variant === 'error' ? 'Hoppá' : APP.name);
+    const text = translateRuntimeText(String(message || ''));
+    overlay.innerHTML = [
+      '<div class="tm-scout-v2-ui-modal-card">',
+      '  <div class="tm-scout-v2-ui-modal-icon">✨</div>',
+      `  <h3>${escapeHtml(title)}</h3>`,
+      `  <p>${escapeHtml(text)}</p>`,
+      `  <button type="button" data-close-ui-modal>${escapeHtml(tx('Oké'))}</button>`,
+      '</div>'
+    ].join('');
+    document.body.appendChild(overlay);
+    const close = function closeModal() { overlay.remove(); };
+    const btn = overlay.querySelector('[data-close-ui-modal]');
+    if (btn) btn.addEventListener('click', close, { once: true });
+    overlay.addEventListener('click', function onOverlayClick(event) {
+      if (event.target === overlay) close();
+    });
+    document.addEventListener('keydown', function onModalKey(event) {
+      if (event.key === 'Escape') {
+        document.removeEventListener('keydown', onModalKey);
+        close();
+      }
+    });
+    if (btn && btn.focus) window.setTimeout(function focusModalButton() { btn.focus(); }, 0);
+  }
+
   function ensureHasResults() {
     if (!state.results.length) throw new Error('Nincs exportálható találat. Előbb futtasd a keresést.');
   }
@@ -4756,6 +4795,8 @@
       .tm-scout-v2-note-mini{font-size:11px;line-height:1.35;color:#95aabd;grid-column:1/-1;margin:2px 0 0}.tm-scout-v2-muted-block{opacity:.45}.tm-scout-v2-muted-block legend::after{content:' (inaktív)';font-weight:700;color:#c49d51}.tm-scout-v2-note{border:1px solid rgba(125,166,200,.22);background:#0a1621;border-radius:11px;padding:9px 11px;margin-bottom:12px;color:#bdd4e7;font-size:12px;line-height:1.35}.tm-scout-v2-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid rgba(125,166,200,.18)}.tm-scout-v2-stat{background:#0a1621;border:1px solid rgba(125,166,200,.18);border-radius:11px;padding:9px 10px}.tm-scout-v2-stat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#95aabd;font-weight:800}.tm-scout-v2-stat strong{display:block;margin-top:3px;color:#fff;font-size:18px}
       .tm-scout-v2-table-wrap{overflow:auto;min-height:0;flex:1;padding:0 0 14px;background:#071018!important}.tm-scout-v2-table{width:100%;border-collapse:separate!important;border-spacing:0!important;min-width:1280px;background:#071018!important}.tm-scout-v2-table th,.tm-scout-v2-table td{padding:9px 10px!important;border-bottom:1px solid rgba(126,163,196,.18)!important;text-align:left!important;vertical-align:top!important;font-size:12px!important;line-height:1.34!important}.tm-scout-v2-table th{position:sticky!important;top:0!important;z-index:2!important;background:#102235!important;color:#d7e7f5!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.06em!important}.tm-scout-v2-table tbody tr:nth-child(odd) td{background:#0a1722!important}.tm-scout-v2-table tbody tr:nth-child(even) td{background:#0c1b27!important}.tm-scout-v2-table tbody tr:hover td{background:#10263a!important;color:#ffffff!important}.tm-scout-v2-table td{color:#dcecff!important}.tm-scout-v2-table a{color:#9bd2ff!important;font-weight:800!important}.tm-scout-v2-cell-player{font-weight:800!important;color:#ffffff!important;min-width:150px}.tm-scout-v2-cell-position{color:#a7f0bf!important;font-weight:800!important;min-width:150px}.tm-scout-v2-cell-growth{color:#dbeff0!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-playing{color:#ecd996!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-seasons{color:#c2d7eb!important;min-width:180px}.tm-scout-v2-cell-availability{color:#cfe2f6!important;min-width:310px}.tm-scout-v2-cell-source{color:#aebfd0!important;min-width:170px}.tm-scout-v2-empty{text-align:center!important;color:#9fb4c6!important;padding:30px!important;background:#0a1724!important}
       .tm-scout-v2-collapsed{inset:auto 16px 16px auto;width:min(520px,calc(100vw - 32px));height:auto}.tm-scout-v2-collapsed .tm-scout-v2-body{display:none}.tm-scout-v2-collapsed .tm-scout-v2-shell{height:auto}.tm-scout-v2-collapsed .tm-scout-v2-head{border-bottom:0}
+
+      .tm-scout-v2-ui-modal{position:fixed!important;inset:0!important;z-index:2147483647!important;display:grid!important;place-items:center!important;padding:18px!important;background:rgba(2,8,13,.72)!important;backdrop-filter:blur(8px)!important}.tm-scout-v2-ui-modal-card{width:min(420px,calc(100vw - 28px))!important;border:1px solid rgba(86,240,151,.38)!important;border-radius:22px!important;background:linear-gradient(180deg,#102235,#08131d)!important;box-shadow:0 28px 90px rgba(0,0,0,.55)!important;color:#eef7ff!important;padding:18px!important;text-align:left!important}.tm-scout-v2-ui-modal-icon{width:42px!important;height:42px!important;border-radius:16px!important;display:grid!important;place-items:center!important;background:rgba(86,240,151,.16)!important;border:1px solid rgba(86,240,151,.35)!important;margin-bottom:10px!important}.tm-scout-v2-ui-modal-card h3{margin:0 0 8px!important;font-size:18px!important;line-height:1.1!important;color:#fff!important}.tm-scout-v2-ui-modal-card p{margin:0 0 14px!important;color:#cfe0ef!important;font-size:13px!important;line-height:1.45!important}.tm-scout-v2-ui-modal-card button{width:100%!important;border:0!important;border-radius:13px!important;background:#56f097!important;color:#06120d!important;font-weight:950!important;padding:10px 14px!important;cursor:pointer!important}.tm-scout-v2-ui-modal.is-error .tm-scout-v2-ui-modal-card{border-color:rgba(255,184,77,.45)!important}.tm-scout-v2-ui-modal.is-error .tm-scout-v2-ui-modal-icon{background:rgba(255,184,77,.16)!important;border-color:rgba(255,184,77,.38)!important}.tm-scout-v2-actions button{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
       @media(max-width:520px){.tm-scout-v2-actions{grid-template-columns:1fr 1fr!important}.tm-scout-v2-actions button{white-space:normal!important}}
       @media(max-width:1100px){.tm-scout-v2-body{grid-template-columns:420px minmax(0,1fr)}}
       .tm-scout-v2-html-modal{position:fixed!important;inset:18px!important;z-index:2147483647!important;display:flex!important;flex-direction:column!important;background:#071018!important;border:1px solid rgba(125,166,200,.35)!important;border-radius:18px!important;box-shadow:0 30px 90px rgba(0,0,0,.55)!important;overflow:hidden!important}.tm-scout-v2-html-modal-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:10px 12px!important;background:#102235!important;color:#eef7ff!important}.tm-scout-v2-html-modal-head button{border:1px solid rgba(125,166,200,.35)!important;border-radius:9px!important;background:#0a1722!important;color:#eef7ff!important;font-weight:800!important;padding:7px 10px!important;cursor:pointer!important}.tm-scout-v2-html-modal iframe{width:100%!important;height:100%!important;border:0!important;background:#071018!important}
