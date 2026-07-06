@@ -1,5 +1,5 @@
 /*
- * world-nationalities-league-source-v6-20260706
+ * always-deep-candidate-budget-v10-20260707
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -8,7 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
-  // world-nationalities-league-source-v6-20260706
+  // always-deep-candidate-budget-v10-20260707
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -113,7 +113,7 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
-  // world-nationalities-league-source-v6-20260706: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
+  // always-deep-candidate-budget-v10-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
@@ -128,7 +128,7 @@
   });
 
 
-  // world-nationalities-league-source-v6-20260706:
+  // always-deep-candidate-budget-v10-20260707:
   // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
   // A batch proxy most 24 URL-t fog össze egy POST-ba, plusz kliensoldali URL dedupe/pending cache
   // is van. Ez a Cloudflare Worker request countot tipikusan még kb. felezi a 12-es batchhez képest,
@@ -911,10 +911,16 @@
     const normalized = normalizeUiLanguage(lang);
     window.localStorage.setItem(LANGUAGE_STORAGE_KEY, normalized);
     localizeRoot(document);
+    updateNationalitySelectLabels(document);
     const panel = document.getElementById(APP.panelId);
     if (panel) {
+      setScoutModeUi(panel, state.settings.scoutMode || DEFAULTS.scoutMode);
+      setPositionModeUi(panel, state.settings.positionFilterMode || DEFAULTS.positionFilterMode);
       renderStats(panel);
       renderResults(panel, state.results || []);
+      localizeRoot(panel);
+      updateNationalitySelectLabels(panel);
+      setLastKnownStatusLanguage(panel);
     }
     try { window.dispatchEvent(new CustomEvent('tmScoutV2LanguageApplied', { detail: { language: normalized } })); } catch (_error) {}
   }
@@ -980,7 +986,13 @@
         "Nemzetiségek": "Nemzetiségek",
         "Contract nemzetiségek": "Contract nemzetiségek",
         "Minden nemzetiség": "Minden nemzetiség",
-        "Nincs egyező nemzetiség": "Nincs egyező nemzetiség"
+        "Nincs egyező nemzetiség": "Nincs egyező nemzetiség",
+        "Keresési mélység": "Keresési mélység",
+        "Gyors": "Gyors",
+        "Kiegyensúlyozott": "Kiegyensúlyozott",
+        "Alapos recovery": "Alapos recovery",
+        "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.": "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.",
+        "Keresési mód": "Keresési mód"
       },
       en: {
         "Keresés nemzetiségre": "Search nationality",
@@ -993,7 +1005,13 @@
         "Nemzetiségek": "Nationalities",
         "Contract nemzetiségek": "Contract nationalities",
         "Minden nemzetiség": "All nationalities",
-        "Nincs egyező nemzetiség": "No matching nationality"
+        "Nincs egyező nemzetiség": "No matching nationality",
+        "Keresési mélység": "Search depth",
+        "Gyors": "Fast",
+        "Kiegyensúlyozott": "Balanced",
+        "Alapos recovery": "Deep recovery",
+        "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.": "More precise source plan: targeted fallbacks, fewer lost candidates.",
+        "Keresési mód": "Search mode"
       },
       ro: {
         "Keresés nemzetiségre": "Caută naționalitate",
@@ -1014,6 +1032,121 @@
       Object.assign(I18N[lang], extra[lang]);
     });
   })();
+
+  (function addLanguageRefreshAndColumnText() {
+    const extra = {
+      hu: {
+        "Contract nemzetiségek / forrásszűkítés": "Contract nemzetiségek / forrásszűkítés",
+        "Contract nemzetiségek / source szűkítés": "Contract nemzetiségek / forrásszűkítés",
+        "U21 nemzetiségek / szűrés": "U21 nemzetiségek / szűrés",
+        "Keresés nemzetiségre": "Keresés nemzetiségre",
+        "Nincs egyező nemzetiség": "Nincs egyező nemzetiség",
+        "Keresési mélység": "Keresési mélység",
+        "Gyors": "Gyors",
+        "Kiegyensúlyozott": "Kiegyensúlyozott",
+        "Alapos recovery": "Alapos recovery",
+        "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.": "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.",
+        "Keresési mód": "Keresési mód",
+        "Csak európai klub/liga források": "Csak európai klub/liga források",
+        "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.",
+        "Kész": "Kész",
+        "találat": "találat",
+        "találatok": "találatok",
+        "vizsgált játékos": "vizsgált játékos",
+        "vizsgált játékosok": "vizsgált játékosok",
+        "ellenőrizve": "ellenőrizve",
+        "Forrásoldal": "Forrásoldal",
+        "Forrásoldalak letöltése": "Forrásoldalak letöltése",
+        "oldal": "oldal",
+        "oldal...": "oldal...",
+        "játékos": "játékos",
+        "játékosok": "játékosok",
+        "mód": "mód",
+        "Contract": "Contract",
+        "U21": "U21",
+        "Név A–Z": "Név A–Z",
+        "Fiatalabb előre": "Fiatalabb előre",
+        "Második állampolgárság": "Második állampolgárság",
+        "Forrásszűkítés": "Forrásszűkítés",
+        "Source narrowing": "Forrásszűkítés",
+        "Contract nationalities / source narrowing": "Contract nemzetiségek / forrásszűkítés",
+        "Naționalități contract / restrângere surse": "Contract nemzetiségek / forrásszűkítés"
+      },
+      en: {
+        "Contract nemzetiségek / forrásszűkítés": "Contract nationalities / source narrowing",
+        "Contract nemzetiségek / source szűkítés": "Contract nationalities / source narrowing",
+        "U21 nemzetiségek / szűrés": "U21 nationalities / filter",
+        "Keresés nemzetiségre": "Search nationality",
+        "Nincs egyező nemzetiség": "No matching nationality",
+        "Keresési mélység": "Search depth",
+        "Gyors": "Fast",
+        "Kiegyensúlyozott": "Balanced",
+        "Alapos recovery": "Deep recovery",
+        "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.": "More precise source plan: targeted fallbacks, fewer lost candidates.",
+        "Keresési mód": "Search mode",
+        "Csak európai klub/liga források": "European club/league sources only",
+        "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Turn this off to also include players from relevant leagues worldwide.",
+        "Kész": "Done",
+        "találat": "result",
+        "találatok": "results",
+        "vizsgált játékos": "player checked",
+        "vizsgált játékosok": "players checked",
+        "ellenőrizve": "enriched",
+        "Forrásoldal": "Source page",
+        "Forrásoldalak letöltése": "Downloading source pages",
+        "oldal": "page",
+        "oldal...": "pages...",
+        "játékos": "player",
+        "játékosok": "players",
+        "mód": "mode",
+        "Contract": "Contract",
+        "U21": "U21",
+        "Név A–Z": "Name A–Z",
+        "Fiatalabb előre": "Younger first",
+        "Második állampolgárság": "Second citizenship",
+        "Forrásszűkítés": "Source narrowing",
+        "Source narrowing": "Source narrowing",
+        "Contract nationalities / source narrowing": "Contract nationalities / source narrowing",
+        "Naționalități contract / restrângere surse": "Contract nationalities / source narrowing"
+      },
+      ro: {
+        "Contract nemzetiségek / forrásszűkítés": "Naționalități contract / restrângere surse",
+        "Contract nemzetiségek / source szűkítés": "Naționalități contract / restrângere surse",
+        "U21 nemzetiségek / szűrés": "Naționalități U21 / filtru",
+        "Keresés nemzetiségre": "Caută naționalitate",
+        "Nincs egyező nemzetiség": "Nicio naționalitate potrivită",
+        "Csak európai klub/liga források": "Doar surse cluburi/ligi europene",
+        "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Dacă dezactivezi opțiunea, pot apărea și jucători din ligi relevante din toată lumea.",
+        "Kész": "Gata",
+        "találat": "rezultat",
+        "találatok": "rezultate",
+        "vizsgált játékos": "jucător analizat",
+        "vizsgált játékosok": "jucători analizați",
+        "ellenőrizve": "verificați",
+        "Forrásoldal": "Pagină sursă",
+        "Forrásoldalak letöltése": "Descarc paginile sursă",
+        "oldal": "pagină",
+        "oldal...": "pagini...",
+        "játékos": "jucător",
+        "játékosok": "jucători",
+        "mód": "mod",
+        "Contract": "Contract",
+        "U21": "U21",
+        "Név A–Z": "Nume A–Z",
+        "Fiatalabb előre": "Mai tineri primii",
+        "Második állampolgárság": "A doua cetățenie",
+        "Forrásszűkítés": "Restrângere surse",
+        "Source narrowing": "Restrângere surse",
+        "Contract nationalities / source narrowing": "Naționalități contract / restrângere surse",
+        "Naționalități contract / restrângere surse": "Naționalități contract / restrângere surse"
+      }
+    };
+    Object.keys(extra).forEach(function mergeLanguageRefresh(lang) {
+      if (!I18N[lang]) return;
+      Object.assign(I18N[lang], extra[lang]);
+    });
+  })();
+
 
 
   const DEFAULTS = Object.freeze({
@@ -1068,6 +1201,7 @@
 
     // U21 prospect mode: broad youth search. MV is useful, but missing MV is not an exclusion reason.
     scoutMode: 'contract',
+    searchDepth: 'deep',
     u21MinAge: 16,
     u21MaxAge: 21,
     u21MinMv: 0,
@@ -1616,6 +1750,8 @@
     if (!savedCurrent) state.settings.includeFreeAgents = true;
     state.settings.positionFilterMode = normalizePositionFilterMode(state.settings.positionFilterMode);
     state.settings.lowerLeagueDepth = normalizeLowerLeagueDepth(state.settings.lowerLeagueDepth);
+    // v10: no UI search-depth selector. Always use the deepest planner; old saved fast/balanced values are ignored.
+    state.settings.searchDepth = 'deep';
     if (normalizeScoutMode(state.settings.scoutMode) === 'u21' && Number(state.settings.u21MinMatchRatio) === 35) {
       state.settings.u21MinMatchRatio = 65;
     }
@@ -1640,9 +1776,11 @@
     setMultiSelectValue(form.elements.contractNationalities, state.settings.contractNationalities);
     if (form.elements.uiLanguage) form.elements.uiLanguage.value = currentUiLanguage();
     state.settings.scoutMode = normalizeScoutMode(state.settings.scoutMode);
+    state.settings.searchDepth = normalizeSearchDepth(state.settings.searchDepth);
     setScoutModeUi(panel, state.settings.scoutMode);
     setPositionModeUi(panel, state.settings.positionFilterMode);
     localizeRoot(panel);
+    updateNationalitySelectLabels(panel);
   }
 
   function bindPanelEvents(panel) {
@@ -1657,12 +1795,14 @@
       if (target && target.name === 'positionFilterMode') {
         setPositionModeUi(panel, normalizePositionFilterMode(target.value));
         localizeRoot(panel);
+        updateNationalitySelectLabels(panel);
       }
       if (target && target.name === 'scoutMode') {
         setScoutModeUi(panel, normalizeScoutMode(target.value));
         renderResults(panel, state.results || []);
         renderStats(panel);
         localizeRoot(panel);
+        updateNationalitySelectLabels(panel);
       }
     });
 
@@ -1791,7 +1931,7 @@
       state.debug.prefilteredOut = allSourceCandidates.length - rawCandidates.length;
       state.debug.prefilterRejected = rejectedByPrefilter;
       rawCandidates.sort(isU21Mode(settings) ? sortU21CandidatesForEnrich : sortCandidatesForEnrich);
-      rawCandidates = rawCandidates.slice(0, isU21Mode(settings) ? settings.u21MaxCandidates : settings.maxCandidates);
+      rawCandidates = limitCandidatesForEnrich(rawCandidates, settings);
 
       state.rawCandidates = rawCandidates;
       state.debug.rawCandidates = rawCandidates.length;
@@ -1893,6 +2033,8 @@
       contractYear: String(form.elements.contractYear.value || DEFAULTS.contractYear),
       contractNationalities: readMultiSelectValues(form.elements.contractNationalities),
       scoutMode: normalizeScoutMode(form.elements.scoutMode ? form.elements.scoutMode.value : DEFAULTS.scoutMode),
+      // v10: always deep/recovery; budget is controlled by the user candidate caps, not a separate dropdown.
+      searchDepth: 'deep',
       u21MinAge: readNumber(form.elements.u21MinAge, DEFAULTS.u21MinAge),
       u21MaxAge: readNumber(form.elements.u21MaxAge, DEFAULTS.u21MaxAge),
       u21MinMv: readNumber(form.elements.u21MinMv, DEFAULTS.u21MinMv),
@@ -2011,6 +2153,48 @@
     url.searchParams.set('land_id', String(landId || '0'));
     url.searchParams.set('yt0', 'Show');
     return url.toString();
+  }
+
+  function buildFreeAgentRecoveryFilters(sourceFilters, settings) {
+    /*
+     * Free-agent tables are the easiest place to lose players: TM can be picky with
+     * combined age + exact position params, and the rows are sorted by market value.
+     * So we keep the precise sources, then add a few wider recovery sources and let
+     * the local prefilter do the exact age/MV/position cut.
+     */
+    const filters = Array.isArray(sourceFilters) && sourceFilters.length ? sourceFilters : [{ ageClass: 'alle', alignment: 'alle', detailId: 'alle', label: 'all', weight: 0 }];
+    const out = [];
+    const seen = new Set();
+    const depth = normalizeSearchDepth(settings && settings.searchDepth);
+    const deep = depth === 'deep';
+    const fast = depth === 'fast';
+
+    function add(filter, labelSuffix, weightBoost) {
+      const base = normalizeSourceFilter(filter);
+      const item = {
+        ageClass: base.ageClass || 'alle',
+        alignment: base.alignment || 'alle',
+        detailId: base.detailId || 'alle',
+        label: [base.label || 'all', labelSuffix].filter(Boolean).join(' · '),
+        weight: Math.max(0, Number(base.weight || 0) + Number(weightBoost || 0))
+      };
+      const key = `${item.ageClass}|${item.alignment}|${item.detailId}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(item);
+    }
+
+    filters.forEach(function addWiderFreeAgentFilter(filter) {
+      const f = normalizeSourceFilter(filter);
+      add({ ageClass: f.ageClass, alignment: f.alignment, detailId: f.detailId, label: f.label, weight: f.weight }, 'exact recovery', 0);
+      if (f.detailId !== 'alle') add({ ageClass: f.ageClass, alignment: f.alignment, detailId: 'alle', label: 'age + broad position', weight: Math.max(1, f.weight - 1) }, 'broad-pos fallback', 0);
+      if (!fast && (f.alignment !== 'alle' || f.detailId !== 'alle')) add({ ageClass: f.ageClass, alignment: 'alle', detailId: 'alle', label: 'age-only', weight: Math.max(0, f.weight - 1) }, 'age fallback', 1);
+      if (!fast && f.ageClass !== 'alle' && (f.alignment !== 'alle' || f.detailId !== 'alle')) add({ ageClass: 'alle', alignment: f.alignment, detailId: f.detailId, label: 'position-only', weight: Math.max(0, f.weight - 1) }, 'position fallback', 1);
+      if (deep && f.detailId !== 'alle') add({ ageClass: 'alle', alignment: f.alignment, detailId: 'alle', label: 'broad position all ages', weight: Math.max(0, f.weight - 2) }, 'deep broad-position fallback', 2);
+    });
+
+    if (!fast) add({ ageClass: 'alle', alignment: 'alle', detailId: 'alle', label: 'all free agents', weight: 0 }, deep ? 'deep fallback' : 'balanced fallback', deep ? 2 : 3);
+    return out;
   }
 
   function normalizeSourceFilter(filter) {
@@ -2179,14 +2363,26 @@
 
     if (settings.includeFreeAgents) {
       sourceLandIds.forEach(function addFreeNationalitySource(landId) {
+        const natLabel = landId && landId !== '0' ? ` · nat ${landId}` : '';
         sourceFilters.forEach(function addFreeAgentSource(filter) {
-          const natLabel = landId && landId !== '0' ? ` · nat ${landId}` : '';
           coreSources.push({
             url: buildFreeAgentQueryUrl(filter, landId),
             type: 'free-agent',
             label: `Current free agents${natLabel}${filter.label ? ` · ${filter.label}` : ''}`,
             sourceGroup: 'current-free-agents',
             pageLimitMode: 'free-agent',
+            sourceNationalityLandId: landId,
+            sourceFilterWeight: filter.weight || 0
+          });
+        });
+
+        buildFreeAgentRecoveryFilters(sourceFilters, settings).forEach(function addFreeAgentRecoverySource(filter) {
+          coreSources.push({
+            url: buildFreeAgentQueryUrl(filter, landId),
+            type: 'free-agent',
+            label: `Free-agent recovery${natLabel}${filter.label ? ` · ${filter.label}` : ''}`,
+            sourceGroup: 'current-free-agents-recovery',
+            pageLimitMode: 'free-agent-recovery',
             sourceNationalityLandId: landId,
             sourceFilterWeight: filter.weight || 0
           });
@@ -2273,7 +2469,8 @@
       else if (source.pageLimitMode === 'deep') limit = weight >= 2 ? Math.min(maxCorePages, 6) : weight === 1 ? Math.min(maxCorePages, 10) : Math.min(maxCorePages, 18);
       else if (source.pageLimitMode === 'league') limit = weight >= 1 ? 1 : Math.min(maxCorePages, 2);
       else if (source.pageLimitMode === 'lower-league') limit = 1;
-      else if (source.pageLimitMode === 'free-agent') limit = weight >= 1 ? Math.min(maxCorePages, 2) : Math.min(maxCorePages, 4);
+      else if (source.pageLimitMode === 'free-agent') limit = weight >= 1 ? Math.min(maxCorePages, 6) : Math.min(maxCorePages, 8);
+      else if (source.pageLimitMode === 'free-agent-recovery') limit = weight >= 2 ? Math.min(maxCorePages, 10) : Math.min(maxCorePages, 14);
       return applyContractMvPageLimit(settings, source, limit, maxCorePages);
     }
 
@@ -2283,7 +2480,8 @@
       const weightPenalty = Number(source.sourceFilterWeight || 0) * 2;
       if (group === 'extra') return 120 - weightPenalty;
       if (group === 'core-contracts-year') return 110 - weightPenalty;
-      if (group === 'current-free-agents') return 102 - weightPenalty;
+      if (group === 'current-free-agents') return 105 - weightPenalty;
+      if (group === 'current-free-agents-recovery') return 101 - weightPenalty;
       if (group === 'europe-league-contracts') return 74 + (codeScore / 10) - weightPenalty;
       if (group === 'strong-lower-league-contracts') return 64 + (codeScore / 12) - weightPenalty;
       return 50 - weightPenalty;
@@ -2342,13 +2540,37 @@
     // min/max MV URL parameter. So MV still cuts candidates before profile enrich,
     // while this cap prevents obviously pointless deep pages for high-MV searches and
     // gives lower-MV searches enough depth to reach the requested band.
-    if (minMv >= 10000000) return Math.min(limit, 2);
-    if (minMv >= 5000000) return Math.min(limit, mode === 'deep' ? 4 : 1);
-    if (minMv >= 1000000) return Math.min(limit, mode === 'deep' ? 8 : 2);
-    if (maxMv > 0 && maxMv <= 250000 && mode === 'deep') return Math.min(maxPages, Math.max(limit, 24));
+    const isFreeAgentSource = mode === 'free-agent' || mode === 'free-agent-recovery';
+    const depth = normalizeSearchDepth(settings && settings.searchDepth);
+    const depthBoost = depth === 'deep' ? 1.45 : depth === 'fast' ? 0.72 : 1;
+    function depthLimit(value) { return Math.max(1, Math.min(maxPages, Math.ceil(Number(value || 1) * depthBoost))); }
+
+    if (minMv >= 10000000) return depth === 'deep' ? Math.min(maxPages, 3) : Math.min(limit, 2);
+    if (minMv >= 5000000) return Math.min(limit, mode === 'deep' ? 4 : isFreeAgentSource ? 2 : 1);
+    if (minMv >= 1000000) return Math.min(limit, mode === 'deep' ? 8 : isFreeAgentSource ? 5 : 2);
+
+    if (isFreeAgentSource) {
+      if (maxMv > 0 && maxMv <= 250000) return depthLimit(Math.max(limit, 32));
+      if (maxMv > 0 && maxMv <= 500000) return depthLimit(Math.max(limit, 28));
+      if (maxMv > 0 && maxMv <= 650000) return depthLimit(Math.max(limit, 24));
+      if (maxMv > 0 && maxMv <= 800000) return depthLimit(Math.max(limit, 20));
+      if (maxMv > 0 && maxMv <= 1200000) return depthLimit(Math.max(limit, 14));
+    }
+
+    if (maxMv > 0 && maxMv <= 250000 && mode === 'deep') return depthLimit(Math.max(limit, 24));
     if (maxMv > 0 && maxMv <= 500000 && mode === 'deep') return Math.min(maxPages, Math.max(limit, 22));
-    if (maxMv > 0 && maxMv <= 800000 && mode === 'deep') return Math.min(maxPages, Math.max(limit, 20));
+    if (maxMv > 0 && maxMv <= 800000 && mode === 'deep') return depthLimit(Math.max(limit, 20));
     return limit;
+  }
+
+  function candidateTargetBudgetMultiplier(settings, u21Mode) {
+    const fallback = u21Mode ? DEFAULTS.u21MaxCandidates : DEFAULTS.maxCandidates;
+    const target = Math.max(1, Number(u21Mode ? settings.u21MaxCandidates : settings.maxCandidates) || fallback);
+    const baseline = Math.max(1, Number(fallback || 1));
+    // Keep the default deep behavior, then widen the source plan when the user explicitly asks for more candidates.
+    // This avoids another UI toggle while still making "Max candidates" the real search-depth dial.
+    if (target <= baseline) return 1;
+    return Math.min(2.6, 1 + ((target - baseline) / baseline) * 0.65);
   }
 
   function getContractSourceBudget(settings, sourceFilterCount) {
@@ -2357,12 +2579,15 @@
     let multiplier = 1;
     if (settings.europeLeaguePages) multiplier += 1.25;
     if (settings.lowerLeaguePages) multiplier += 0.75;
-    if (settings.includeFreeAgents) multiplier += 0.35;
+    if (settings.includeFreeAgents) multiplier += 1.05;
+    if (settings.includeFreeAgents && Number(settings.maxMv || 0) > 0 && Number(settings.maxMv || 0) <= 800000) multiplier += 0.55;
     const nationalityCount = Math.max(1, getSelectedContractNationalityLandIds(settings).length || 1);
     if (nationalityCount > 1) multiplier += Math.min(1.2, nationalityCount * 0.22);
     if (filterCount > 1) multiplier += Math.min(1.5, filterCount * 0.18);
+    multiplier *= searchDepthBudgetMultiplier(settings);
+    multiplier *= candidateTargetBudgetMultiplier(settings, false);
     // This is a total source-page budget, not leagues × filters × pages.
-    return Math.max(8, Math.min(420, Math.round(requested * multiplier)));
+    return Math.max(8, Math.min(760, Math.round(requested * multiplier)));
   }
 
 
@@ -2595,6 +2820,8 @@
       });
     }
 
+    addU21GlobalRecoveryTargets(settings, sourceFilters, requestedPages, maxTotalSources, nationalityLandIds, knownNationalityMode, targets);
+
     targets.sort(function bySignal(a, b) {
       return (b.priority - a.priority)
         || ((a.filter && a.filter.weight || 0) - (b.filter && b.filter.weight || 0))
@@ -2624,16 +2851,52 @@
     return plan;
   }
 
+  function addU21GlobalRecoveryTargets(settings, sourceFilters, requestedPages, maxTotalSources, nationalityLandIds, knownNationalityMode, targets) {
+    const depth = normalizeSearchDepth(settings && settings.searchDepth);
+    if (depth === 'fast') return;
+
+    const selectedCountryCount = getU21SelectedCountryKeys(settings).length;
+    const useSpecificLandIds = Array.isArray(nationalityLandIds) && nationalityLandIds.length > 0;
+    const landIds = useSpecificLandIds ? nationalityLandIds.slice() : ['0'];
+    const sliceCount = depth === 'deep' ? 4 : 2;
+    const chosenFilters = (sourceFilters || []).slice(0, sliceCount);
+
+    landIds.forEach(function addLand(landId) {
+      chosenFilters.forEach(function addFilter(filter) {
+        const baseLimit = getU21NationalityMvPageLimit(settings, filter, requestedPages);
+        const pageLimit = depth === 'deep' ? Math.min(requestedPages, baseLimit + 4) : baseLimit;
+        targets.push({
+          url: buildGlobalU21MarketValuesQueryUrl(filter, landId),
+          label: `U21 global recovery${landId && landId !== '0' ? ` · nat ${landId}` : ''}${filter.label ? ` · ${filter.label}` : ''}`,
+          sourceGroup: useSpecificLandIds ? 'u21-global-known-nationality-recovery' : (selectedCountryCount ? 'u21-global-local-nationality-recovery' : 'u21-global-all-nationalities-recovery'),
+          landId: landId,
+          filter: filter,
+          pageLimit: pageLimit,
+          priority: (useSpecificLandIds ? 96 : selectedCountryCount ? 82 : 76) - Number(filter.weight || 0)
+        });
+        state.debug.adaptivePageLimits.push({
+          group: useSpecificLandIds ? 'u21-global-known-nationality-recovery' : 'u21-global-local-nationality-recovery',
+          label: `U21 global recovery land_id ${landId}${filter.label ? ` · ${filter.label}` : ''}`,
+          filterWeight: filter.weight || 0,
+          pageLimit: pageLimit,
+          sourceBudget: maxTotalSources,
+          note: useSpecificLandIds ? 'known nationality land_id recovery' : 'all-nationality global recovery + local exact nationality filter'
+        });
+      });
+    });
+  }
+
   function getU21TotalSourceBudget(settings, sourceFilterCount) {
     const requested = Math.max(1, Number(settings.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages || 16));
     const filterCount = Math.max(1, Number(sourceFilterCount || 1));
     const hasKnownNationality = getSelectedU21NationalityLandIds(settings).length > 0;
     const nationalities = Math.max(1, hasKnownNationality ? getSelectedU21NationalityLandIds(settings).length : 1);
+    const depthMul = searchDepthBudgetMultiplier(settings) * candidateTargetBudgetMultiplier(settings, true);
     if (hasKnownNationality) {
       // Nationality-filtered global pages are much denser, so the total plan should stay compact.
-      return Math.max(12, Math.min(220, Math.round((requested * 0.75) + (filterCount * nationalities * 8))));
+      return Math.max(12, Math.min(360, Math.round(((requested * 0.75) + (filterCount * nationalities * 8)) * depthMul)));
     }
-    return Math.max(18, Math.min(320, Math.round(requested * (filterCount > 1 ? 1.8 : 2.4))));
+    return Math.max(18, Math.min(520, Math.round(requested * (filterCount > 1 ? 1.8 : 2.4) * depthMul)));
   }
 
   function getU21NationalityMvPageLimit(settings, filter, requestedPages) {
@@ -2650,6 +2913,8 @@
     else if (maxMv > 0 && maxMv <= 1000000) limit = 9;
     else if (minMv >= 1000000) limit = 4;
     else if (minMv >= 500000) limit = 6;
+    if (normalizeSearchDepth(settings && settings.searchDepth) === 'deep') limit += 5;
+    if (normalizeSearchDepth(settings && settings.searchDepth) === 'fast') limit -= 3;
     return Math.max(2, Math.min(requested, limit - weightPenalty));
   }
 
@@ -2758,11 +3023,12 @@
     const p = Number(priority || getU21CompetitionPriority(c, settings));
     const filterPenalty = Number(filterWeight || 0) >= 2 ? 1 : 0;
 
-    if (p >= 90) return Math.max(1, Math.min(requested, 7 - filterPenalty));
-    if (p >= 78) return Math.max(1, Math.min(requested, 6 - filterPenalty));
-    if (p >= 70) return Math.max(1, Math.min(requested, 5 - filterPenalty));
-    if (p >= 62) return Math.max(1, Math.min(requested, 4 - filterPenalty));
-    return Math.max(1, Math.min(requested, 3 - filterPenalty));
+    const depthExtra = normalizeSearchDepth(settings && settings.searchDepth) === 'deep' ? 2 : normalizeSearchDepth(settings && settings.searchDepth) === 'fast' ? -1 : 0;
+    if (p >= 90) return Math.max(1, Math.min(requested, 7 + depthExtra - filterPenalty));
+    if (p >= 78) return Math.max(1, Math.min(requested, 6 + depthExtra - filterPenalty));
+    if (p >= 70) return Math.max(1, Math.min(requested, 5 + depthExtra - filterPenalty));
+    if (p >= 62) return Math.max(1, Math.min(requested, 4 + depthExtra - filterPenalty));
+    return Math.max(1, Math.min(requested, 3 + depthExtra - filterPenalty));
   }
 
   function buildCompetitionMarketValuesQueryUrl(code, filter, landId) {
@@ -3312,7 +3578,13 @@
     if (mode === 'broad') {
       if (group && !isGroupEnabled(group, settings)) reasons.push('position-disabled-source');
     } else {
-      if (detail && !isDetailEnabled(detail, settings)) reasons.push('detail-position-disabled-source');
+      // Source rows are often broad (e.g. only "Defender"), while the profile has the exact position.
+      // Do not kill a possible CB/LB/RB/CM hit before the profile page can clarify it.
+      if (detail && detail !== 'Other') {
+        if (!isDetailEnabled(detail, settings)) reasons.push('detail-position-disabled-source');
+      } else if (group && !isAnyDetailInGroupEnabled(group, settings)) {
+        reasons.push('detail-position-group-disabled-source');
+      }
     }
 
     if (shouldApplyOwnTeamFilter(settings) && matchesOwnTeamSourceCandidate(candidate, settings)) {
@@ -3341,7 +3613,13 @@
     if (mode === 'broad') {
       if (group && !isGroupEnabled(group, settings)) reasons.push('position-disabled-source');
     } else {
-      if (detail && !isDetailEnabled(detail, settings)) reasons.push('detail-position-disabled-source');
+      // Source rows are often broad (e.g. only "Defender"), while the profile has the exact position.
+      // Do not kill a possible CB/LB/RB/CM hit before the profile page can clarify it.
+      if (detail && detail !== 'Other') {
+        if (!isDetailEnabled(detail, settings)) reasons.push('detail-position-disabled-source');
+      } else if (group && !isAnyDetailInGroupEnabled(group, settings)) {
+        reasons.push('detail-position-group-disabled-source');
+      }
     }
 
     // U21-ben is működjön a saját csapat kizárás már a source-szinten,
@@ -3354,9 +3632,45 @@
   }
 
   function sortCandidatesForEnrich(a, b) {
+    const af = hasCandidateSourceType(a, 'free-agent') ? 1 : 0;
+    const bf = hasCandidateSourceType(b, 'free-agent') ? 1 : 0;
     const av = a.marketValue || 0;
     const bv = b.marketValue || 0;
-    return bv - av || String(a.name).localeCompare(String(b.name));
+    return (bf - af) || (bv - av) || String(a.name).localeCompare(String(b.name));
+  }
+
+  function hasCandidateSourceType(candidate, type) {
+    return (candidate && Array.isArray(candidate.sourceTypes) ? candidate.sourceTypes : []).includes(type);
+  }
+
+  function limitCandidatesForEnrich(candidates, settings) {
+    const list = Array.isArray(candidates) ? candidates : [];
+    const max = Math.max(1, Number(isU21Mode(settings) ? settings.u21MaxCandidates : settings.maxCandidates) || 1);
+    if (list.length <= max) return list.slice();
+    if (isU21Mode(settings) || !settings.includeFreeAgents) return list.slice(0, max);
+
+    const freeAgents = list.filter(function isFree(candidate) { return hasCandidateSourceType(candidate, 'free-agent'); });
+    const others = list.filter(function isNotFree(candidate) { return !hasCandidateSourceType(candidate, 'free-agent'); });
+    if (!freeAgents.length) return list.slice(0, max);
+
+    const depth = normalizeSearchDepth(settings && settings.searchDepth);
+    const freeRatio = depth === 'deep' ? 0.65 : depth === 'fast' ? 0.35 : 0.50;
+    const freeFloor = depth === 'deep' ? 48 : depth === 'fast' ? 18 : 32;
+    const freeTarget = Math.min(freeAgents.length, Math.max(freeFloor, Math.round(max * freeRatio)));
+    const selected = [];
+    const seen = new Set();
+
+    function add(candidate) {
+      const id = String(candidate && candidate.playerId || '');
+      if (!id || seen.has(id) || selected.length >= max) return;
+      seen.add(id);
+      selected.push(candidate);
+    }
+
+    freeAgents.slice(0, freeTarget).forEach(add);
+    others.slice(0, Math.max(0, max - selected.length)).forEach(add);
+    list.forEach(add);
+    return selected;
   }
 
 
@@ -4759,7 +5073,7 @@
   function extractLeagueFromSourceLabels(labels) {
     const values = labels || [];
     for (const label of values) {
-      const codeMatch = String(label || '').match(/([A-Z]{1,4}\d[A-Z0-9]{0,4}|AR1N|MEXA|MLS1|JAP1|BRA1|CSL|SA1|QSL|UAE1)/);
+      const codeMatch = String(label || '').match(/\b([A-Z]{1,4}\d[A-Z0-9]{0,4}|AR1N|MEXA|MLS1|JAP1|BRA1|CSL|SA1|QSL|UAE1)\b/);
       if (codeMatch && competitionLabel(codeMatch[1]) !== codeMatch[1]) return competitionLabel(codeMatch[1]);
       const text = cleanText(label);
       if (/league|liga|division|serie|bundesliga|superliga|premier|eredivisie|ligue|championship/i.test(text)) return text;
@@ -4996,12 +5310,41 @@
     return Boolean(settings[key]);
   }
 
+  function isAnyDetailInGroupEnabled(group, settings) {
+    const normalized = String(group || '').toUpperCase();
+    if (normalized === 'GK') return Boolean(settings.detailGK);
+    if (normalized === 'DEF') return Boolean(settings.detailCB || settings.detailLB || settings.detailRB || settings.detailOther);
+    if (normalized === 'MID') return Boolean(settings.detailDM || settings.detailCM || settings.detailAM || settings.detailLM || settings.detailRM || settings.detailOther);
+    if (normalized === 'FWD') return Boolean(settings.detailLW || settings.detailRW || settings.detailWING || settings.detailCF || settings.detailSS || settings.detailOther);
+    return Boolean(settings.detailOther || anyDetailedPositionEnabled(settings));
+  }
+
   function anyDetailedPositionEnabled(settings) {
     return DETAIL_POSITION_KEYS.some(function hasDetail(key) { return Boolean(settings[key]); });
   }
 
   function normalizePositionFilterMode(value) {
     return String(value || '').toLowerCase() === 'detail' ? 'detail' : 'broad';
+  }
+
+  function normalizeSearchDepth(_value) {
+    // v10: the planner is always in the deepest/recovery mode.
+    // User-facing control is only the max candidate count, so old saved fast/balanced values cannot weaken the search.
+    return 'deep';
+  }
+
+  function searchDepthRank(settings) {
+    const mode = normalizeSearchDepth((settings || state.settings || DEFAULTS).searchDepth);
+    if (mode === 'fast') return 0;
+    if (mode === 'deep') return 2;
+    return 1;
+  }
+
+  function searchDepthBudgetMultiplier(settings) {
+    const rank = searchDepthRank(settings);
+    if (rank <= 0) return 0.7;
+    if (rank >= 2) return 1.65;
+    return 1;
   }
 
 
@@ -5254,7 +5597,10 @@
   function setResultTableHeaders(panel, headers) {
     const tr = panel.querySelector('.tm-scout-v2-table thead tr');
     if (!tr) return;
-    tr.innerHTML = headers.map(function headerCell(label) { return `<th>${escapeHtml(tx(label))}</th>`; }).join('');
+    tr.innerHTML = headers.map(function headerCell(label, index) {
+      const translated = tx(label);
+      return `<th title="${escapeAttr(translated)}" data-col-index="${index + 1}">${escapeHtml(translated)}</th>`;
+    }).join('');
   }
 
   function renderU21Results(panel, results) {
@@ -5394,10 +5740,23 @@
     });
   }
 
+  function setLastKnownStatusLanguage(panel) {
+    if (!panel) return;
+    const status = panel.querySelector('[data-role="status"]');
+    if (!status) return;
+    const canonical = status.getAttribute('data-status-canonical') || normalizeRuntimeTextToCanonical(status.textContent || '');
+    status.setAttribute('data-status-canonical', canonical);
+    status.textContent = translateRuntimeText(canonical);
+  }
+
   function setStatus(panel, text, progress) {
     const status = panel.querySelector('[data-role="status"]');
     const bar = panel.querySelector('[data-role="progress"]');
-    if (status) status.textContent = translateRuntimeText(text);
+    if (status) {
+      const canonical = normalizeRuntimeTextToCanonical(text);
+      status.setAttribute('data-status-canonical', canonical);
+      status.textContent = translateRuntimeText(canonical);
+    }
     if (bar && progress !== null && progress !== undefined) {
       bar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
     }
@@ -5527,6 +5886,10 @@
         minMatchRatio: 'Min meccsarány',
         maxPages: 'Max oldalak',
         maxCandidates: 'Max jelöltek',
+        searchDepth: 'Keresési mód',
+        searchDepthFast: 'Gyors',
+        searchDepthBalanced: 'Kiegyensúlyozott',
+        searchDepthDeep: 'Alapos recovery',
         sortU21: 'Rendezés: U21 score',
         u21Weights: 'Fő súlyok: meccsarány · MV-változás · életkor · játékvolumen',
         joined: 'Érkezett',
@@ -5601,6 +5964,10 @@
         minMatchRatio: 'Min match ratio',
         maxPages: 'Max pages',
         maxCandidates: 'Max candidates',
+        searchDepth: 'Search mode',
+        searchDepthFast: 'Fast',
+        searchDepthBalanced: 'Balanced',
+        searchDepthDeep: 'Deep recovery',
         sortU21: 'Sort: U21 score',
         u21Weights: 'Main weights: match ratio · MV change · age · playing volume',
         joined: 'Joined',
@@ -5675,6 +6042,10 @@
         minMatchRatio: 'Procent minim meciuri',
         maxPages: 'Pagini maxime',
         maxCandidates: 'Candidați maximi',
+        searchDepth: 'Mod căutare',
+        searchDepthFast: 'Rapid',
+        searchDepthBalanced: 'Echilibrat',
+        searchDepthDeep: 'Recuperare profundă',
         sortU21: 'Sortare: scor U21',
         u21Weights: 'Ponderi principale: procent meciuri · schimbare MV · vârstă · volum de joc',
         joined: 'Sosit',
@@ -5714,6 +6085,13 @@
     const list = values || [];
     if (!list.length) return ex('all');
     return list.map(function country(value) { return countryLabel(value); }).join(', ');
+  }
+
+  function formatExportSearchDepth(settings) {
+    const depth = normalizeSearchDepth(settings && settings.searchDepth);
+    if (depth === 'fast') return ex('searchDepthFast');
+    if (depth === 'deep') return ex('searchDepthDeep');
+    return ex('searchDepthBalanced');
   }
 
   function buildExportCriteria(settings) {
@@ -5911,13 +6289,13 @@
       ? ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link']
       : ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link'];
 
-    return ['<!doctype html>', `<html lang="${escapeAttr(lang)}">`, '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${escapeHtml(ex('exportTitle'))}</title>`, '<style>', exportCss(), '</style>', '</head>', '<body>', '<main>', '<section class="hero">', '<div class="topline">', '<div>', `<div class="kicker">${escapeHtml(ex('scoutExport'))}</div>`, '<h1>TM Scout V2</h1>', `<p>${escapeHtml(mode === 'u21' ? ex('u21Export') : ex('contractExport'))} · ${escapeHtml(new Date().toLocaleString(locale))}</p>`, '</div>', `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`, '</div>', '<div class="stats">', `<div class="stat"><span>${escapeHtml(ex('results'))}</span><strong>${escapeHtml(String(results.length))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('checkedPlayers'))}</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('enriched'))}</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('mode'))}</span><strong>${escapeHtml(mode === 'u21' ? 'U21' : 'Contract')}</strong></div>`, '</div>', '</section>', filterControls, '<section class="table-wrap">', '<table>', `<colgroup>${colClasses.map(function cc(cls) { return `<col class="${escapeAttr(cls)}">`; }).join('')}</colgroup>`, `<thead><tr>${headers.map(function h(key) { return `<th>${escapeHtml(ex(key))}</th>`; }).join('')}</tr></thead>`, `<tbody data-export-body>${rows || '<tr><td colspan="11">' + escapeHtml(ex('noResults')) + '</td></tr>'}</tbody>`, '</table>', '</section>', '</main>', '<script>', exportScript(mode), '</script>', '</body>', '</html>'].join('\n');
+    return ['<!doctype html>', `<html lang="${escapeAttr(lang)}">`, '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${escapeHtml(ex('exportTitle'))}</title>`, '<style>', exportCss(), '</style>', '</head>', '<body>', '<main>', '<section class="hero">', '<div class="topline">', '<div>', `<div class="kicker">${escapeHtml(ex('scoutExport'))}</div>`, '<h1>TM Scout V2</h1>', `<p>${escapeHtml(mode === 'u21' ? ex('u21Export') : ex('contractExport'))} · ${escapeHtml(new Date().toLocaleString(locale))}</p>`, '</div>', `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`, '</div>', '<div class="stats">', `<div class="stat"><span>${escapeHtml(ex('results'))}</span><strong>${escapeHtml(String(results.length))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('checkedPlayers'))}</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('enriched'))}</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('mode'))}</span><strong>${escapeHtml(mode === 'u21' ? 'U21' : 'Contract')}</strong></div>`, '</div>', '</section>', filterControls, '<section class="table-wrap">', '<table>', `<colgroup>${colClasses.map(function cc(cls) { return `<col class="${escapeAttr(cls)}">`; }).join('')}</colgroup>`, `<thead><tr>${headers.map(function h(key) { const label = ex(key); return `<th title="${escapeAttr(label)}">${escapeHtml(label)}</th>`; }).join('')}</tr></thead>`, `<tbody data-export-body>${rows || '<tr><td colspan="11">' + escapeHtml(ex('noResults')) + '</td></tr>'}</tbody>`, '</table>', '</section>', '</main>', '<script>', exportScript(mode), '</script>', '</body>', '</html>'].join('\n');
   }
 
   function exportCss() {
     return [
       ':root{color-scheme:dark;--bg:#071018;--panel:#0b1722;--panel2:#0e1f2e;--line:rgba(125,166,200,.24);--line2:rgba(125,166,200,.14);--text:#eef7ff;--muted:#9fb3c7;--green:#56f097;--blue:#9bd2ff;--red:#ff8b8b}',
-      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1660px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1380px;border-collapse:collapse;table-layout:fixed}th,td{padding:13px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left;overflow-wrap:anywhere}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:11px;text-transform:uppercase;letter-spacing:.06em;z-index:1}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:16px;font-weight:950;line-height:1;margin-bottom:4px}.player-cell strong{display:block;font-size:19px;line-height:1.16;letter-spacing:-.018em}.profile-mini{display:inline-block;font-size:12px;line-height:1.12;font-weight:800;margin-top:3px}.open-link{font-weight:800}.position-code{font-weight:950;font-size:15px;line-height:1.18}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:3px;font-size:14px;line-height:1.2}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.25}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:7px;min-width:0}.season-row{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;align-items:start;line-height:1.24}.season-row span{display:block}.season-row strong{font-size:14.6px;color:#eef7ff;white-space:nowrap;font-weight:950}.season-stats{display:flex!important;flex-wrap:wrap;gap:2px 10px;color:#e8f4ff;font-size:14.1px;font-weight:850}.season-stats span{white-space:nowrap}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:950}.growth-negative{color:var(--red);font-weight:950}.mv-route{display:flex;gap:7px;color:#f0f8ff;font-size:14.5px;font-weight:950;line-height:1.18;letter-spacing:-.01em}.mv-route span{white-space:nowrap}.growth-line{font-size:15.2px;line-height:1.16;margin-top:4px}.playing-cell strong{color:#fff}.season-row{font-size:14px;color:#e8f4ff}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}col.player{width:156px}col.position{width:112px}col.age{width:54px}col.nation{width:120px}col.availability{width:205px}col.club{width:120px}col.mvnow{width:92px}col.growth{width:150px}col.playing{width:105px}col.season{width:270px}col.link{width:78px}.club-col strong{display:block;line-height:1.24}.availability-cell{line-height:1.28}.availability-cell strong{font-size:14px;line-height:1.25}.mv-now-col strong{font-size:16px}.player-col{font-weight:800}.is-hidden{display:none!important}',
+      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1820px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1640px;border-collapse:collapse;table-layout:fixed}th,td{padding:13px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left;overflow-wrap:anywhere}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:10.2px;text-transform:uppercase;letter-spacing:.035em;z-index:1;white-space:normal;word-break:normal;overflow-wrap:normal;hyphens:auto;line-height:1.18}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:16px;font-weight:950;line-height:1;margin-bottom:4px}.player-cell strong{display:block;font-size:19px;line-height:1.16;letter-spacing:-.018em}.profile-mini{display:inline-block;font-size:12px;line-height:1.12;font-weight:800;margin-top:3px}.open-link{font-weight:800}.position-code{font-weight:950;font-size:15px;line-height:1.18}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:3px;font-size:14px;line-height:1.2}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.25}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:7px;min-width:0}.season-row{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;align-items:start;line-height:1.24}.season-row span{display:block}.season-row strong{font-size:14.6px;color:#eef7ff;white-space:nowrap;font-weight:950}.season-stats{display:flex!important;flex-wrap:wrap;gap:2px 10px;color:#e8f4ff;font-size:14.1px;font-weight:850}.season-stats span{white-space:nowrap}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:950}.growth-negative{color:var(--red);font-weight:950}.mv-route{display:flex;gap:7px;color:#f0f8ff;font-size:14.5px;font-weight:950;line-height:1.18;letter-spacing:-.01em}.mv-route span{white-space:nowrap}.growth-line{font-size:15.2px;line-height:1.16;margin-top:4px}.playing-cell strong{color:#fff}.season-row{font-size:14px;color:#e8f4ff}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}col.player{width:175px}col.position{width:130px}col.age{width:82px}col.nation{width:150px}col.availability{width:285px}col.club{width:165px}col.mvnow{width:100px}col.growth{width:160px}col.playing{width:135px}col.season{width:300px}col.link{width:92px}.club-col strong{display:block;line-height:1.24}.availability-cell{line-height:1.28}.availability-cell strong{font-size:14px;line-height:1.25}.mv-now-col strong{font-size:16px}.player-col{font-weight:800}.is-hidden{display:none!important}',
       '@media(max-width:900px){main{width:100%;padding:12px 8px 28px}.hero{padding:17px;border-radius:16px}.topline{display:block}.criteria{justify-content:flex-start;margin-top:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}',
       '@media(max-width:540px){.stats,.export-control-grid{grid-template-columns:1fr}td{grid-template-columns:1fr;gap:4px}.criteria span{font-size:11px}}'
     ].join('');
@@ -6261,7 +6639,7 @@
       .tm-scout-v2-checks{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px 14px!important}.tm-scout-v2-checks legend{grid-column:1/-1!important}.tm-scout-v2-checks label{display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;color:#c9d8e5!important;font-weight:700!important;line-height:1.2!important}.tm-scout-v2-source-options{display:block!important}.tm-scout-v2-source-options label{display:flex!important;align-items:center!important;gap:8px!important;margin:9px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide{display:block!important;margin:10px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide select,.tm-scout-v2-source-options label.tm-scout-v2-wide input{margin-top:6px!important}.tm-scout-v2-detail-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;position:static!important;bottom:auto!important;z-index:1!important;margin:14px 0 0!important;padding:9px!important;background:#091722!important;border:1px solid rgba(125,166,200,.24)!important;border-radius:14px!important;box-shadow:none!important}.tm-scout-v2-actions button{width:100%!important;min-height:32px!important;padding:7px 6px!important;border-radius:9px!important;font-size:11px!important;line-height:1.05!important;white-space:nowrap!important}.tm-scout-v2-actions .tm-scout-v2-primary{grid-column:auto!important}
       .tm-scout-v2-output{min-width:0;display:flex;flex-direction:column;overflow:hidden}.tm-scout-v2-statusbar{padding:13px 16px;border-bottom:1px solid rgba(125,166,200,.18);background:#0b1722}.tm-scout-v2-status{color:#d7e8f8;font-size:13px;font-weight:750;margin-bottom:9px}.tm-scout-v2-progress{height:8px;background:#071018;border-radius:999px;overflow:hidden;border:1px solid rgba(125,166,200,.18)}.tm-scout-v2-progress span{display:block;height:100%;width:0;background:#3a97d4;transition:width .2s ease}
       .tm-scout-v2-note-mini{font-size:11px;line-height:1.35;color:#95aabd;grid-column:1/-1;margin:2px 0 0}.tm-scout-v2-muted-block{opacity:.45}.tm-scout-v2-muted-block legend::after{content:' (inaktív)';font-weight:700;color:#c49d51}.tm-scout-v2-note{border:1px solid rgba(125,166,200,.22);background:#0a1621;border-radius:11px;padding:9px 11px;margin-bottom:12px;color:#bdd4e7;font-size:12px;line-height:1.35}.tm-scout-v2-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid rgba(125,166,200,.18)}.tm-scout-v2-stat{background:#0a1621;border:1px solid rgba(125,166,200,.18);border-radius:11px;padding:9px 10px}.tm-scout-v2-stat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#95aabd;font-weight:800}.tm-scout-v2-stat strong{display:block;margin-top:3px;color:#fff;font-size:18px}
-      .tm-scout-v2-table-wrap{overflow:auto;min-height:0;flex:1;padding:0 0 14px;background:#071018!important}.tm-scout-v2-table{width:100%;border-collapse:separate!important;border-spacing:0!important;min-width:1280px;background:#071018!important}.tm-scout-v2-table th,.tm-scout-v2-table td{padding:9px 10px!important;border-bottom:1px solid rgba(126,163,196,.18)!important;text-align:left!important;vertical-align:top!important;font-size:12px!important;line-height:1.34!important}.tm-scout-v2-table th{position:sticky!important;top:0!important;z-index:2!important;background:#102235!important;color:#d7e7f5!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.06em!important}.tm-scout-v2-table tbody tr:nth-child(odd) td{background:#0a1722!important}.tm-scout-v2-table tbody tr:nth-child(even) td{background:#0c1b27!important}.tm-scout-v2-table tbody tr:hover td{background:#10263a!important;color:#ffffff!important}.tm-scout-v2-table td{color:#dcecff!important}.tm-scout-v2-table a{color:#9bd2ff!important;font-weight:800!important}.tm-scout-v2-cell-player{font-weight:800!important;color:#ffffff!important;min-width:150px}.tm-scout-v2-cell-position{color:#a7f0bf!important;font-weight:800!important;min-width:150px}.tm-scout-v2-cell-growth{color:#dbeff0!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-playing{color:#ecd996!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-seasons{color:#c2d7eb!important;min-width:180px}.tm-scout-v2-cell-availability{color:#cfe2f6!important;min-width:310px}.tm-scout-v2-cell-source{color:#aebfd0!important;min-width:170px}.tm-scout-v2-empty{text-align:center!important;color:#9fb4c6!important;padding:30px!important;background:#0a1724!important}
+      .tm-scout-v2-table-wrap{overflow:auto;min-height:0;flex:1;padding:0 0 14px;background:#071018!important}.tm-scout-v2-table{width:100%;border-collapse:separate!important;border-spacing:0!important;min-width:1620px;background:#071018!important;table-layout:auto!important}.tm-scout-v2-table th,.tm-scout-v2-table td{padding:9px 10px!important;border-bottom:1px solid rgba(126,163,196,.18)!important;text-align:left!important;vertical-align:top!important;font-size:12px!important;line-height:1.34!important}.tm-scout-v2-table th{position:sticky!important;top:0!important;z-index:2!important;background:#102235!important;color:#d7e7f5!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.035em!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:auto!important}.tm-scout-v2-table th:nth-child(1),.tm-scout-v2-table td:nth-child(1){min-width:160px!important}.tm-scout-v2-table th:nth-child(2),.tm-scout-v2-table td:nth-child(2){min-width:145px!important}.tm-scout-v2-table th:nth-child(3),.tm-scout-v2-table td:nth-child(3){min-width:72px!important}.tm-scout-v2-table th:nth-child(4),.tm-scout-v2-table td:nth-child(4){min-width:145px!important}.tm-scout-v2-table th:nth-child(5),.tm-scout-v2-table td:nth-child(5){min-width:270px!important}.tm-scout-v2-table th:nth-child(6),.tm-scout-v2-table td:nth-child(6){min-width:175px!important}.tm-scout-v2-table th:nth-child(7),.tm-scout-v2-table td:nth-child(7){min-width:92px!important}.tm-scout-v2-table th:nth-child(8),.tm-scout-v2-table td:nth-child(8){min-width:145px!important}.tm-scout-v2-table th:nth-child(9),.tm-scout-v2-table td:nth-child(9){min-width:130px!important}.tm-scout-v2-table th:nth-child(10),.tm-scout-v2-table td:nth-child(10){min-width:220px!important}.tm-scout-v2-table th:nth-child(11),.tm-scout-v2-table td:nth-child(11){min-width:130px!important}.tm-scout-v2-table tbody tr:nth-child(odd) td{background:#0a1722!important}.tm-scout-v2-table tbody tr:nth-child(even) td{background:#0c1b27!important}.tm-scout-v2-table tbody tr:hover td{background:#10263a!important;color:#ffffff!important}.tm-scout-v2-table td{color:#dcecff!important}.tm-scout-v2-table a{color:#9bd2ff!important;font-weight:800!important}.tm-scout-v2-cell-player{font-weight:800!important;color:#ffffff!important;min-width:150px}.tm-scout-v2-cell-position{color:#a7f0bf!important;font-weight:800!important;min-width:150px}.tm-scout-v2-cell-growth{color:#dbeff0!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-playing{color:#ecd996!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-seasons{color:#c2d7eb!important;min-width:180px}.tm-scout-v2-cell-availability{color:#cfe2f6!important;min-width:310px}.tm-scout-v2-cell-source{color:#aebfd0!important;min-width:170px}.tm-scout-v2-empty{text-align:center!important;color:#9fb4c6!important;padding:30px!important;background:#0a1724!important}
       .tm-scout-v2-collapsed{inset:auto 16px 16px auto;width:min(520px,calc(100vw - 32px));height:auto}.tm-scout-v2-collapsed .tm-scout-v2-body{display:none}.tm-scout-v2-collapsed .tm-scout-v2-shell{height:auto}.tm-scout-v2-collapsed .tm-scout-v2-head{border-bottom:0}
 
       .tm-scout-v2-ui-modal{position:fixed!important;inset:0!important;z-index:2147483647!important;display:grid!important;place-items:center!important;padding:18px!important;background:rgba(2,8,13,.72)!important;backdrop-filter:blur(8px)!important}.tm-scout-v2-ui-modal-card{width:min(420px,calc(100vw - 28px))!important;border:1px solid rgba(86,240,151,.38)!important;border-radius:22px!important;background:linear-gradient(180deg,#102235,#08131d)!important;box-shadow:0 28px 90px rgba(0,0,0,.55)!important;color:#eef7ff!important;padding:18px!important;text-align:left!important}.tm-scout-v2-ui-modal-icon{width:42px!important;height:42px!important;border-radius:16px!important;display:grid!important;place-items:center!important;background:rgba(86,240,151,.16)!important;border:1px solid rgba(86,240,151,.35)!important;margin-bottom:10px!important}.tm-scout-v2-ui-modal-card h3{margin:0 0 8px!important;font-size:18px!important;line-height:1.1!important;color:#fff!important}.tm-scout-v2-ui-modal-card p{margin:0 0 14px!important;color:#cfe0ef!important;font-size:13px!important;line-height:1.45!important}.tm-scout-v2-ui-modal-card button{width:100%!important;border:0!important;border-radius:13px!important;background:#56f097!important;color:#06120d!important;font-weight:950!important;padding:10px 14px!important;cursor:pointer!important}.tm-scout-v2-ui-modal.is-error .tm-scout-v2-ui-modal-card{border-color:rgba(255,184,77,.45)!important}.tm-scout-v2-ui-modal.is-error .tm-scout-v2-ui-modal-icon{background:rgba(255,184,77,.16)!important;border-color:rgba(255,184,77,.38)!important}.tm-scout-v2-actions button{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
