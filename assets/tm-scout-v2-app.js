@@ -1,4 +1,5 @@
 /*
+ * efficient-batch-proxy-plus-20260706
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -7,6 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
+  // efficient-batch-proxy-plus-20260706
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -123,6 +125,84 @@
     menuOpen: 'Open TM Scout V2',
     menuClear: 'Clear TM Scout V2 cache'
   });
+
+
+  // efficient-batch-proxy-plus-20260706:
+  // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
+  // A batch proxy most 24 URL-t fog össze egy POST-ba, plusz kliensoldali URL dedupe/pending cache
+  // is van. Ez a Cloudflare Worker request countot tipikusan még kb. felezi a 12-es batchhez képest,
+  // és a duplikált/egyszerre újrakért TM oldalakat ugyanazon böngészőfülben nem küldi ki újra.
+  const TM_SCOUT_BATCH_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
+  const TM_SCOUT_BATCH_SIZE = 24;
+  const TM_SCOUT_BATCH_DELAY_MS = 35;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_TTL_MS = 30 * 60 * 1000;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEMS = 900;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_CHARS = 32 * 1024 * 1024;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEM_CHARS = 750000;
+  let tmScoutBatchQueue = [];
+  let tmScoutBatchTimer = null;
+  let tmScoutBatchMemoryCacheChars = 0;
+  const tmScoutBatchMemoryCache = new Map();
+  const tmScoutBatchPendingByKey = new Map();
+
+  function tmScoutBatchEndpoint(){
+    return String(TM_SCOUT_BATCH_PROXY_ENDPOINT || '').trim().replace(/\/$/, '');
+  }
+
+  function isBatchableTransfermarktUrl(url){
+    try {
+      const host = new URL(String(url), window.location.href).hostname;
+      return /(^|\.)transfermarkt\.(com|de|us|co\.uk|at|world)$/i.test(host) || host === 'tmapi.transfermarkt.technology';
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function tmScoutBatchCacheKey(url, responseKind) {
+    let normalized = String(url || '');
+    try {
+      const parsed = new URL(normalized, window.location.href);
+      parsed.hash = '';
+      normalized = parsed.toString();
+    } catch (_error) {}
+    return `${responseKind === 'json' ? 'json' : 'text'}::${normalized}`;
+  }
+
+  function tmScoutApproxChars(value) {
+    if (typeof value === 'string') return value.length;
+    try { return JSON.stringify(value).length; } catch (_error) { return 0; }
+  }
+
+  function tmScoutBatchMemoryDelete(key) {
+    const item = tmScoutBatchMemoryCache.get(key);
+    if (item) tmScoutBatchMemoryCacheChars = Math.max(0, tmScoutBatchMemoryCacheChars - Number(item.chars || 0));
+    tmScoutBatchMemoryCache.delete(key);
+  }
+
+  function tmScoutBatchMemoryGet(key) {
+    const item = tmScoutBatchMemoryCache.get(key);
+    if (!item) return { hit: false, value: null };
+    if (Date.now() - Number(item.savedAt || 0) > TM_SCOUT_BATCH_MEMORY_CACHE_TTL_MS) {
+      tmScoutBatchMemoryDelete(key);
+      return { hit: false, value: null };
+    }
+    tmScoutBatchMemoryCache.delete(key);
+    tmScoutBatchMemoryCache.set(key, item);
+    return { hit: true, value: item.value };
+  }
+
+  function tmScoutBatchMemorySet(key, value) {
+    const chars = tmScoutApproxChars(value);
+    if (!chars || chars > TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEM_CHARS) return;
+    tmScoutBatchMemoryDelete(key);
+    tmScoutBatchMemoryCache.set(key, { savedAt: Date.now(), chars: chars, value: value });
+    tmScoutBatchMemoryCacheChars += chars;
+    while (tmScoutBatchMemoryCache.size > TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEMS || tmScoutBatchMemoryCacheChars > TM_SCOUT_BATCH_MEMORY_CACHE_MAX_CHARS) {
+      const oldest = tmScoutBatchMemoryCache.keys().next().value;
+      if (!oldest) break;
+      tmScoutBatchMemoryDelete(oldest);
+    }
+  }
 
 
 
@@ -4917,7 +4997,7 @@
   function exportCss() {
     return [
       ':root{color-scheme:dark;--bg:#071018;--panel:#0b1722;--panel2:#0e1f2e;--line:rgba(125,166,200,.24);--line2:rgba(125,166,200,.14);--text:#eef7ff;--muted:#9fb3c7;--green:#56f097;--blue:#9bd2ff;--red:#ff8b8b}',
-      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1660px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1380px;border-collapse:collapse;table-layout:fixed}th,td{padding:13px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left;overflow-wrap:anywhere}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:11px;text-transform:uppercase;letter-spacing:.06em;z-index:1}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:13px;font-weight:950;line-height:1;margin-bottom:4px}.player-cell strong{display:block;font-size:18px;line-height:1.16;letter-spacing:-.018em}.profile-mini{display:inline-block;font-size:12px;line-height:1.12;font-weight:800;margin-top:3px}.open-link{font-weight:800}.position-code{font-weight:950;font-size:15px;line-height:1.18}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:3px;font-size:14px;line-height:1.2}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.25}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:7px;min-width:0}.season-row{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;align-items:start;line-height:1.24}.season-row span{display:block}.season-row strong{font-size:14px;color:#eef7ff;white-space:nowrap;font-weight:950}.season-stats{display:flex!important;flex-wrap:wrap;gap:2px 10px;color:#e8f4ff;font-size:13.5px;font-weight:850}.season-stats span{white-space:nowrap}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:950}.growth-negative{color:var(--red);font-weight:950}.mv-route{display:flex;gap:7px;color:#f0f8ff;font-size:14.5px;font-weight:950;line-height:1.18;letter-spacing:-.01em}.mv-route span{white-space:nowrap}.growth-line{font-size:16.5px;line-height:1.16;margin-top:4px}.playing-cell strong{color:#fff}.season-row{font-size:13.5px;color:#e8f4ff}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}col.player{width:156px}col.position{width:112px}col.age{width:54px}col.nation{width:120px}col.availability{width:205px}col.club{width:120px}col.mvnow{width:92px}col.growth{width:150px}col.playing{width:105px}col.season{width:270px}col.link{width:78px}.club-col strong{display:block;line-height:1.24}.availability-cell{line-height:1.28}.availability-cell strong{font-size:14px;line-height:1.25}.mv-now-col strong{font-size:14px}.player-col{font-weight:800}.is-hidden{display:none!important}',
+      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1660px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1380px;border-collapse:collapse;table-layout:fixed}th,td{padding:13px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left;overflow-wrap:anywhere}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:11px;text-transform:uppercase;letter-spacing:.06em;z-index:1}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:16px;font-weight:950;line-height:1;margin-bottom:4px}.player-cell strong{display:block;font-size:19px;line-height:1.16;letter-spacing:-.018em}.profile-mini{display:inline-block;font-size:12px;line-height:1.12;font-weight:800;margin-top:3px}.open-link{font-weight:800}.position-code{font-weight:950;font-size:15px;line-height:1.18}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:3px;font-size:14px;line-height:1.2}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.25}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:7px;min-width:0}.season-row{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;align-items:start;line-height:1.24}.season-row span{display:block}.season-row strong{font-size:14.6px;color:#eef7ff;white-space:nowrap;font-weight:950}.season-stats{display:flex!important;flex-wrap:wrap;gap:2px 10px;color:#e8f4ff;font-size:14.1px;font-weight:850}.season-stats span{white-space:nowrap}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:950}.growth-negative{color:var(--red);font-weight:950}.mv-route{display:flex;gap:7px;color:#f0f8ff;font-size:14.5px;font-weight:950;line-height:1.18;letter-spacing:-.01em}.mv-route span{white-space:nowrap}.growth-line{font-size:15.2px;line-height:1.16;margin-top:4px}.playing-cell strong{color:#fff}.season-row{font-size:14px;color:#e8f4ff}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}col.player{width:156px}col.position{width:112px}col.age{width:54px}col.nation{width:120px}col.availability{width:205px}col.club{width:120px}col.mvnow{width:92px}col.growth{width:150px}col.playing{width:105px}col.season{width:270px}col.link{width:78px}.club-col strong{display:block;line-height:1.24}.availability-cell{line-height:1.28}.availability-cell strong{font-size:14px;line-height:1.25}.mv-now-col strong{font-size:16px}.player-col{font-weight:800}.is-hidden{display:none!important}',
       '@media(max-width:900px){main{width:100%;padding:12px 8px 28px}.hero{padding:17px;border-radius:16px}.topline{display:block}.criteria{justify-content:flex-start;margin-top:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}',
       '@media(max-width:540px){.stats,.export-control-grid{grid-template-columns:1fr}td{grid-template-columns:1fr;gap:4px}.criteria span{font-size:11px}}'
     ].join('');
@@ -5042,6 +5122,114 @@
   }
 
   function httpGet(url, responseKind) {
+    if (isBatchableTransfermarktUrl(url) && tmScoutBatchEndpoint()) {
+      return httpGetViaBatchProxy(url, responseKind);
+    }
+    return httpGetDirect(url, responseKind);
+  }
+
+  function httpGetViaBatchProxy(url, responseKind) {
+    const normalizedKind = responseKind || 'text';
+    const key = tmScoutBatchCacheKey(url, normalizedKind);
+    const cached = tmScoutBatchMemoryGet(key);
+    if (cached.hit) return Promise.resolve(cached.value);
+    const pending = tmScoutBatchPendingByKey.get(key);
+    if (pending) return pending;
+
+    const promise = new Promise(function batchProxyPromise(resolve, reject) {
+      tmScoutBatchQueue.push({ key: key, url: String(url), responseKind: normalizedKind, resolve: resolve, reject: reject });
+      if (tmScoutBatchQueue.length >= TM_SCOUT_BATCH_SIZE) {
+        flushTmScoutBatchProxyQueue();
+        return;
+      }
+      if (!tmScoutBatchTimer) {
+        tmScoutBatchTimer = window.setTimeout(flushTmScoutBatchProxyQueue, TM_SCOUT_BATCH_DELAY_MS);
+      }
+    });
+
+    tmScoutBatchPendingByKey.set(key, promise);
+    promise.then(function clearPendingOk(){ tmScoutBatchPendingByKey.delete(key); }, function clearPendingErr(){ tmScoutBatchPendingByKey.delete(key); });
+    return promise;
+  }
+
+  function flushTmScoutBatchProxyQueue() {
+    if (!tmScoutBatchQueue.length) return;
+    if (tmScoutBatchTimer) {
+      window.clearTimeout(tmScoutBatchTimer);
+      tmScoutBatchTimer = null;
+    }
+
+    const endpoint = tmScoutBatchEndpoint();
+    const batch = tmScoutBatchQueue.splice(0, TM_SCOUT_BATCH_SIZE);
+    if (tmScoutBatchQueue.length && !tmScoutBatchTimer) {
+      tmScoutBatchTimer = window.setTimeout(flushTmScoutBatchProxyQueue, TM_SCOUT_BATCH_DELAY_MS);
+    }
+
+    if (!endpoint) {
+      batch.forEach(function fallbackNoEndpoint(item) {
+        httpGetDirect(item.url, item.responseKind).then(function(value){ tmScoutBatchMemorySet(item.key, value); item.resolve(value); }).catch(item.reject);
+      });
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(function abortBatch(){ controller.abort(); }, 60000);
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        'Accept': 'application/json,text/plain,*/*'
+      },
+      credentials: 'omit',
+      mode: 'cors',
+      signal: controller.signal,
+      body: JSON.stringify({
+        source: 'tm-scout-v2',
+        mode: 'batch',
+        items: batch.map(function mapBatchItem(item) {
+          return { url: item.url, kind: item.responseKind || 'text' };
+        })
+      })
+    }).then(async function onBatchResponse(response) {
+      window.clearTimeout(timeout);
+      if (!response.ok) throw new Error(`Batch proxy HTTP ${response.status}`);
+      const payload = await response.json();
+      const results = Array.isArray(payload && payload.results) ? payload.results : [];
+      if (results.length !== batch.length) throw new Error('Batch proxy result count mismatch');
+
+      results.forEach(function resolveBatchItem(result, index) {
+        const item = batch[index];
+        if (!result || result.ok === false || Number(result.status || 0) >= 400) {
+          item.reject(new Error(result && result.error ? result.error : `HTTP ${result && result.status ? result.status : 'error'}`));
+          return;
+        }
+        const body = result.body == null ? '' : String(result.body);
+        if (item.responseKind === 'json') {
+          const parsed = safeJsonParse(body, null);
+          if (parsed == null && body.trim()) {
+            item.reject(new Error('Batch proxy JSON parse failed'));
+            return;
+          }
+          tmScoutBatchMemorySet(item.key, parsed);
+          item.resolve(parsed);
+          return;
+        }
+        tmScoutBatchMemorySet(item.key, body);
+        item.resolve(body);
+      });
+    }).catch(function onBatchError(error) {
+      window.clearTimeout(timeout);
+      // Worker nincs még frissítve / batch endpoint ideiglenesen hibázik: ne álljon meg a keresés,
+      // csak menjen vissza a régi egyenkénti proxyra.
+      pushError('batch proxy fallback', stringifyError(error));
+      batch.forEach(function fallbackBatchItem(item) {
+        httpGetDirect(item.url, item.responseKind).then(function(value){ tmScoutBatchMemorySet(item.key, value); item.resolve(value); }).catch(item.reject);
+      });
+    });
+  }
+
+  function httpGetDirect(url, responseKind) {
     return new Promise(function requestPromise(resolve, reject) {
       try {
         GM_xmlhttpRequest({
