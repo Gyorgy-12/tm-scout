@@ -1,4 +1,4 @@
-/* ui-dedupe-full-i18n-v4-20260706 */
+/* full-i18n-v5-20260706 */
 
 :root{
   color-scheme:dark;
@@ -81,3 +81,8 @@ h1{
   .lead{font-size:13px}
   .app-mount{min-height:0}
 }
+
+.tm-scout-v2-field-note{color:var(--muted);font-size:12px;line-height:1.35}
+.tm-scout-v2-nationality-search{width:100%}
+.tm-scout-v2-nationality-empty{color:var(--muted)}
+.club-cell{display:grid;gap:3px}

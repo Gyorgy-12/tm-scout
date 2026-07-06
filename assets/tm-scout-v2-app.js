@@ -1,5 +1,5 @@
 /*
- * ui-dedupe-full-i18n-v4-20260706
+ * world-nationalities-league-source-v6-20260706
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -8,7 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
-  // ui-dedupe-full-i18n-v4-20260706
+  // world-nationalities-league-source-v6-20260706
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -113,7 +113,7 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
-  // ui-dedupe-full-i18n-v4-20260706: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
+  // world-nationalities-league-source-v6-20260706: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
@@ -128,7 +128,7 @@
   });
 
 
-  // ui-dedupe-full-i18n-v4-20260706:
+  // world-nationalities-league-source-v6-20260706:
   // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
   // A batch proxy most 24 URL-t fog össze egy POST-ba, plusz kliensoldali URL dedupe/pending cache
   // is van. Ez a Cloudflare Worker request countot tipikusan még kb. felezi a 12-es batchhez képest,
@@ -209,6 +209,204 @@
 
   const LANGUAGE_STORAGE_KEY = 'tmScoutV2UiLanguage';
   const I18N = Object.freeze({
+  "hu": {
+    "Transfermarkt Scout": "Transfermarkt Scout",
+    "Lejáró szerződéses játékosok és U21 prospectek keresése egy helyen.": "Lejáró szerződéses játékosok és U21 prospectek keresése egy helyen.",
+    "Nyelv": "Nyelv",
+    "Felület nyelve": "Felület nyelve",
+    "Magyar": "Magyar",
+    "Angol": "Angol",
+    "Román": "Román",
+    "Scout mód": "Scout mód",
+    "Mód": "Mód",
+    "Lejáró szerződés / free agent": "Lejáró szerződés / szabadon igazolható",
+    "U21 prospect": "U21 tehetség",
+    "Alapszűrők": "Alapszűrők",
+    "Min MV": "Min MV",
+    "Max MV": "Max MV",
+    "Min age": "Min kor",
+    "Max age": "Max kor",
+    "MV reference date": "MV referencia dátum",
+    "Max MV drop %": "Max MV-esés %",
+    "Contract year": "Szerződés éve",
+    "Szerződés lejárati éve": "Szerződés lejárati éve",
+    "Játékidő + szezonok": "Játékidő + szezonok",
+    "Min minutes / season": "Min perc / szezon",
+    "Min apps / season": "Min meccs / szezon",
+    "Vizsgált szezonok": "Vizsgált szezonok",
+    "Auto": "Automatikus",
+    "1 szezon": "1 szezon",
+    "2 szezon": "2 szezon",
+    "3 szezon": "3 szezon",
+    "Szezon szabály": "Szezon szabály",
+    "Apps vagy perc": "Meccs vagy perc",
+    "Apps és perc": "Meccs és perc",
+    "Minden kiválasztott szezon menjen át": "Minden kiválasztott szezon menjen át",
+    "Max oldalak": "Max oldalak",
+    "Max játékosjelöltek": "Max játékosjelöltek",
+    "Poszt-szűrés módja": "Poszt-szűrés módja",
+    "Posztszűrés": "Posztszűrés",
+    "Tág posztcsoportok": "Tág posztcsoportok",
+    "Precíz posztok": "Precíz posztok",
+    "Posztcsoportok": "Posztcsoportok",
+    "Részletes posztok": "Részletes posztok",
+    "Other/unknown": "Egyéb/ismeretlen",
+    "U21 prospect szűrők": "U21 prospect szűrők",
+    "U21 min age": "U21 min kor",
+    "U21 max age": "U21 max kor",
+    "U21 min MV": "U21 min MV",
+    "U21 max MV": "U21 max MV",
+    "Min játszott meccsarány %": "Min játszott meccsarány %",
+    "Nemzetiségek, opcionális multiple choice": "Nemzetiségek, opcionális multiple choice",
+    "U21 oldalak": "U21 oldalak",
+    "U21 max játékosjelöltek": "U21 max játékosjelöltek",
+    "Források": "Források",
+    "Első osztályú európai ligák": "Első osztályú európai ligák",
+    "Jobb ligák 2–3. osztályai is": "Jobb ligák 2–3. osztályai is",
+    "Alsóbb osztály mélység": "Alsóbb osztály mélység",
+    "Csak 2. osztály": "Csak 2. osztály",
+    "2–3. osztály": "2–3. osztály",
+    "Aktuális free agentek is (alapból ON)": "Aktuális free agentek is (alapból ON)",
+    "Jövőbeli igazolással rendelkezők kizárása": "Jövőbeli igazolással rendelkezők kizárása",
+    "Saját csapat kizárása": "Saját csapat kizárása",
+    "Saját csapat név vagy TM club ID": "Saját csapat név vagy TM club ID",
+    "Saját csapat időablak": "Saját csapat időablak",
+    "Utolsó szezon": "Utolsó szezon",
+    "Kiválasztott szezonok": "Kiválasztott szezonok",
+    "Keresés": "Keresés",
+    "HTML letöltés": "HTML letöltés",
+    "HTML nézet megnyitása": "HTML nézet megnyitása",
+    "Megnyitás": "Megnyitás",
+    "Oké": "Oké",
+    "Hoppá": "Hoppá",
+    "HTML nézet": "HTML nézet",
+    "Nincs exportálható találat. Előbb futtasd a keresést.": "Nincs exportálható találat. Előbb futtasd a keresést.",
+    "CSV export": "CSV export",
+    "JSON export": "JSON export",
+    "Cache törlés": "Cache törlés",
+    "Készen áll.": "Készen áll.",
+    "Találatok": "Találatok",
+    "Vizsgált játékosok": "Vizsgált játékosok",
+    "Ellenőrizve": "Ellenőrizve",
+    "Játékos": "Játékos",
+    "Poszt": "Poszt",
+    "Kor": "Kor",
+    "Nemzetiség": "Nemzetiség",
+    "Elérhetőség": "Elérhetőség",
+    "Klub / utolsó klub": "Klub / utolsó klub",
+    "MV most": "MV most",
+    "MV változás": "MV változás",
+    "Játékidő": "Játékidő",
+    "Utolsó szezonok": "Utolsó szezonok",
+    "Forrás": "Forrás",
+    "TM profil": "TM profil",
+    "Profil": "Profil",
+    "U21 score": "U21 pontszám",
+    "Klubkörnyezet": "Klubkörnyezet",
+    "Játszott meccsarány": "Játszott meccsarány",
+    "Nincs találat még. Vagy túl szigorú a filter, vagy Transfermarkt épp trollkodik.": "Nincs találat még. Vagy túl szigorú a filter, vagy Transfermarkt épp trollkodik.",
+    "Nincs U21 találat még. Engedj a meccsarány / MV / kor / poszt / nemzetiség szűrőn, vagy emelj Max pages értéket.": "Nincs U21 találat még. Engedj a meccsarány / MV / kor / poszt / nemzetiség szűrőn, vagy emelj Max pages értéket.",
+    "Összecsukás": "Összecsukás",
+    "Kinyitás": "Kinyitás",
+    "Bezárás": "Bezárás",
+    "Cache törölve": "Cache törölve",
+    "Forrásoldalak előkészítése...": "Forrásoldalak előkészítése...",
+    "U21 forrásoldalak előkészítése...": "U21 forrásoldalak előkészítése...",
+    "Forrásoldalak letöltése": "Forrásoldalak letöltése",
+    "Source táblázatok parse-olása...": "Forrástáblák feldolgozása...",
+    "Profil enrich indul": "Profil enrich indul",
+    "Kész": "Kész",
+    "Hiba": "Hiba",
+    "A Cloudflare Worker proxy nincs beállítva a kódban. Ellenőrizd a TM_SCOUT_PROXY_ENDPOINT értékét az assets/tm-scout-v2-app.js fájl elején.": "A Cloudflare Worker proxy nincs beállítva a kódban. Ellenőrizd a TM_SCOUT_PROXY_ENDPOINT értékét az assets/tm-scout-v2-app.js fájl elején.",
+    "Argentina": "Argentína",
+    "Austria": "Ausztria",
+    "Belgium": "Belgium",
+    "Brazil": "Brazília",
+    "Croatia": "Horvátország",
+    "Czech Republic": "Csehország",
+    "Denmark": "Dánia",
+    "England": "Anglia",
+    "France": "Franciaország",
+    "Germany": "Németország",
+    "Ghana": "Ghána",
+    "Hungary": "Magyarország",
+    "Italy": "Olaszország",
+    "Netherlands": "Hollandia",
+    "Norway": "Norvégia",
+    "Poland": "Lengyelország",
+    "Portugal": "Portugália",
+    "Romania": "Románia",
+    "Scotland": "Skócia",
+    "Serbia": "Szerbia",
+    "Slovakia": "Szlovákia",
+    "Slovenia": "Szlovénia",
+    "Spain": "Spanyolország",
+    "Sweden": "Svédország",
+    "Switzerland": "Svájc",
+    "Turkey": "Törökország",
+    "Ukraine": "Ukrajna",
+    "Uruguay": "Uruguay",
+    "United States": "Egyesült Államok",
+    "TM Scout V2 panel": "TM Scout V2 panel",
+    "Contract nemzetiségek / source szűkítés": "Contract nemzetiségek / forrásszűkítés",
+    "Contract nemzetiségek": "Contract nemzetiségek",
+    "Source szűkítés": "Forrásszűkítés",
+    "Lista": "Lista",
+    "Left Winger": "Bal szélső",
+    "Right Winger": "Jobb szélső",
+    "Winger": "Szélső",
+    "CF/ST": "CF/ST",
+    "DEF": "DEF",
+    "MID": "MID",
+    "FWD": "FWD",
+    "GK": "GK",
+    "CB": "CB",
+    "LB": "LB",
+    "RB": "RB",
+    "DM": "DM",
+    "CM": "CM",
+    "AM": "AM",
+    "LM": "LM",
+    "RM": "RM",
+    "SS": "SS",
+    "Klub / csapat": "Klub / csapat",
+    "Contract mód: csak lejáró/free agent menü; U21 prospect szűrők elrejtve.": "Contract mód: csak lejáró/szabadon igazolható menü; U21 tehetségszűrők elrejtve.",
+    "U21 mód: életkor + MV + játszott meccsarány + MV-változás. Nem kell lejáró szerződés.": "U21 mód: életkor + MV + játszott meccsarány + MV-változás. Nem kell lejáró szerződés.",
+    "Játékoslisták feldolgozása...": "Játékoslisták feldolgozása...",
+    "Nincs találat az alap szűrők után. Emeld a max oldalszámot vagy lazíts a szűrőkön.": "Nincs találat az alap szűrők után. Emeld a max oldalszámot vagy lazíts a szűrőkön.",
+    "Részletes adatok lekérése": "Részletes adatok lekérése",
+    "találat": "találat",
+    "vizsgált játékos": "vizsgált játékos",
+    "játékos": "játékos",
+    "oldal": "oldal",
+    "elem": "elem",
+    "Forrásoldal": "Forrásoldal",
+    "Nincs source URL. Legalább egy Transfermarkt forrás kell.": "Nincs forrás URL. Legalább egy Transfermarkt forrás kell.",
+    "A TM Scout V2 betölt...": "A TM Scout V2 betölt...",
+    "Ehhez az apphoz JavaScript kell.": "Ehhez az apphoz JavaScript kell.",
+    "Lejáró szerződéses játékosok és U21 prospectek keresése.": "Lejáró szerződéses játékosok és U21 prospectek keresése.",
+    "pl. DAC 1904, APOEL vagy 829": "pl. DAC 1904, APOEL vagy 829",
+    "English": "Angol",
+    "Română": "Román",
+    "TM Scout V2": "TM Scout V2",
+    "Letöltés": "Letöltés",
+    "Megnyitás új ablakban": "Megnyitás új ablakban",
+    "Másolás": "Másolás",
+    "Másolva": "Másolva",
+    "Mégse": "Mégse",
+    "Igen": "Igen",
+    "Nem": "Nem",
+    "Ismeretlen": "Ismeretlen",
+    "ismeretlen": "ismeretlen",
+    "Free agent": "Szabadon igazolható",
+    "Nem free agent": "Nem szabadon igazolható",
+    "Aktív klub": "Aktív klub",
+    "Nincs adat": "Nincs adat",
+    "Nincs": "Nincs",
+    "összes": "összes",
+    "perc": "perc",
+    "meccs": "meccs"
+  },
   "en": {
     "Transfermarkt Scout": "Transfermarkt Scout",
     "Lejáró szerződéses játékosok és U21 prospectek keresése egy helyen.": "Find contract-expiring players and U21 prospects in one place.",
@@ -388,7 +586,24 @@
     "pl. DAC 1904, APOEL vagy 829": "e.g. DAC 1904, APOEL or 829",
     "English": "English",
     "Română": "Romanian",
-    "TM Scout V2": "TM Scout V2"
+    "TM Scout V2": "TM Scout V2",
+    "Letöltés": "Download",
+    "Megnyitás új ablakban": "Open in new window",
+    "Másolás": "Copy",
+    "Másolva": "Copied",
+    "Mégse": "Cancel",
+    "Igen": "Yes",
+    "Nem": "No",
+    "Ismeretlen": "Unknown",
+    "ismeretlen": "unknown",
+    "Free agent": "Free agent",
+    "Nem free agent": "Non-free agent",
+    "Aktív klub": "Active club",
+    "Nincs adat": "No data",
+    "Nincs": "None",
+    "összes": "all",
+    "perc": "minutes",
+    "meccs": "apps"
   },
   "ro": {
     "Transfermarkt Scout": "Transfermarkt Scout",
@@ -569,7 +784,24 @@
     "pl. DAC 1904, APOEL vagy 829": "ex. DAC 1904, APOEL sau 829",
     "English": "Engleză",
     "Română": "Română",
-    "TM Scout V2": "TM Scout V2"
+    "TM Scout V2": "TM Scout V2",
+    "Letöltés": "Descarcă",
+    "Megnyitás új ablakban": "Deschide în fereastră nouă",
+    "Másolás": "Copiază",
+    "Másolva": "Copiat",
+    "Mégse": "Anulează",
+    "Igen": "Da",
+    "Nem": "Nu",
+    "Ismeretlen": "Necunoscut",
+    "ismeretlen": "necunoscut",
+    "Free agent": "Jucător liber",
+    "Nem free agent": "Nu este jucător liber",
+    "Aktív klub": "Club activ",
+    "Nincs adat": "Nu există date",
+    "Nincs": "Niciunul",
+    "összes": "toate",
+    "perc": "minute",
+    "meccs": "meciuri"
   }
 });
 
@@ -597,18 +829,39 @@
   function tx(text) {
     const key = canonicalI18nKey(text);
     const lang = currentUiLanguage();
-    if (lang === 'hu') return key;
-    return (I18N[lang] && I18N[lang][key]) || key;
+    const dict = I18N[lang] || I18N.hu || {};
+    return Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : key;
+  }
+
+  function normalizeRuntimeTextToCanonical(text) {
+    let out = String(text || '');
+    const reverseEntries = [];
+    Object.values(I18N || {}).forEach(function collectReverse(dict) {
+      Object.entries(dict || {}).forEach(function pushEntry(entry) {
+        const key = entry[0];
+        const value = String(entry[1] || '');
+        if (!key || !value || key === value || value.length < 3) return;
+        reverseEntries.push([value, key]);
+      });
+    });
+    reverseEntries.sort(function byLength(a, b) { return b[0].length - a[0].length; });
+    reverseEntries.forEach(function replaceTranslated(entry) {
+      out = out.split(entry[0]).join(entry[1]);
+    });
+    return out;
   }
 
   function translateRuntimeText(text) {
     const lang = currentUiLanguage();
-    if (lang === 'hu') return String(text || '');
-    let out = String(text || '');
-    const entries = Object.entries(I18N[lang] || {}).sort(function byLength(a, b) { return b[0].length - a[0].length; });
+    const dict = I18N[lang] || I18N.hu || {};
+    let out = normalizeRuntimeTextToCanonical(text);
+    const exactKey = canonicalI18nKey(out);
+    if (Object.prototype.hasOwnProperty.call(dict, exactKey)) return dict[exactKey];
+
+    const entries = Object.entries(dict).sort(function byLength(a, b) { return b[0].length - a[0].length; });
     for (const [hu, translated] of entries) {
-      if (!hu || !translated || hu.length < 4) continue;
-      out = out.split(hu).join(translated);
+      if (!hu || translated == null || hu.length < 3) continue;
+      out = out.split(hu).join(String(translated));
     }
     return out;
   }
@@ -617,7 +870,7 @@
     const raw = String(value || '');
     const match = raw.match(/^(\s*)(.*?)(\s*)$/s);
     if (!match || !match[2]) return raw;
-    const translated = tx(match[2]);
+    const translated = translateRuntimeText(match[2]);
     return match[1] + translated + match[3];
   }
 
@@ -641,9 +894,13 @@
       const next = translateTextNodeValue(node.nodeValue);
       if (next !== node.nodeValue) node.nodeValue = next;
     });
-    Array.from(scope.querySelectorAll ? scope.querySelectorAll('[placeholder]') : []).forEach(function translatePlaceholder(el) {
-      const next = tx(el.getAttribute('placeholder'));
-      if (next) el.setAttribute('placeholder', next);
+    ['placeholder', 'aria-label', 'title', 'alt'].forEach(function translateAttribute(attr) {
+      Array.from(scope.querySelectorAll ? scope.querySelectorAll('[' + attr + ']') : []).forEach(function translateAttr(el) {
+        const raw = el.getAttribute(attr);
+        if (!raw) return;
+        const next = translateRuntimeText(raw);
+        if (next) el.setAttribute(attr, next);
+      });
     });
     Array.from(scope.querySelectorAll ? scope.querySelectorAll('select[name="uiLanguage"], #tmLangSelect') : []).forEach(function syncSelect(sel) {
       sel.value = lang;
@@ -666,6 +923,97 @@
   window.addEventListener('tmScoutV2LanguageChange', function onExternalLanguageChange(event) {
     setUiLanguage(event && event.detail ? event.detail.language : currentUiLanguage());
   });
+
+
+  const COUNTRY_CATALOG = Object.freeze([{"key":"Afghanistan","alpha2":"AF","en":"Afghanistan","hu":"Afganisztán","ro":"Afganistan","aliases":["Islamic Republic of Afghanistan"],"europe":false},{"key":"Albania","alpha2":"AL","en":"Albania","hu":"Albánia","ro":"Albania","aliases":["Republic of Albania"],"europe":true},{"key":"Algeria","alpha2":"DZ","en":"Algeria","hu":"Algéria","ro":"Algeria","aliases":["People's Democratic Republic of Algeria"],"europe":false},{"key":"American Samoa","alpha2":"AS","en":"American Samoa","hu":"Amerikai Szamoa","ro":"Samoa Americană","aliases":[],"europe":false},{"key":"Andorra","alpha2":"AD","en":"Andorra","hu":"Andorra","ro":"Andorra","aliases":["Principality of Andorra"],"europe":true},{"key":"Angola","alpha2":"AO","en":"Angola","hu":"Angola","ro":"Angola","aliases":["Republic of Angola"],"europe":false},{"key":"Anguilla","alpha2":"AI","en":"Anguilla","hu":"Anguilla","ro":"Anguilla","aliases":[],"europe":false},{"key":"Antarctica","alpha2":"AQ","en":"Antarctica","hu":"Antarktisz","ro":"Antarctica","aliases":[],"europe":false},{"key":"Antigua & Barbuda","alpha2":"AG","en":"Antigua & Barbuda","hu":"Antigua és Barbuda","ro":"Antigua și Barbuda","aliases":["Antigua and Barbuda"],"europe":false},{"key":"Argentina","alpha2":"AR","en":"Argentina","hu":"Argentína","ro":"Argentina","aliases":["Argentine Republic"],"europe":false},{"key":"Armenia","alpha2":"AM","en":"Armenia","hu":"Örményország","ro":"Armenia","aliases":["Republic of Armenia"],"europe":true},{"key":"Aruba","alpha2":"AW","en":"Aruba","hu":"Aruba","ro":"Aruba","aliases":[],"europe":false},{"key":"Australia","alpha2":"AU","en":"Australia","hu":"Ausztrália","ro":"Australia","aliases":[],"europe":false},{"key":"Austria","alpha2":"AT","en":"Austria","hu":"Ausztria","ro":"Austria","aliases":["Republic of Austria"],"europe":true},{"key":"Azerbaijan","alpha2":"AZ","en":"Azerbaijan","hu":"Azerbajdzsán","ro":"Azerbaidjan","aliases":["Republic of Azerbaijan"],"europe":true},{"key":"Bahamas","alpha2":"BS","en":"Bahamas","hu":"Bahama-szigetek","ro":"Bahamas","aliases":["Commonwealth of the Bahamas"],"europe":false},{"key":"Bahrain","alpha2":"BH","en":"Bahrain","hu":"Bahrein","ro":"Bahrain","aliases":["Kingdom of Bahrain"],"europe":false},{"key":"Bangladesh","alpha2":"BD","en":"Bangladesh","hu":"Banglades","ro":"Bangladesh","aliases":["People's Republic of Bangladesh"],"europe":false},{"key":"Barbados","alpha2":"BB","en":"Barbados","hu":"Barbados","ro":"Barbados","aliases":[],"europe":false},{"key":"Belarus","alpha2":"BY","en":"Belarus","hu":"Belarusz","ro":"Belarus","aliases":["Republic of Belarus"],"europe":true},{"key":"Belgium","alpha2":"BE","en":"Belgium","hu":"Belgium","ro":"Belgia","aliases":["Kingdom of Belgium"],"europe":true},{"key":"Belize","alpha2":"BZ","en":"Belize","hu":"Belize","ro":"Belize","aliases":[],"europe":false},{"key":"Benin","alpha2":"BJ","en":"Benin","hu":"Benin","ro":"Benin","aliases":["Republic of Benin"],"europe":false},{"key":"Bermuda","alpha2":"BM","en":"Bermuda","hu":"Bermuda","ro":"Bermuda","aliases":[],"europe":false},{"key":"Bhutan","alpha2":"BT","en":"Bhutan","hu":"Bhután","ro":"Bhutan","aliases":["Kingdom of Bhutan"],"europe":false},{"key":"Bolivia","alpha2":"BO","en":"Bolivia","hu":"Bolívia","ro":"Bolivia","aliases":["Bolivia","Bolivia, Plurinational State of","Plurinational State of Bolivia"],"europe":false},{"key":"Bosnia & Herzegovina","alpha2":"BA","en":"Bosnia & Herzegovina","hu":"Bosznia-Hercegovina","ro":"Bosnia și Herțegovina","aliases":["Bosnia and Herzegovina","Republic of Bosnia and Herzegovina"],"europe":true},{"key":"Botswana","alpha2":"BW","en":"Botswana","hu":"Botswana","ro":"Botswana","aliases":["Republic of Botswana"],"europe":false},{"key":"Bouvet Island","alpha2":"BV","en":"Bouvet Island","hu":"Bouvet-sziget","ro":"Insula Bouvet","aliases":[],"europe":false},{"key":"Brazil","alpha2":"BR","en":"Brazil","hu":"Brazília","ro":"Brazilia","aliases":["Federative Republic of Brazil"],"europe":false},{"key":"British Indian Ocean Territory","alpha2":"IO","en":"British Indian Ocean Territory","hu":"Brit Indiai-óceáni Terület","ro":"Teritoriul Britanic din Oceanul Indian","aliases":[],"europe":false},{"key":"British Virgin Islands","alpha2":"VG","en":"British Virgin Islands","hu":"Brit Virgin-szigetek","ro":"Insulele Virgine Britanice","aliases":["Virgin Islands, British"],"europe":false},{"key":"Brunei","alpha2":"BN","en":"Brunei","hu":"Brunei","ro":"Brunei","aliases":["Brunei Darussalam"],"europe":false},{"key":"Bulgaria","alpha2":"BG","en":"Bulgaria","hu":"Bulgária","ro":"Bulgaria","aliases":["Republic of Bulgaria"],"europe":true},{"key":"Burkina Faso","alpha2":"BF","en":"Burkina Faso","hu":"Burkina Faso","ro":"Burkina Faso","aliases":[],"europe":false},{"key":"Burundi","alpha2":"BI","en":"Burundi","hu":"Burundi","ro":"Burundi","aliases":["Republic of Burundi"],"europe":false},{"key":"Cambodia","alpha2":"KH","en":"Cambodia","hu":"Kambodzsa","ro":"Cambodgia","aliases":["Kingdom of Cambodia"],"europe":false},{"key":"Cameroon","alpha2":"CM","en":"Cameroon","hu":"Kamerun","ro":"Camerun","aliases":["Republic of Cameroon"],"europe":false},{"key":"Canada","alpha2":"CA","en":"Canada","hu":"Kanada","ro":"Canada","aliases":[],"europe":false},{"key":"Cape Verde","alpha2":"CV","en":"Cape Verde","hu":"Zöld-foki Köztársaság","ro":"Capul Verde","aliases":["Cabo Verde","Cape Verde","Republic of Cabo Verde"],"europe":false},{"key":"Caribbean Netherlands","alpha2":"BQ","en":"Caribbean Netherlands","hu":"Holland Karib-térség","ro":"Insulele Caraibe Olandeze","aliases":["Bonaire, Sint Eustatius and Saba"],"europe":false},{"key":"Cayman Islands","alpha2":"KY","en":"Cayman Islands","hu":"Kajmán-szigetek","ro":"Insulele Cayman","aliases":[],"europe":false},{"key":"Central African Republic","alpha2":"CF","en":"Central African Republic","hu":"Közép-afrikai Köztársaság","ro":"Republica Centrafricană","aliases":[],"europe":false},{"key":"Chad","alpha2":"TD","en":"Chad","hu":"Csád","ro":"Ciad","aliases":["Republic of Chad"],"europe":false},{"key":"Chile","alpha2":"CL","en":"Chile","hu":"Chile","ro":"Chile","aliases":["Republic of Chile"],"europe":false},{"key":"China","alpha2":"CN","en":"China","hu":"Kína","ro":"China","aliases":["People's Republic of China"],"europe":false},{"key":"Chinese Taipei","alpha2":"TW-FA","en":"Chinese Taipei","hu":"Kínai Tajpej","ro":"Taipeiul Chinezesc","aliases":["Taiwan"],"europe":false},{"key":"Christmas Island","alpha2":"CX","en":"Christmas Island","hu":"Karácsony-sziget","ro":"Insula Christmas","aliases":[],"europe":false},{"key":"Cocos (Keeling) Islands","alpha2":"CC","en":"Cocos (Keeling) Islands","hu":"Kókusz (Keeling)-szigetek","ro":"Insulele Cocos (Keeling)","aliases":[],"europe":false},{"key":"Colombia","alpha2":"CO","en":"Colombia","hu":"Kolumbia","ro":"Columbia","aliases":["Republic of Colombia"],"europe":false},{"key":"Comoros","alpha2":"KM","en":"Comoros","hu":"Comore-szigetek","ro":"Comore","aliases":["Union of the Comoros"],"europe":false},{"key":"Congo - Brazzaville","alpha2":"CG","en":"Congo - Brazzaville","hu":"Kongó – Brazzaville","ro":"Congo - Brazzaville","aliases":["Congo","Republic of the Congo"],"europe":false},{"key":"Congo - Kinshasa","alpha2":"CD","en":"Congo - Kinshasa","hu":"Kongó – Kinshasa","ro":"Congo - Kinshasa","aliases":["Congo, The Democratic Republic of the","DR Congo","Democratic Republic of the Congo"],"europe":false},{"key":"Cook Islands","alpha2":"CK","en":"Cook Islands","hu":"Cook-szigetek","ro":"Insulele Cook","aliases":[],"europe":false},{"key":"Costa Rica","alpha2":"CR","en":"Costa Rica","hu":"Costa Rica","ro":"Costa Rica","aliases":["Republic of Costa Rica"],"europe":false},{"key":"Croatia","alpha2":"HR","en":"Croatia","hu":"Horvátország","ro":"Croația","aliases":["Republic of Croatia"],"europe":true},{"key":"Cuba","alpha2":"CU","en":"Cuba","hu":"Kuba","ro":"Cuba","aliases":["Republic of Cuba"],"europe":false},{"key":"Curaçao","alpha2":"CW","en":"Curaçao","hu":"Curaçao","ro":"Curaçao","aliases":[],"europe":false},{"key":"Cyprus","alpha2":"CY","en":"Cyprus","hu":"Ciprus","ro":"Cipru","aliases":["Republic of Cyprus"],"europe":true},{"key":"Czech Republic","alpha2":"CZ","en":"Czech Republic","hu":"Csehország","ro":"Cehia","aliases":["Czech Republic","Czechia"],"europe":true},{"key":"Côte d’Ivoire","alpha2":"CI","en":"Côte d’Ivoire","hu":"Elefántcsontpart","ro":"Côte d’Ivoire","aliases":["Cote d'Ivoire","Côte d'Ivoire","Ivory Coast","Republic of Côte d'Ivoire"],"europe":false},{"key":"Denmark","alpha2":"DK","en":"Denmark","hu":"Dánia","ro":"Danemarca","aliases":["Kingdom of Denmark"],"europe":true},{"key":"Djibouti","alpha2":"DJ","en":"Djibouti","hu":"Dzsibuti","ro":"Djibouti","aliases":["Republic of Djibouti"],"europe":false},{"key":"Dominica","alpha2":"DM","en":"Dominica","hu":"Dominika","ro":"Dominica","aliases":["Commonwealth of Dominica"],"europe":false},{"key":"Dominican Republic","alpha2":"DO","en":"Dominican Republic","hu":"Dominikai Köztársaság","ro":"Republica Dominicană","aliases":[],"europe":false},{"key":"Ecuador","alpha2":"EC","en":"Ecuador","hu":"Ecuador","ro":"Ecuador","aliases":["Republic of Ecuador"],"europe":false},{"key":"Egypt","alpha2":"EG","en":"Egypt","hu":"Egyiptom","ro":"Egipt","aliases":["Arab Republic of Egypt"],"europe":false},{"key":"El Salvador","alpha2":"SV","en":"El Salvador","hu":"Salvador","ro":"El Salvador","aliases":["Republic of El Salvador"],"europe":false},{"key":"England","alpha2":"GB-ENG","en":"England","hu":"Anglia","ro":"Anglia","aliases":["ENG"],"europe":true},{"key":"Equatorial Guinea","alpha2":"GQ","en":"Equatorial Guinea","hu":"Egyenlítői-Guinea","ro":"Guineea Ecuatorială","aliases":["Republic of Equatorial Guinea"],"europe":false},{"key":"Eritrea","alpha2":"ER","en":"Eritrea","hu":"Eritrea","ro":"Eritreea","aliases":["the State of Eritrea"],"europe":false},{"key":"Estonia","alpha2":"EE","en":"Estonia","hu":"Észtország","ro":"Estonia","aliases":["Republic of Estonia"],"europe":true},{"key":"Eswatini","alpha2":"SZ","en":"Eswatini","hu":"Szváziföld","ro":"Eswatini","aliases":["Kingdom of Eswatini","Swaziland"],"europe":false},{"key":"Ethiopia","alpha2":"ET","en":"Ethiopia","hu":"Etiópia","ro":"Etiopia","aliases":["Federal Democratic Republic of Ethiopia"],"europe":false},{"key":"Falkland Islands","alpha2":"FK","en":"Falkland Islands","hu":"Falkland-szigetek","ro":"Insulele Falkland","aliases":["Falkland Islands (Malvinas)"],"europe":false},{"key":"Faroe Islands","alpha2":"FO","en":"Faroe Islands","hu":"Feröer szigetek","ro":"Insulele Feroe","aliases":[],"europe":false},{"key":"Fiji","alpha2":"FJ","en":"Fiji","hu":"Fidzsi","ro":"Fiji","aliases":["Republic of Fiji"],"europe":false},{"key":"Finland","alpha2":"FI","en":"Finland","hu":"Finnország","ro":"Finlanda","aliases":["Republic of Finland"],"europe":true},{"key":"France","alpha2":"FR","en":"France","hu":"Franciaország","ro":"Franța","aliases":["French Republic"],"europe":true},{"key":"French Guiana","alpha2":"GF","en":"French Guiana","hu":"Francia Guyana","ro":"Guyana Franceză","aliases":[],"europe":false},{"key":"French Polynesia","alpha2":"PF","en":"French Polynesia","hu":"Francia Polinézia","ro":"Polinezia Franceză","aliases":[],"europe":false},{"key":"French Southern Territories","alpha2":"TF","en":"French Southern Territories","hu":"Francia Déli Területek","ro":"Teritoriile Australe și Antarctice Franceze","aliases":[],"europe":false},{"key":"Gabon","alpha2":"GA","en":"Gabon","hu":"Gabon","ro":"Gabon","aliases":["Gabonese Republic"],"europe":false},{"key":"Gambia","alpha2":"GM","en":"Gambia","hu":"Gambia","ro":"Gambia","aliases":["Republic of the Gambia"],"europe":false},{"key":"Georgia","alpha2":"GE","en":"Georgia","hu":"Grúzia","ro":"Georgia","aliases":[],"europe":true},{"key":"Germany","alpha2":"DE","en":"Germany","hu":"Németország","ro":"Germania","aliases":["Federal Republic of Germany"],"europe":true},{"key":"Ghana","alpha2":"GH","en":"Ghana","hu":"Ghána","ro":"Ghana","aliases":["Republic of Ghana"],"europe":false},{"key":"Gibraltar","alpha2":"GI","en":"Gibraltar","hu":"Gibraltár","ro":"Gibraltar","aliases":[],"europe":false},{"key":"Greece","alpha2":"GR","en":"Greece","hu":"Görögország","ro":"Grecia","aliases":["Hellenic Republic"],"europe":true},{"key":"Greenland","alpha2":"GL","en":"Greenland","hu":"Grönland","ro":"Groenlanda","aliases":[],"europe":false},{"key":"Grenada","alpha2":"GD","en":"Grenada","hu":"Grenada","ro":"Grenada","aliases":[],"europe":false},{"key":"Guadeloupe","alpha2":"GP","en":"Guadeloupe","hu":"Guadeloupe","ro":"Guadelupa","aliases":[],"europe":false},{"key":"Guam","alpha2":"GU","en":"Guam","hu":"Guam","ro":"Guam","aliases":[],"europe":false},{"key":"Guatemala","alpha2":"GT","en":"Guatemala","hu":"Guatemala","ro":"Guatemala","aliases":["Republic of Guatemala"],"europe":false},{"key":"Guernsey","alpha2":"GG","en":"Guernsey","hu":"Guernsey","ro":"Guernsey","aliases":[],"europe":false},{"key":"Guinea","alpha2":"GN","en":"Guinea","hu":"Guinea","ro":"Guineea","aliases":["Republic of Guinea"],"europe":false},{"key":"Guinea-Bissau","alpha2":"GW","en":"Guinea-Bissau","hu":"Bissau-Guinea","ro":"Guineea-Bissau","aliases":["Republic of Guinea-Bissau"],"europe":false},{"key":"Guyana","alpha2":"GY","en":"Guyana","hu":"Guyana","ro":"Guyana","aliases":["Republic of Guyana"],"europe":false},{"key":"Haiti","alpha2":"HT","en":"Haiti","hu":"Haiti","ro":"Haiti","aliases":["Republic of Haiti"],"europe":false},{"key":"Heard & McDonald Islands","alpha2":"HM","en":"Heard & McDonald Islands","hu":"Heard-sziget és McDonald-szigetek","ro":"Insula Heard și Insulele McDonald","aliases":["Heard Island and McDonald Islands"],"europe":false},{"key":"Honduras","alpha2":"HN","en":"Honduras","hu":"Honduras","ro":"Honduras","aliases":["Republic of Honduras"],"europe":false},{"key":"Hong Kong SAR China","alpha2":"HK","en":"Hong Kong SAR China","hu":"Hongkong KKT","ro":"R.A.S. Hong Kong, China","aliases":["Hong Kong","Hong Kong Special Administrative Region of China"],"europe":false},{"key":"Hungary","alpha2":"HU","en":"Hungary","hu":"Magyarország","ro":"Ungaria","aliases":[],"europe":true},{"key":"Iceland","alpha2":"IS","en":"Iceland","hu":"Izland","ro":"Islanda","aliases":["Republic of Iceland"],"europe":true},{"key":"India","alpha2":"IN","en":"India","hu":"India","ro":"India","aliases":["Republic of India"],"europe":false},{"key":"Indonesia","alpha2":"ID","en":"Indonesia","hu":"Indonézia","ro":"Indonezia","aliases":["Republic of Indonesia"],"europe":false},{"key":"Iran","alpha2":"IR","en":"Iran","hu":"Irán","ro":"Iran","aliases":["Iran","Iran, Islamic Republic of","Islamic Republic of Iran"],"europe":false},{"key":"Iraq","alpha2":"IQ","en":"Iraq","hu":"Irak","ro":"Irak","aliases":["Republic of Iraq"],"europe":false},{"key":"Ireland","alpha2":"IE","en":"Ireland","hu":"Írország","ro":"Irlanda","aliases":[],"europe":true},{"key":"Isle of Man","alpha2":"IM","en":"Isle of Man","hu":"Man-sziget","ro":"Insula Man","aliases":[],"europe":false},{"key":"Israel","alpha2":"IL","en":"Israel","hu":"Izrael","ro":"Israel","aliases":["State of Israel"],"europe":false},{"key":"Italy","alpha2":"IT","en":"Italy","hu":"Olaszország","ro":"Italia","aliases":["Italian Republic"],"europe":true},{"key":"Jamaica","alpha2":"JM","en":"Jamaica","hu":"Jamaica","ro":"Jamaica","aliases":[],"europe":false},{"key":"Japan","alpha2":"JP","en":"Japan","hu":"Japán","ro":"Japonia","aliases":[],"europe":false},{"key":"Jersey","alpha2":"JE","en":"Jersey","hu":"Jersey","ro":"Jersey","aliases":[],"europe":false},{"key":"Jordan","alpha2":"JO","en":"Jordan","hu":"Jordánia","ro":"Iordania","aliases":["Hashemite Kingdom of Jordan"],"europe":false},{"key":"Kazakhstan","alpha2":"KZ","en":"Kazakhstan","hu":"Kazahsztán","ro":"Kazahstan","aliases":["Republic of Kazakhstan"],"europe":false},{"key":"Kenya","alpha2":"KE","en":"Kenya","hu":"Kenya","ro":"Kenya","aliases":["Republic of Kenya"],"europe":false},{"key":"Kiribati","alpha2":"KI","en":"Kiribati","hu":"Kiribati","ro":"Kiribati","aliases":["Republic of Kiribati"],"europe":false},{"key":"Kosovo","alpha2":"XK","en":"Kosovo","hu":"Koszovó","ro":"Kosovo","aliases":["Kosova"],"europe":true},{"key":"Kuwait","alpha2":"KW","en":"Kuwait","hu":"Kuvait","ro":"Kuweit","aliases":["State of Kuwait"],"europe":false},{"key":"Kyrgyzstan","alpha2":"KG","en":"Kyrgyzstan","hu":"Kirgizisztán","ro":"Kârgâzstan","aliases":["Kyrgyz Republic"],"europe":false},{"key":"Laos","alpha2":"LA","en":"Laos","hu":"Laosz","ro":"Laos","aliases":["Lao People's Democratic Republic","Laos"],"europe":false},{"key":"Latvia","alpha2":"LV","en":"Latvia","hu":"Lettország","ro":"Letonia","aliases":["Republic of Latvia"],"europe":true},{"key":"Lebanon","alpha2":"LB","en":"Lebanon","hu":"Libanon","ro":"Liban","aliases":["Lebanese Republic"],"europe":false},{"key":"Lesotho","alpha2":"LS","en":"Lesotho","hu":"Lesotho","ro":"Lesotho","aliases":["Kingdom of Lesotho"],"europe":false},{"key":"Liberia","alpha2":"LR","en":"Liberia","hu":"Libéria","ro":"Liberia","aliases":["Republic of Liberia"],"europe":false},{"key":"Libya","alpha2":"LY","en":"Libya","hu":"Líbia","ro":"Libia","aliases":[],"europe":false},{"key":"Liechtenstein","alpha2":"LI","en":"Liechtenstein","hu":"Liechtenstein","ro":"Liechtenstein","aliases":["Principality of Liechtenstein"],"europe":true},{"key":"Lithuania","alpha2":"LT","en":"Lithuania","hu":"Litvánia","ro":"Lituania","aliases":["Republic of Lithuania"],"europe":true},{"key":"Luxembourg","alpha2":"LU","en":"Luxembourg","hu":"Luxemburg","ro":"Luxemburg","aliases":["Grand Duchy of Luxembourg"],"europe":true},{"key":"Macao SAR China","alpha2":"MO","en":"Macao SAR China","hu":"Makaó KKT","ro":"R.A.S. Macao, China","aliases":["Macao","Macao Special Administrative Region of China"],"europe":false},{"key":"Madagascar","alpha2":"MG","en":"Madagascar","hu":"Madagaszkár","ro":"Madagascar","aliases":["Republic of Madagascar"],"europe":false},{"key":"Malawi","alpha2":"MW","en":"Malawi","hu":"Malawi","ro":"Malawi","aliases":["Republic of Malawi"],"europe":false},{"key":"Malaysia","alpha2":"MY","en":"Malaysia","hu":"Malajzia","ro":"Malaysia","aliases":[],"europe":false},{"key":"Maldives","alpha2":"MV","en":"Maldives","hu":"Maldív-szigetek","ro":"Maldive","aliases":["Republic of Maldives"],"europe":false},{"key":"Mali","alpha2":"ML","en":"Mali","hu":"Mali","ro":"Mali","aliases":["Republic of Mali"],"europe":false},{"key":"Malta","alpha2":"MT","en":"Malta","hu":"Málta","ro":"Malta","aliases":["Republic of Malta"],"europe":true},{"key":"Marshall Islands","alpha2":"MH","en":"Marshall Islands","hu":"Marshall-szigetek","ro":"Insulele Marshall","aliases":["Republic of the Marshall Islands"],"europe":false},{"key":"Martinique","alpha2":"MQ","en":"Martinique","hu":"Martinique","ro":"Martinica","aliases":[],"europe":false},{"key":"Mauritania","alpha2":"MR","en":"Mauritania","hu":"Mauritánia","ro":"Mauritania","aliases":["Islamic Republic of Mauritania"],"europe":false},{"key":"Mauritius","alpha2":"MU","en":"Mauritius","hu":"Mauritius","ro":"Mauritius","aliases":["Republic of Mauritius"],"europe":false},{"key":"Mayotte","alpha2":"YT","en":"Mayotte","hu":"Mayotte","ro":"Mayotte","aliases":[],"europe":false},{"key":"Mexico","alpha2":"MX","en":"Mexico","hu":"Mexikó","ro":"Mexic","aliases":["United Mexican States"],"europe":false},{"key":"Micronesia","alpha2":"FM","en":"Micronesia","hu":"Mikronézia","ro":"Micronezia","aliases":["Federated States of Micronesia","Micronesia, Federated States of"],"europe":false},{"key":"Moldova","alpha2":"MD","en":"Moldova","hu":"Moldova","ro":"Republica Moldova","aliases":["Moldova","Moldova, Republic of","Republic of Moldova"],"europe":true},{"key":"Monaco","alpha2":"MC","en":"Monaco","hu":"Monaco","ro":"Monaco","aliases":["Principality of Monaco"],"europe":true},{"key":"Mongolia","alpha2":"MN","en":"Mongolia","hu":"Mongólia","ro":"Mongolia","aliases":[],"europe":false},{"key":"Montenegro","alpha2":"ME","en":"Montenegro","hu":"Montenegró","ro":"Muntenegru","aliases":[],"europe":true},{"key":"Montserrat","alpha2":"MS","en":"Montserrat","hu":"Montserrat","ro":"Montserrat","aliases":[],"europe":false},{"key":"Morocco","alpha2":"MA","en":"Morocco","hu":"Marokkó","ro":"Maroc","aliases":["Kingdom of Morocco"],"europe":false},{"key":"Mozambique","alpha2":"MZ","en":"Mozambique","hu":"Mozambik","ro":"Mozambic","aliases":["Republic of Mozambique"],"europe":false},{"key":"Myanmar (Burma)","alpha2":"MM","en":"Myanmar (Burma)","hu":"Mianmar","ro":"Myanmar (Birmania)","aliases":["Myanmar","Republic of Myanmar"],"europe":false},{"key":"Namibia","alpha2":"NA","en":"Namibia","hu":"Namíbia","ro":"Namibia","aliases":["Republic of Namibia"],"europe":false},{"key":"Nauru","alpha2":"NR","en":"Nauru","hu":"Nauru","ro":"Nauru","aliases":["Republic of Nauru"],"europe":false},{"key":"Nepal","alpha2":"NP","en":"Nepal","hu":"Nepál","ro":"Nepal","aliases":["Federal Democratic Republic of Nepal"],"europe":false},{"key":"Netherlands","alpha2":"NL","en":"Netherlands","hu":"Hollandia","ro":"Țările de Jos","aliases":["Kingdom of the Netherlands"],"europe":true},{"key":"New Caledonia","alpha2":"NC","en":"New Caledonia","hu":"Új-Kaledónia","ro":"Noua Caledonie","aliases":[],"europe":false},{"key":"New Zealand","alpha2":"NZ","en":"New Zealand","hu":"Új-Zéland","ro":"Noua Zeelandă","aliases":[],"europe":false},{"key":"Nicaragua","alpha2":"NI","en":"Nicaragua","hu":"Nicaragua","ro":"Nicaragua","aliases":["Republic of Nicaragua"],"europe":false},{"key":"Niger","alpha2":"NE","en":"Niger","hu":"Niger","ro":"Niger","aliases":["Republic of the Niger"],"europe":false},{"key":"Nigeria","alpha2":"NG","en":"Nigeria","hu":"Nigéria","ro":"Nigeria","aliases":["Federal Republic of Nigeria"],"europe":false},{"key":"Niue","alpha2":"NU","en":"Niue","hu":"Niue","ro":"Niue","aliases":[],"europe":false},{"key":"Norfolk Island","alpha2":"NF","en":"Norfolk Island","hu":"Norfolk-sziget","ro":"Insula Norfolk","aliases":[],"europe":false},{"key":"North Korea","alpha2":"KP","en":"North Korea","hu":"Észak-Korea","ro":"Coreea de Nord","aliases":["DPR Korea","Democratic People's Republic of Korea","Korea, Democratic People's Republic of","North Korea"],"europe":false},{"key":"North Macedonia","alpha2":"MK","en":"North Macedonia","hu":"Észak-Macedónia","ro":"Macedonia de Nord","aliases":["Macedonia","North Macedonia","Republic of North Macedonia"],"europe":true},{"key":"Northern Ireland","alpha2":"GB-NIR","en":"Northern Ireland","hu":"Észak-Írország","ro":"Irlanda de Nord","aliases":["NIR"],"europe":true},{"key":"Northern Mariana Islands","alpha2":"MP","en":"Northern Mariana Islands","hu":"Északi Mariana-szigetek","ro":"Insulele Mariane de Nord","aliases":["Commonwealth of the Northern Mariana Islands"],"europe":false},{"key":"Norway","alpha2":"NO","en":"Norway","hu":"Norvégia","ro":"Norvegia","aliases":["Kingdom of Norway"],"europe":true},{"key":"Oman","alpha2":"OM","en":"Oman","hu":"Omán","ro":"Oman","aliases":["Sultanate of Oman"],"europe":false},{"key":"Pakistan","alpha2":"PK","en":"Pakistan","hu":"Pakisztán","ro":"Pakistan","aliases":["Islamic Republic of Pakistan"],"europe":false},{"key":"Palau","alpha2":"PW","en":"Palau","hu":"Palau","ro":"Palau","aliases":["Republic of Palau"],"europe":false},{"key":"Palestinian Territories","alpha2":"PS","en":"Palestinian Territories","hu":"Palesztin Autonómia","ro":"Teritoriile Palestiniene","aliases":["Palestine","Palestine, State of","the State of Palestine"],"europe":false},{"key":"Panama","alpha2":"PA","en":"Panama","hu":"Panama","ro":"Panama","aliases":["Republic of Panama"],"europe":false},{"key":"Papua New Guinea","alpha2":"PG","en":"Papua New Guinea","hu":"Pápua Új-Guinea","ro":"Papua-Noua Guinee","aliases":["Independent State of Papua New Guinea"],"europe":false},{"key":"Paraguay","alpha2":"PY","en":"Paraguay","hu":"Paraguay","ro":"Paraguay","aliases":["Republic of Paraguay"],"europe":false},{"key":"Peru","alpha2":"PE","en":"Peru","hu":"Peru","ro":"Peru","aliases":["Republic of Peru"],"europe":false},{"key":"Philippines","alpha2":"PH","en":"Philippines","hu":"Fülöp-szigetek","ro":"Filipine","aliases":["Republic of the Philippines"],"europe":false},{"key":"Pitcairn Islands","alpha2":"PN","en":"Pitcairn Islands","hu":"Pitcairn-szigetek","ro":"Insulele Pitcairn","aliases":["Pitcairn"],"europe":false},{"key":"Poland","alpha2":"PL","en":"Poland","hu":"Lengyelország","ro":"Polonia","aliases":["Republic of Poland"],"europe":true},{"key":"Portugal","alpha2":"PT","en":"Portugal","hu":"Portugália","ro":"Portugalia","aliases":["Portuguese Republic"],"europe":true},{"key":"Puerto Rico","alpha2":"PR","en":"Puerto Rico","hu":"Puerto Rico","ro":"Puerto Rico","aliases":[],"europe":false},{"key":"Qatar","alpha2":"QA","en":"Qatar","hu":"Katar","ro":"Qatar","aliases":["State of Qatar"],"europe":false},{"key":"Romania","alpha2":"RO","en":"Romania","hu":"Románia","ro":"România","aliases":[],"europe":true},{"key":"Russia","alpha2":"RU","en":"Russia","hu":"Oroszország","ro":"Rusia","aliases":["Russia","Russian Federation"],"europe":true},{"key":"Rwanda","alpha2":"RW","en":"Rwanda","hu":"Ruanda","ro":"Rwanda","aliases":["Rwandese Republic"],"europe":false},{"key":"Réunion","alpha2":"RE","en":"Réunion","hu":"Réunion","ro":"Réunion","aliases":[],"europe":false},{"key":"Samoa","alpha2":"WS","en":"Samoa","hu":"Szamoa","ro":"Samoa","aliases":["Independent State of Samoa"],"europe":false},{"key":"San Marino","alpha2":"SM","en":"San Marino","hu":"San Marino","ro":"San Marino","aliases":["Republic of San Marino"],"europe":true},{"key":"Saudi Arabia","alpha2":"SA","en":"Saudi Arabia","hu":"Szaúd-Arábia","ro":"Arabia Saudită","aliases":["Kingdom of Saudi Arabia"],"europe":false},{"key":"Scotland","alpha2":"GB-SCT","en":"Scotland","hu":"Skócia","ro":"Scoția","aliases":["SCO"],"europe":true},{"key":"Senegal","alpha2":"SN","en":"Senegal","hu":"Szenegál","ro":"Senegal","aliases":["Republic of Senegal"],"europe":false},{"key":"Serbia","alpha2":"RS","en":"Serbia","hu":"Szerbia","ro":"Serbia","aliases":["Republic of Serbia"],"europe":true},{"key":"Seychelles","alpha2":"SC","en":"Seychelles","hu":"Seychelle-szigetek","ro":"Seychelles","aliases":["Republic of Seychelles"],"europe":false},{"key":"Sierra Leone","alpha2":"SL","en":"Sierra Leone","hu":"Sierra Leone","ro":"Sierra Leone","aliases":["Republic of Sierra Leone"],"europe":false},{"key":"Singapore","alpha2":"SG","en":"Singapore","hu":"Szingapúr","ro":"Singapore","aliases":["Republic of Singapore"],"europe":false},{"key":"Sint Maarten","alpha2":"SX","en":"Sint Maarten","hu":"Sint Maarten","ro":"Sint-Maarten","aliases":["Sint Maarten (Dutch part)"],"europe":false},{"key":"Slovakia","alpha2":"SK","en":"Slovakia","hu":"Szlovákia","ro":"Slovacia","aliases":["Slovak Republic"],"europe":true},{"key":"Slovenia","alpha2":"SI","en":"Slovenia","hu":"Szlovénia","ro":"Slovenia","aliases":["Republic of Slovenia"],"europe":true},{"key":"Solomon Islands","alpha2":"SB","en":"Solomon Islands","hu":"Salamon-szigetek","ro":"Insulele Solomon","aliases":[],"europe":false},{"key":"Somalia","alpha2":"SO","en":"Somalia","hu":"Szomália","ro":"Somalia","aliases":["Federal Republic of Somalia"],"europe":false},{"key":"South Africa","alpha2":"ZA","en":"South Africa","hu":"Dél-afrikai Köztársaság","ro":"Africa de Sud","aliases":["Republic of South Africa"],"europe":false},{"key":"South Georgia & South Sandwich Islands","alpha2":"GS","en":"South Georgia & South Sandwich Islands","hu":"Déli-Georgia és Déli-Sandwich-szigetek","ro":"Georgia de Sud și Insulele Sandwich de Sud","aliases":["South Georgia and the South Sandwich Islands"],"europe":false},{"key":"South Korea","alpha2":"KR","en":"South Korea","hu":"Dél-Korea","ro":"Coreea de Sud","aliases":["Korea Republic","Korea, Republic of","Republic of Korea","South Korea"],"europe":false},{"key":"South Sudan","alpha2":"SS","en":"South Sudan","hu":"Dél-Szudán","ro":"Sudanul de Sud","aliases":["Republic of South Sudan"],"europe":false},{"key":"Spain","alpha2":"ES","en":"Spain","hu":"Spanyolország","ro":"Spania","aliases":["Kingdom of Spain"],"europe":true},{"key":"Sri Lanka","alpha2":"LK","en":"Sri Lanka","hu":"Srí Lanka","ro":"Sri Lanka","aliases":["Democratic Socialist Republic of Sri Lanka"],"europe":false},{"key":"St. Barthélemy","alpha2":"BL","en":"St. Barthélemy","hu":"Saint-Barthélemy","ro":"Saint-Barthélemy","aliases":["Saint Barthélemy"],"europe":false},{"key":"St. Helena","alpha2":"SH","en":"St. Helena","hu":"Szent Ilona","ro":"Sfânta Elena","aliases":["Saint Helena, Ascension and Tristan da Cunha"],"europe":false},{"key":"St. Kitts & Nevis","alpha2":"KN","en":"St. Kitts & Nevis","hu":"Saint Kitts és Nevis","ro":"Saint Kitts și Nevis","aliases":["Saint Kitts and Nevis"],"europe":false},{"key":"St. Lucia","alpha2":"LC","en":"St. Lucia","hu":"Saint Lucia","ro":"Sfânta Lucia","aliases":["Saint Lucia"],"europe":false},{"key":"St. Martin","alpha2":"MF","en":"St. Martin","hu":"Saint Martin","ro":"Sfântul Martin","aliases":["Saint Martin (French part)"],"europe":false},{"key":"St. Pierre & Miquelon","alpha2":"PM","en":"St. Pierre & Miquelon","hu":"Saint-Pierre és Miquelon","ro":"Saint-Pierre și Miquelon","aliases":["Saint Pierre and Miquelon"],"europe":false},{"key":"St. Vincent & Grenadines","alpha2":"VC","en":"St. Vincent & Grenadines","hu":"Saint Vincent és a Grenadine-szigetek","ro":"Saint Vincent și Grenadinele","aliases":["Saint Vincent and the Grenadines"],"europe":false},{"key":"Sudan","alpha2":"SD","en":"Sudan","hu":"Szudán","ro":"Sudan","aliases":["Republic of the Sudan"],"europe":false},{"key":"Suriname","alpha2":"SR","en":"Suriname","hu":"Suriname","ro":"Suriname","aliases":["Republic of Suriname"],"europe":false},{"key":"Svalbard & Jan Mayen","alpha2":"SJ","en":"Svalbard & Jan Mayen","hu":"Svalbard és Jan Mayen","ro":"Svalbard și Jan Mayen","aliases":["Svalbard and Jan Mayen"],"europe":false},{"key":"Sweden","alpha2":"SE","en":"Sweden","hu":"Svédország","ro":"Suedia","aliases":["Kingdom of Sweden"],"europe":true},{"key":"Switzerland","alpha2":"CH","en":"Switzerland","hu":"Svájc","ro":"Elveția","aliases":["Swiss Confederation"],"europe":true},{"key":"Syria","alpha2":"SY","en":"Syria","hu":"Szíria","ro":"Siria","aliases":["Syria","Syrian Arab Republic"],"europe":false},{"key":"São Tomé & Príncipe","alpha2":"ST","en":"São Tomé & Príncipe","hu":"São Tomé és Príncipe","ro":"São Tomé și Príncipe","aliases":["Democratic Republic of Sao Tome and Principe","Sao Tome and Principe"],"europe":false},{"key":"Taiwan","alpha2":"TW","en":"Taiwan","hu":"Tajvan","ro":"Taiwan","aliases":["Taiwan, Province of China"],"europe":false},{"key":"Tajikistan","alpha2":"TJ","en":"Tajikistan","hu":"Tádzsikisztán","ro":"Tadjikistan","aliases":["Republic of Tajikistan"],"europe":false},{"key":"Tanzania","alpha2":"TZ","en":"Tanzania","hu":"Tanzánia","ro":"Tanzania","aliases":["Tanzania","Tanzania, United Republic of","United Republic of Tanzania"],"europe":false},{"key":"Thailand","alpha2":"TH","en":"Thailand","hu":"Thaiföld","ro":"Thailanda","aliases":["Kingdom of Thailand"],"europe":false},{"key":"Timor-Leste","alpha2":"TL","en":"Timor-Leste","hu":"Kelet-Timor","ro":"Timor-Leste","aliases":["Democratic Republic of Timor-Leste"],"europe":false},{"key":"Togo","alpha2":"TG","en":"Togo","hu":"Togo","ro":"Togo","aliases":["Togolese Republic"],"europe":false},{"key":"Tokelau","alpha2":"TK","en":"Tokelau","hu":"Tokelau","ro":"Tokelau","aliases":[],"europe":false},{"key":"Tonga","alpha2":"TO","en":"Tonga","hu":"Tonga","ro":"Tonga","aliases":["Kingdom of Tonga"],"europe":false},{"key":"Trinidad & Tobago","alpha2":"TT","en":"Trinidad & Tobago","hu":"Trinidad és Tobago","ro":"Trinidad și Tobago","aliases":["Republic of Trinidad and Tobago","Trinidad and Tobago"],"europe":false},{"key":"Tunisia","alpha2":"TN","en":"Tunisia","hu":"Tunézia","ro":"Tunisia","aliases":["Republic of Tunisia"],"europe":false},{"key":"Turkey","alpha2":"TR","en":"Turkey","hu":"Törökország","ro":"Turcia","aliases":["Republic of Türkiye","Turkiye","Türkiye"],"europe":true},{"key":"Turkmenistan","alpha2":"TM","en":"Turkmenistan","hu":"Türkmenisztán","ro":"Turkmenistan","aliases":[],"europe":false},{"key":"Turks & Caicos Islands","alpha2":"TC","en":"Turks & Caicos Islands","hu":"Turks- és Caicos-szigetek","ro":"Insulele Turks și Caicos","aliases":["Turks and Caicos Islands"],"europe":false},{"key":"Tuvalu","alpha2":"TV","en":"Tuvalu","hu":"Tuvalu","ro":"Tuvalu","aliases":[],"europe":false},{"key":"U.S. Outlying Islands","alpha2":"UM","en":"U.S. Outlying Islands","hu":"Az USA lakatlan külbirtokai","ro":"Insulele Îndepărtate ale S.U.A.","aliases":["United States Minor Outlying Islands"],"europe":false},{"key":"U.S. Virgin Islands","alpha2":"VI","en":"U.S. Virgin Islands","hu":"Amerikai Virgin-szigetek","ro":"Insulele Virgine Americane","aliases":["Virgin Islands of the United States","Virgin Islands, U.S."],"europe":false},{"key":"Uganda","alpha2":"UG","en":"Uganda","hu":"Uganda","ro":"Uganda","aliases":["Republic of Uganda"],"europe":false},{"key":"Ukraine","alpha2":"UA","en":"Ukraine","hu":"Ukrajna","ro":"Ucraina","aliases":[],"europe":true},{"key":"United Arab Emirates","alpha2":"AE","en":"United Arab Emirates","hu":"Egyesült Arab Emírségek","ro":"Emiratele Arabe Unite","aliases":[],"europe":false},{"key":"United Kingdom","alpha2":"GB","en":"United Kingdom","hu":"Egyesült Királyság","ro":"Regatul Unit","aliases":["Britain","Great Britain","UK","United Kingdom of Great Britain and Northern Ireland"],"europe":true},{"key":"United States","alpha2":"US","en":"United States","hu":"Egyesült Államok","ro":"Statele Unite ale Americii","aliases":["America","US","USA","United States of America"],"europe":false},{"key":"Uruguay","alpha2":"UY","en":"Uruguay","hu":"Uruguay","ro":"Uruguay","aliases":["Eastern Republic of Uruguay"],"europe":false},{"key":"Uzbekistan","alpha2":"UZ","en":"Uzbekistan","hu":"Üzbegisztán","ro":"Uzbekistan","aliases":["Republic of Uzbekistan"],"europe":false},{"key":"Vanuatu","alpha2":"VU","en":"Vanuatu","hu":"Vanuatu","ro":"Vanuatu","aliases":["Republic of Vanuatu"],"europe":false},{"key":"Vatican City","alpha2":"VA","en":"Vatican City","hu":"Vatikán","ro":"Statul Cetății Vaticanului","aliases":["Holy See (Vatican City State)"],"europe":true},{"key":"Venezuela","alpha2":"VE","en":"Venezuela","hu":"Venezuela","ro":"Venezuela","aliases":["Bolivarian Republic of Venezuela","Venezuela","Venezuela, Bolivarian Republic of"],"europe":false},{"key":"Vietnam","alpha2":"VN","en":"Vietnam","hu":"Vietnám","ro":"Vietnam","aliases":["Socialist Republic of Viet Nam","Viet Nam","Vietnam"],"europe":false},{"key":"Wales","alpha2":"GB-WLS","en":"Wales","hu":"Wales","ro":"Țara Galilor","aliases":["Cymru"],"europe":true},{"key":"Wallis & Futuna","alpha2":"WF","en":"Wallis & Futuna","hu":"Wallis és Futuna","ro":"Wallis și Futuna","aliases":["Wallis and Futuna"],"europe":false},{"key":"Western Sahara","alpha2":"EH","en":"Western Sahara","hu":"Nyugat-Szahara","ro":"Sahara Occidentală","aliases":[],"europe":false},{"key":"Yemen","alpha2":"YE","en":"Yemen","hu":"Jemen","ro":"Yemen","aliases":["Republic of Yemen"],"europe":false},{"key":"Zambia","alpha2":"ZM","en":"Zambia","hu":"Zambia","ro":"Zambia","aliases":["Republic of Zambia"],"europe":false},{"key":"Zimbabwe","alpha2":"ZW","en":"Zimbabwe","hu":"Zimbabwe","ro":"Zimbabwe","aliases":["Republic of Zimbabwe"],"europe":false},{"key":"Åland Islands","alpha2":"AX","en":"Åland Islands","hu":"Åland-szigetek","ro":"Insulele Åland","aliases":[],"europe":false}]);
+
+  const TM_NATIONALITY_LAND_IDS = Object.freeze({
+    // Confirmed from the previous TM Scout V2 workflow. Other countries still work via
+    // global source pages + local nationality filtering, without risking wrong TM land_id values.
+    "Romania": "140",
+    "Hungary": "178"
+  });
+
+  const EUROPE_COMPETITION_CODE_SET = new Set([
+    'GB1','GB2','GB3','SC1','SC2','SC3','ES1','ES2','IT1','IT2','IT3A','IT3B','IT3C',
+    'L1','L2','L3','E3G1','E3G2','FR1','FR2','FR3','NL1','NL2','PO1','PO2','TR1','TR2',
+    'BE1','BE2','GR1','GR2','UKR1','UKR2','RU1','RU2','DK1','DK2','SE1','SE2','NO1','NO2',
+    'PL1','PL2','PL3','A1','A2','C1','C2','C3','RO1','RO2','SER1','SER2','KRO1','KRO2',
+    'UNG1','UNG2','SLO1','SLO2','TS1','TS2','BUL1','BUL2','ZYP1','ZYP2','ISR1','ISR2','FIN1','FIN2','IR1','IR2',
+    'CL','EL','UCOL','FAC','UKRP','RUP','DKP','NLP','POCP','CIT'
+  ]);
+
+  const GLOBAL_EXTRA_FIRST_DIVISION_CODES = Object.freeze([
+    'MLS1','USL','BRA1','BRA2','AR1N','AR2','MEXA','MEX2','JAP1','JAP2','CSL','KOR1','AUS1',
+    'SA1','UAE1','QSL','TRM1','CLPD','CL2','COLP','COL2','PER1','EC1','URU1','PAR1','BOL1','VEN1',
+    'CAN1','ZA1','EGY1','MAR1','TUN1','ALG1'
+  ]);
+
+  const COMPETITION_LABELS = Object.freeze({
+    GB1:'Premier League', GB2:'Championship', GB3:'League One', SC1:'Scottish Premiership', SC2:'Scottish Championship', SC3:'Scottish League One',
+    ES1:'LaLiga', ES2:'LaLiga 2', IT1:'Serie A', IT2:'Serie B', IT3A:'Serie C', IT3B:'Serie C', IT3C:'Serie C',
+    L1:'Bundesliga', L2:'2. Bundesliga', L3:'3. Liga', FR1:'Ligue 1', FR2:'Ligue 2', FR3:'National',
+    NL1:'Eredivisie', NL2:'Eerste Divisie', PO1:'Liga Portugal', PO2:'Liga Portugal 2', TR1:'Süper Lig', TR2:'1. Lig',
+    BE1:'Jupiler Pro League', BE2:'Challenger Pro League', GR1:'Super League Greece', GR2:'Super League 2',
+    UKR1:'Ukrainian Premier League', UKR2:'Persha Liga', RU1:'Russian Premier Liga', RU2:'First League',
+    DK1:'Superligaen', DK2:'1st Division', SE1:'Allsvenskan', SE2:'Superettan', NO1:'Eliteserien', NO2:'OBOS-ligaen',
+    PL1:'Ekstraklasa', PL2:'I liga', PL3:'II liga', A1:'Austrian Bundesliga', A2:'2. Liga', C1:'Swiss Super League', C2:'Challenge League', C3:'Promotion League',
+    RO1:'SuperLiga', RO2:'Liga 2', SER1:'Serbian SuperLiga', SER2:'Prva Liga', KRO1:'HNL', KRO2:'Prva NL',
+    UNG1:'NB I', UNG2:'NB II', SLO1:'PrvaLiga', SLO2:'2. SNL', TS1:'Czech First League', TS2:'Czech National League',
+    BUL1:'First League Bulgaria', BUL2:'Second League Bulgaria', ZYP1:'Cypriot First Division', ZYP2:'Cypriot Second Division',
+    ISR1:'Israeli Premier League', ISR2:'Liga Leumit', FIN1:'Veikkausliiga', FIN2:'Ykkösliiga', IR1:'League of Ireland Premier Division', IR2:'League of Ireland First Division',
+    MLS1:'Major League Soccer', USL:'USL Championship', BRA1:'Brasileirão Série A', BRA2:'Brasileirão Série B', AR1N:'Liga Profesional Argentina', AR2:'Primera Nacional Argentina',
+    MEXA:'Liga MX', MEX2:'Liga de Expansión MX', JAP1:'J1 League', JAP2:'J2 League', CSL:'Chinese Super League', KOR1:'K League 1', AUS1:'A-League Men',
+    SA1:'Saudi Pro League', UAE1:'UAE Pro League', QSL:'Qatar Stars League', CLPD:'Chilean Primera División', COLP:'Categoría Primera A', PER1:'Liga 1 Peru', EC1:'LigaPro Ecuador', URU1:'Uruguayan Primera División', PAR1:'Paraguayan Primera División', BOL1:'Bolivian Primera División', VEN1:'Venezuelan Primera División', CAN1:'Canadian Premier League', ZA1:'South African Premier Division', EGY1:'Egyptian Premier League', MAR1:'Botola Pro', TUN1:'Tunisian Ligue Professionnelle 1', ALG1:'Algerian Ligue 1'
+  });
+
+  (function patchWorldNationalityI18n() {
+    const extra = {
+      hu: {
+        "Keresés nemzetiségre": "Keresés nemzetiségre",
+        "Csak európai klub/liga források": "Csak európai klub/liga források",
+        "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.",
+        "Utolsó liga": "Utolsó liga",
+        "Utolsó klub": "Utolsó klub",
+        "Jelenlegi klub": "Jelenlegi klub",
+        "Klub / utolsó klub + liga": "Klub / utolsó klub + liga",
+        "Nemzetiségek": "Nemzetiségek",
+        "Contract nemzetiségek": "Contract nemzetiségek",
+        "Minden nemzetiség": "Minden nemzetiség",
+        "Nincs egyező nemzetiség": "Nincs egyező nemzetiség"
+      },
+      en: {
+        "Keresés nemzetiségre": "Search nationality",
+        "Csak európai klub/liga források": "Only European club/league sources",
+        "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Turn this off to include relevant leagues from around the world.",
+        "Utolsó liga": "Last league",
+        "Utolsó klub": "Last club",
+        "Jelenlegi klub": "Current club",
+        "Klub / utolsó klub + liga": "Club / last club + league",
+        "Nemzetiségek": "Nationalities",
+        "Contract nemzetiségek": "Contract nationalities",
+        "Minden nemzetiség": "All nationalities",
+        "Nincs egyező nemzetiség": "No matching nationality"
+      },
+      ro: {
+        "Keresés nemzetiségre": "Caută naționalitate",
+        "Csak európai klub/liga források": "Doar surse din cluburi/ligi europene",
+        "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Dacă dezactivezi opțiunea, pot apărea și jucători din ligi relevante din toată lumea.",
+        "Utolsó liga": "Ultima ligă",
+        "Utolsó klub": "Ultimul club",
+        "Jelenlegi klub": "Club actual",
+        "Klub / utolsó klub + liga": "Club / ultimul club + ligă",
+        "Nemzetiségek": "Naționalități",
+        "Contract nemzetiségek": "Naționalități contract",
+        "Minden nemzetiség": "Toate naționalitățile",
+        "Nincs egyező nemzetiség": "Nicio naționalitate potrivită"
+      }
+    };
+    Object.keys(extra).forEach(function addLang(lang) {
+      if (!I18N[lang]) return;
+      Object.assign(I18N[lang], extra[lang]);
+    });
+  })();
 
 
   const DEFAULTS = Object.freeze({
@@ -705,6 +1053,7 @@
     europeLeaguePages: true,
     lowerLeaguePages: true,
     lowerLeagueDepth: '2-3',
+    europeanClubSourcesOnly: true,
     includeFreeAgents: true,
     futureExclude: true,
     excludeOwnTeam: false,
@@ -994,6 +1343,99 @@
     }).join('');
   }
 
+
+
+  function normalizeCountrySearch(value) {
+    return normalizeText(value).replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function getCountryRecord(value) {
+    const needle = normalizeCountrySearch(value);
+    if (!needle) return null;
+    return COUNTRY_CATALOG.find(function findCountry(country) {
+      const candidates = [country.key, country.en, country.hu, country.ro, country.alpha2].concat(country.aliases || []);
+      return candidates.some(function sameCountry(candidate) {
+        const normalized = normalizeCountrySearch(candidate);
+        return normalized === needle || normalized.replace(/\s+/g, '') === needle.replace(/\s+/g, '');
+      });
+    }) || null;
+  }
+
+  function getCountryCanonicalKey(value) {
+    const record = getCountryRecord(value);
+    return record ? record.key : cleanText(value);
+  }
+
+  function countryLabel(value, lang) {
+    const record = getCountryRecord(value);
+    const language = normalizeUiLanguage(lang || currentUiLanguage());
+    if (!record) return cleanText(value);
+    return record[language] || record.en || record.key;
+  }
+
+  function countrySearchBlob(value) {
+    const record = getCountryRecord(value);
+    if (!record) return normalizeCountrySearch(value);
+    return [record.key, record.en, record.hu, record.ro, record.alpha2].concat(record.aliases || [])
+      .map(normalizeCountrySearch)
+      .filter(Boolean)
+      .join(' | ');
+  }
+
+  function buildNationalityOptionsHtml() {
+    const lang = currentUiLanguage();
+    return COUNTRY_CATALOG.map(function option(country) {
+      const label = countryLabel(country.key, lang);
+      const search = countrySearchBlob(country.key);
+      return `<option value="${escapeAttr(country.key)}" data-alpha2="${escapeAttr(country.alpha2 || '')}" data-europe="${country.europe ? '1' : '0'}" data-search="${escapeAttr(search)}">${escapeHtml(label)}</option>`;
+    }).join('');
+  }
+
+  function updateNationalitySelectLabels(root) {
+    const scope = root || document;
+    Array.from(scope.querySelectorAll ? scope.querySelectorAll('select.tm-scout-v2-multi-select') : []).forEach(function updateSelect(select) {
+      Array.from(select.options || []).forEach(function updateOption(option) {
+        const key = option.value || option.textContent;
+        option.textContent = countryLabel(key);
+        option.setAttribute('data-search', countrySearchBlob(key));
+      });
+      updateNationalityPickerLabels(select);
+    });
+  }
+
+  function updateNationalityPickerLabels(select) {
+    if (!select || !select.dataset || !select.dataset.pickerId) return;
+    const picker = document.getElementById(select.dataset.pickerId);
+    if (!picker) return;
+    const input = picker.parentElement ? picker.parentElement.querySelector('[data-nationality-search]') : null;
+    if (input) {
+      input.placeholder = tx('Keresés nemzetiségre');
+      input.setAttribute('aria-label', tx('Keresés nemzetiségre'));
+    }
+    const empty = picker.parentElement ? picker.parentElement.querySelector('[data-nationality-empty]') : null;
+    if (empty) empty.textContent = tx('Nincs egyező nemzetiség');
+    Array.from(picker.querySelectorAll('[data-nationality-value]')).forEach(function updateItem(item) {
+      const value = item.getAttribute('data-nationality-value');
+      const label = item.querySelector('.tm-scout-v2-nationality-name');
+      if (label) label.textContent = countryLabel(value);
+      item.setAttribute('data-search', countrySearchBlob(value));
+    });
+  }
+
+  function filterNationalityPicker(picker, query) {
+    if (!picker) return;
+    const q = normalizeCountrySearch(query || '');
+    let visible = 0;
+    Array.from(picker.querySelectorAll('[data-nationality-value]')).forEach(function filterItem(item) {
+      const blob = item.getAttribute('data-search') || countrySearchBlob(item.getAttribute('data-nationality-value'));
+      const ok = !q || normalizeCountrySearch(blob).includes(q);
+      item.hidden = !ok;
+      if (ok) visible += 1;
+    });
+    const empty = picker.parentElement ? picker.parentElement.querySelector('[data-nationality-empty]') : null;
+    if (empty) empty.hidden = visible !== 0;
+  }
+
   function buildPanel() {
     const panel = document.createElement('section');
     panel.id = APP.panelId;
@@ -1029,11 +1471,7 @@
       '        <label>Szerződés lejárati éve <select name="contractYear">' + buildContractYearOptionsHtml() + '</select></label>',
       '        <label class="tm-scout-v2-wide">Contract nemzetiségek / source szűkítés',
       '          <select class="tm-scout-v2-multi-select" name="contractNationalities" multiple size="10">',
-      '            <option value="Argentina">Argentina</option><option value="Austria">Austria</option><option value="Belgium">Belgium</option><option value="Brazil">Brazil</option><option value="Croatia">Croatia</option><option value="Czech Republic">Czech Republic</option>',
-      '            <option value="Denmark">Denmark</option><option value="England">England</option><option value="France">France</option><option value="Germany">Germany</option><option value="Ghana">Ghana</option><option value="Hungary">Hungary</option>',
-      '            <option value="Italy">Italy</option><option value="Netherlands">Netherlands</option><option value="Norway">Norway</option><option value="Poland">Poland</option><option value="Portugal">Portugal</option><option value="Romania">Romania</option>',
-      '            <option value="Scotland">Scotland</option><option value="Serbia">Serbia</option><option value="Slovakia">Slovakia</option><option value="Slovenia">Slovenia</option><option value="Spain">Spain</option><option value="Sweden">Sweden</option>',
-      '            <option value="Switzerland">Switzerland</option><option value="Turkey">Turkey</option><option value="Ukraine">Ukraine</option><option value="Uruguay">Uruguay</option><option value="USA">United States</option>',
+      buildNationalityOptionsHtml(),
       '          </select>',
       '        </label>',
       '      </fieldset>',
@@ -1086,11 +1524,7 @@
       '        <label>Min játszott meccsarány % <input name="u21MinMatchRatio" type="number" min="0" max="100" step="1"></label>',
       '        <label class="tm-scout-v2-wide">Nemzetiségek, opcionális multiple choice',
       '          <select class="tm-scout-v2-multi-select" name="u21Nationalities" multiple size="10">',
-      '            <option value="Argentina">Argentina</option><option value="Austria">Austria</option><option value="Belgium">Belgium</option><option value="Brazil">Brazil</option><option value="Croatia">Croatia</option><option value="Czech Republic">Czech Republic</option>',
-      '            <option value="Denmark">Denmark</option><option value="England">England</option><option value="France">France</option><option value="Germany">Germany</option><option value="Ghana">Ghana</option><option value="Hungary">Hungary</option>',
-      '            <option value="Italy">Italy</option><option value="Netherlands">Netherlands</option><option value="Norway">Norway</option><option value="Poland">Poland</option><option value="Portugal">Portugal</option><option value="Romania">Romania</option>',
-      '            <option value="Scotland">Scotland</option><option value="Serbia">Serbia</option><option value="Slovakia">Slovakia</option><option value="Slovenia">Slovenia</option><option value="Spain">Spain</option><option value="Sweden">Sweden</option>',
-      '            <option value="Switzerland">Switzerland</option><option value="Turkey">Turkey</option><option value="Ukraine">Ukraine</option><option value="Uruguay">Uruguay</option><option value="USA">United States</option>',
+      buildNationalityOptionsHtml(),
       '          </select>',
       '        </label>',
       '        <label>U21 oldalak <input name="u21MaxSourcePages" type="number" min="1" max="200"></label>',
@@ -1102,6 +1536,8 @@
       '        <label><input name="europeLeaguePages" type="checkbox"> Első osztályú európai ligák</label>',
       '        <label><input name="lowerLeaguePages" type="checkbox"> Jobb ligák 2–3. osztályai is</label>',
       '        <label class="tm-scout-v2-wide">Alsóbb osztály mélység <select name="lowerLeagueDepth"><option value="2">Csak 2. osztály</option><option value="2-3">2–3. osztály</option></select></label>',
+      '        <label><input name="europeanClubSourcesOnly" type="checkbox"> Csak európai klub/liga források</label>',
+      '        <p class="tm-scout-v2-field-note">Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.</p>',
       '        <label data-contract-settings="true"><input name="includeFreeAgents" type="checkbox"> Aktuális free agentek is (alapból ON)</label>',
       '        <label data-contract-settings="true"><input name="futureExclude" type="checkbox"> Jövőbeli igazolással rendelkezők kizárása</label>',
       '        <label><input name="excludeOwnTeam" type="checkbox"> Saját csapat kizárása</label>',
@@ -1491,6 +1927,7 @@
       europeLeaguePages: Boolean(form.elements.europeLeaguePages && form.elements.europeLeaguePages.checked),
       lowerLeaguePages: Boolean(form.elements.lowerLeaguePages && form.elements.lowerLeaguePages.checked),
       lowerLeagueDepth: normalizeLowerLeagueDepth(form.elements.lowerLeagueDepth ? form.elements.lowerLeagueDepth.value : DEFAULTS.lowerLeagueDepth),
+      europeanClubSourcesOnly: Boolean(form.elements.europeanClubSourcesOnly ? form.elements.europeanClubSourcesOnly.checked : DEFAULTS.europeanClubSourcesOnly),
       includeFreeAgents: Boolean(form.elements.includeFreeAgents && form.elements.includeFreeAgents.checked),
       futureExclude: Boolean(form.elements.futureExclude.checked),
       excludeOwnTeam: Boolean(form.elements.excludeOwnTeam && form.elements.excludeOwnTeam.checked),
@@ -1709,8 +2146,10 @@
   function buildContractSourcePlan(settings) {
     const year = normalizeYear(settings.contractYear);
     const sourceFilters = buildSourceFilterCombos(settings);
+    const selectedContractCountries = getContractSelectedCountryKeys(settings);
     const contractLandIds = getSelectedContractNationalityLandIds(settings);
-    const sourceLandIds = contractLandIds.length ? contractLandIds : ['0'];
+    const sourceLandIds = contractLandIds.length ? contractLandIds.slice() : ['0'];
+    if (selectedContractCountries.length > contractLandIds.length && !sourceLandIds.includes('0')) sourceLandIds.push('0');
     state.debug.contractNationalityLandIds = sourceLandIds.slice();
     state.debug.sourceFilterCombos = sourceFilters.map(function debugCombo(combo) {
       return {
@@ -1757,7 +2196,7 @@
 
     const leagueSources = [];
     if (settings.europeLeaguePages) {
-      getEuropeCompetitionCodes().forEach(function addLeague(code) {
+      getPrimaryCompetitionCodes(settings).forEach(function addLeague(code) {
         sourceLandIds.forEach(function addLeagueNationality(landId) {
           sourceFilters.forEach(function addLeagueFilter(filter) {
             const natLabel = landId && landId !== '0' ? ` · nat ${landId}` : '';
@@ -1778,7 +2217,7 @@
 
     const lowerLeagueSources = [];
     if (settings.lowerLeaguePages) {
-      getStrongLowerCompetitionCodes(settings.lowerLeagueDepth).forEach(function addLowerLeague(code) {
+      getLowerCompetitionCodes(settings).forEach(function addLowerLeague(code) {
         sourceLandIds.forEach(function addLowerNationality(landId) {
           sourceFilters.forEach(function addLowerFilter(filter) {
             const natLabel = landId && landId !== '0' ? ` · nat ${landId}` : '';
@@ -1930,9 +2369,7 @@
 
   function getSelectedCountryKeys(values) {
     return (values || []).map(function normalizeCountry(value) {
-      const n = normalizeText(value);
-      if (n === 'usa' || n === 'united states') return 'united states';
-      return n;
+      return getCountryCanonicalKey(value);
     }).filter(Boolean);
   }
 
@@ -1945,12 +2382,9 @@
   }
 
   function getTransfermarktNationalityLandId(countryKey) {
-    const map = {
-      // TM land_id values. Unknown countries intentionally fall back to 0 so the search still works.
-      'romania': '140',
-      'hungary': '178'
-    };
-    return map[normalizeText(countryKey)] || '';
+    const record = getCountryRecord(countryKey);
+    const key = record ? record.key : cleanText(countryKey);
+    return TM_NATIONALITY_LAND_IDS[key] || '';
   }
 
   function getSelectedU21NationalityLandIds(settings) {
@@ -1970,7 +2404,8 @@
       'hungary': ['UNG1', 'UNG2']
     };
     for (const country of countryKeys) {
-      if ((domesticCodes[country] || []).includes(c)) return 18;
+      const key = normalizeText(country);
+      if ((domesticCodes[key] || []).includes(c)) return 18;
     }
     return 0;
   }
@@ -2015,7 +2450,8 @@
 
     const out = [];
     selected.forEach(function addSelected(countryKey) {
-      (nationalSources[countryKey] || []).forEach(function addEntry(entry) {
+      const key = normalizeText(countryKey);
+      (nationalSources[key] || []).forEach(function addEntry(entry) {
         out.push({ label: entry[0], url: entry[1] });
       });
     });
@@ -2116,6 +2552,22 @@
           });
         });
       });
+
+      if (getU21SelectedCountryKeys(settings).length > nationalityLandIds.length) {
+        unique(buildU21CompactCompetitionCodes(settings)).slice(0, 18).forEach(function addUnknownLandFallback(code) {
+          const basePriority = getU21CompetitionPriority(code, settings);
+          sourceFilters.slice(0, 2).forEach(function addFilter(filter) {
+            targets.push({
+              url: buildCompetitionMarketValuesQueryUrl(code, filter, '0'),
+              label: `U21 ${code}${filter.label ? ` · ${filter.label}` : ''} · all-nationalities fallback`,
+              sourceGroup: 'u21-unknown-nationality-fallback',
+              filter: filter,
+              pageLimit: 1,
+              priority: 48 + (basePriority / 25) - Number(filter.weight || 0)
+            });
+          });
+        });
+      }
     } else {
       // Unknown/no selected nationality: fall back to a compact league sweep.
       unique(buildU21CompactCompetitionCodes(settings)).forEach(function addCompetition(code) {
@@ -2272,13 +2724,13 @@
 
     // A kiválasztott nemzetiség csak játékosfilter. Forrásoldalnál szélesen keresünk,
     // mert egy román/magyar/szerb/ukrán U21 bárhol játszhat Európában.
-    if (settings.europeLeaguePages) addMany(getEuropeCompetitionCodes());
-    if (settings.lowerLeaguePages) addMany(getStrongLowerCompetitionCodes(settings.lowerLeagueDepth));
+    if (settings.europeLeaguePages) addMany(getPrimaryCompetitionCodes(settings));
+    if (settings.lowerLeaguePages) addMany(getLowerCompetitionCodes(settings));
 
     // Hasznos extra utánpótlás / alacsonyabb piaci források, ahol fiatal profilok gyakran vannak.
     addMany(['GB3', 'L3', 'FR3', 'IT3A', 'IT3B', 'IT3C', 'E3G1', 'E3G2', 'PL3', 'SC3', 'C3']);
 
-    if (!codes.length) addMany(getEuropeCompetitionCodes().concat(getStrongLowerCompetitionCodes(settings.lowerLeagueDepth)));
+    if (!codes.length) addMany(getPrimaryCompetitionCodes(settings).concat(getLowerCompetitionCodes(settings)));
 
     const limit = getSelectedU21NationalityLandIds(settings).length ? 48 : 72;
     return unique(codes).sort(function byPriority(a, b) {
@@ -2392,6 +2844,30 @@
       'SC3', 'PL3', 'C3'
     ];
     return Array.from(new Set(secondTiers.concat(selectedThirdTiers)));
+  }
+
+
+  function getPrimaryCompetitionCodes(settings) {
+    const europe = getEuropeCompetitionCodes();
+    if (!settings || settings.europeanClubSourcesOnly !== false) return europe;
+    return unique(europe.concat(GLOBAL_EXTRA_FIRST_DIVISION_CODES));
+  }
+
+  function getLowerCompetitionCodes(settings) {
+    const europeLower = getStrongLowerCompetitionCodes(settings && settings.lowerLeagueDepth);
+    if (!settings || settings.europeanClubSourcesOnly !== false) return europeLower;
+    const globalLower = ['BRA2','AR2','MEX2','JAP2','USL','CL2','COL2'];
+    return unique(europeLower.concat(globalLower));
+  }
+
+  function isEuropeanCompetitionCode(code) {
+    const normalized = String(code || '').toUpperCase();
+    return EUROPE_COMPETITION_CODE_SET.has(normalized);
+  }
+
+  function competitionLabel(code) {
+    const normalized = String(code || '').toUpperCase();
+    return COMPETITION_LABELS[normalized] || normalized;
   }
 
   function normalizeLowerLeagueDepth(value) {
@@ -2918,6 +3394,7 @@
     const playingTime = await getPlayingTime(playingTimeCandidate);
     const ownTeamExclusion = detectOwnTeamHistory(candidate, profile, playingTime, settings);
     const chosenPosition = chooseBestPosition(profile.position, candidate.position);
+    const clubContext = buildClubLeagueContext(candidate, profile, playingTime, playingTimeCandidate.competitionCodes || []);
 
     const merged = {
       playerId: candidate.playerId,
@@ -2929,14 +3406,18 @@
       position: chosenPosition,
       positionGroup: positionGroup(chosenPosition),
       positionDetail: positionDetail(chosenPosition),
-      club: profile.club || candidate.club,
+      club: clubContext.club || profile.club || candidate.club,
+      lastClub: clubContext.club || profile.club || candidate.club,
+      lastLeague: clubContext.league || '',
+      lastLeagueCode: clubContext.leagueCode || '',
+      clubLeagueContext: clubContext.label || '',
       clubIds: unique([].concat(candidate.clubIds || [], profile.clubIds || [])),
       contractUntil: profile.contractUntil || candidate.contractUntil,
       sourceTypes: candidate.sourceTypes || [],
       sourceLabels: candidate.sourceLabels || [],
       sourceUrls: candidate.sourceUrls || [],
-      competitionCodes: playingTimeCandidate.competitionCodes || [],
-      availability: buildAvailability(candidate, profile),
+      competitionCodes: unique([].concat(playingTimeCandidate.competitionCodes || [], clubContext.leagueCode ? [clubContext.leagueCode] : [])),
+      availability: buildAvailability(candidate, profile, clubContext),
       currentMarketValue: firstDefinedNumber(profile.currentMarketValue, mvGraph.latestValue, candidate.marketValue),
       sourceMarketValue: candidate.marketValue,
       profileMarketValue: profile.currentMarketValue,
@@ -4226,12 +4707,99 @@
     return unique(ids);
   }
 
-  function buildAvailability(candidate, profile) {
+
+
+  function isWithoutClubText(value) {
+    return /without club|last club unknown|vertragslos|vereinslos|sans club|sin club/i.test(String(value || ''));
+  }
+
+  function resolveCurrentOrLastClub(candidate, profile) {
+    const candidateClub = cleanText(candidate && candidate.club);
+    const profileClub = cleanText(profile && profile.club);
+    if (profileClub && !isWithoutClubText(profileClub)) return profileClub;
+    if (candidateClub && !isWithoutClubText(candidateClub)) return candidateClub;
+    return profileClub || candidateClub || '';
+  }
+
+  function getLatestPlayedSeason(playingTime) {
+    const seasons = (playingTime && playingTime.recentSeasons) || (playingTime && playingTime.bySeason) || [];
+    return seasons.find(function played(season) {
+      return Number(season && (season.apps || 0)) > 0 || Number(season && (season.minutes || 0)) > 0;
+    }) || seasons.find(function hasCompetition(season) {
+      return season && season.competitions && season.competitions.length;
+    }) || null;
+  }
+
+  function getPlayerCompetitionCodes(player) {
+    const codes = [];
+    (player && player.competitionCodes || []).forEach(function addExisting(code) { if (code) codes.push(String(code).toUpperCase()); });
+    collectCodesFromLabels(player && player.sourceLabels || []).forEach(function addLabelCode(code) { if (code) codes.push(String(code).toUpperCase()); });
+    collectCodesFromLabels(player && player.sourceUrls || []).forEach(function addUrlCode(code) { if (code) codes.push(String(code).toUpperCase()); });
+    if (player && player.lastLeagueCode) codes.push(String(player.lastLeagueCode).toUpperCase());
+    return unique(codes);
+  }
+
+  function buildClubLeagueContext(candidate, profile, playingTime, competitionCodes) {
+    const club = resolveCurrentOrLastClub(candidate, profile);
+    const latestSeason = getLatestPlayedSeason(playingTime);
+    const latestCompetition = latestSeason && latestSeason.competitions && latestSeason.competitions.length ? cleanText(latestSeason.competitions[0]) : '';
+    const codes = unique([].concat(competitionCodes || [], candidate && candidate.competitionCodes || [], profile && profile.competitionCodes || []));
+    const firstCode = codes.find(Boolean) || '';
+    const leagueFromCode = firstCode ? competitionLabel(firstCode) : '';
+    const league = latestCompetition || leagueFromCode || extractLeagueFromSourceLabels(candidate && candidate.sourceLabels);
+    return {
+      club: club,
+      league: league,
+      leagueCode: firstCode,
+      label: [club, league].filter(Boolean).join(' · '),
+      latestSeason: latestSeason ? latestSeason.season : ''
+    };
+  }
+
+  function extractLeagueFromSourceLabels(labels) {
+    const values = labels || [];
+    for (const label of values) {
+      const codeMatch = String(label || '').match(/([A-Z]{1,4}\d[A-Z0-9]{0,4}|AR1N|MEXA|MLS1|JAP1|BRA1|CSL|SA1|QSL|UAE1)/);
+      if (codeMatch && competitionLabel(codeMatch[1]) !== codeMatch[1]) return competitionLabel(codeMatch[1]);
+      const text = cleanText(label);
+      if (/league|liga|division|serie|bundesliga|superliga|premier|eredivisie|ligue|championship/i.test(text)) return text;
+    }
+    return '';
+  }
+
+  function formatClubLeagueText(player) {
+    const club = cleanText(player && (player.club || player.lastClub));
+    const league = cleanText(player && (player.lastLeague || player.currentLeague));
+    if (club && league) return club + ' · ' + league;
+    return club || league || '—';
+  }
+
+  function isEuropeanClubLeague(player) {
+    const codes = getPlayerCompetitionCodes(player);
+    if (codes.some(isEuropeanCompetitionCode)) return true;
+    if (codes.length && codes.some(function knownGlobal(code) { return GLOBAL_EXTRA_FIRST_DIVISION_CODES.includes(code); })) return false;
+
+    const text = normalizeText([player && player.lastLeague, player && player.availability, player && (player.sourceLabels || []).join(' ')].join(' '));
+    if (/premier league|championship|league one|laliga|serie a|serie b|bundesliga|ligue 1|ligue 2|eredivisie|liga portugal|superliga|allsvenskan|ekstraklasa|jupiler|super league greece|süper lig|super lig|nb i|nb ii|hnl|prvaliga|veikkausliiga|eliteserien|superettan|superligaen|austrian|swiss|romanian|serbian|croatian|hungarian|czech|slovak|slovenian|bulgarian|cypriot|israeli|irish|scottish|ukrainian|russian/.test(text)) return true;
+    if (/major league soccer|brasileir|argentina|liga mx|j1 league|j2 league|chinese super league|k league|a-league|saudi pro league|qatar stars|uae pro league|primera división|primera division|categoría primera|categoria primera|botola|egyptian|tunisian|algerian|south african|canadian premier/.test(text)) return false;
+
+    // Unknown league should not kill an otherwise good candidate. TM sometimes hides the
+    // current competition in profile HTML, so keep unknowns and show the missing league as —.
+    return true;
+  }
+
+  function buildAvailability(candidate, profile, clubContext) {
     const types = candidate.sourceTypes || [];
     const bits = [];
     if (types.includes('free-agent') || /without club|vertragslos/i.test(profile.club || '')) bits.push('Free agent');
     if (types.includes('contract-expiring') || profile.contractUntil) bits.push(`Contract expiring${profile.contractUntil ? ` (${profile.contractUntil})` : ''}`);
-    return unique(bits).join(' + ') || 'Candidate';
+    const league = clubContext && clubContext.league ? clubContext.league : '';
+    const club = clubContext && clubContext.club ? clubContext.club : '';
+    const context = [];
+    if (club) context.push(`Utolsó klub: ${club}`);
+    if (league) context.push(`Utolsó liga: ${league}`);
+    const title = unique(bits).join(' + ') || 'Candidate';
+    return context.length ? `${title} · ${context.join(' · ')}` : title;
   }
 
   function evaluatePlayer(player, settings) {
@@ -4257,6 +4825,7 @@
     if (!isAvailabilityCandidate(player)) reasons.push('not-free-agent-or-expiring');
     if (settings.futureExclude && player.futureTransferDetected) reasons.push('future-transfer-detected');
     if (shouldApplyOwnTeamFilter(settings) && player.ownTeamExclusion && player.ownTeamExclusion.detected) reasons.push('own-team-recent-history');
+    if (settings.europeanClubSourcesOnly !== false && !isEuropeanClubLeague(player)) reasons.push('outside-european-club-league');
 
     return { ok: reasons.length === 0, reasons: reasons };
   }
@@ -4283,6 +4852,7 @@
     if ((u21.matchRatio || 0) < settings.u21MinMatchRatio) reasons.push('u21-match-ratio-too-low');
     if (settings.futureExclude && player.futureTransferDetected) reasons.push('future-transfer-detected');
     if (shouldApplyOwnTeamFilter(settings) && player.ownTeamExclusion && player.ownTeamExclusion.detected) reasons.push('own-team-recent-history');
+    if (settings.europeanClubSourcesOnly !== false && !isEuropeanClubLeague(player)) reasons.push('outside-european-club-league');
 
     return { ok: reasons.length === 0, reasons: reasons };
   }
@@ -4370,10 +4940,12 @@
   function matchesSelectedNationality(nationality, selectedValues) {
     const selected = getSelectedCountryKeys(selectedValues || []);
     if (!selected.length) return true;
-    const raw = normalizeText(nationality || '');
+    const raw = normalizeCountrySearch(nationality || '');
     if (!raw) return true;
     return selected.some(function match(country) {
-      return raw.includes(country) || country.includes(raw);
+      const blob = countrySearchBlob(country);
+      const normalizedCountry = normalizeCountrySearch(country);
+      return blob.includes(raw) || raw.includes(normalizedCountry) || normalizedCountry.includes(raw);
     });
   }
 
@@ -4387,8 +4959,7 @@
   }
 
   function formatU21Club(u21, player) {
-    const club = player && player.club ? player.club : '';
-    return club || '—';
+    return formatClubLeagueText(player);
   }
 
   function formatU21MatchRatio(u21, playingTime) {
@@ -4487,27 +5058,52 @@
     select.setAttribute('aria-hidden', 'true');
     select.tabIndex = -1;
 
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tm-scout-v2-nationality-wrapper';
+
+    const search = document.createElement('input');
+    search.type = 'search';
+    search.className = 'tm-scout-v2-nationality-search';
+    search.setAttribute('data-nationality-search', '1');
+    search.placeholder = tx('Keresés nemzetiségre');
+    search.setAttribute('aria-label', tx('Keresés nemzetiségre'));
+    search.autocomplete = 'off';
+    wrapper.appendChild(search);
+
     const picker = document.createElement('div');
     picker.id = pickerId;
     picker.className = 'tm-scout-v2-nationality-picker';
     picker.setAttribute('role', 'group');
-    picker.setAttribute('aria-label', select.name === 'contractNationalities' ? 'Contract nemzetiségek' : 'Nemzetiségek');
+    picker.setAttribute('aria-label', tx(select.name === 'contractNationalities' ? 'Contract nemzetiségek' : 'Nemzetiségek'));
 
     Array.from(select.options).forEach(function buildNationalityItem(option) {
       const item = document.createElement('button');
       item.type = 'button';
       item.className = 'tm-scout-v2-nationality-option';
       item.setAttribute('data-nationality-value', option.value);
+      item.setAttribute('data-search', option.getAttribute('data-search') || countrySearchBlob(option.value));
       item.setAttribute('aria-pressed', option.selected ? 'true' : 'false');
       item.innerHTML = [
         '<span class="tm-scout-v2-nationality-check" aria-hidden="true"></span>',
-        `<span class="tm-scout-v2-nationality-name">${escapeHtml(tx(cleanText(option.textContent) || option.value))}</span>`
+        `<span class="tm-scout-v2-nationality-name">${escapeHtml(countryLabel(option.value))}</span>`
       ].join('');
       if (option.selected) item.classList.add('is-selected');
       picker.appendChild(item);
     });
+    wrapper.appendChild(picker);
 
-    select.insertAdjacentElement('afterend', picker);
+    const empty = document.createElement('div');
+    empty.className = 'tm-scout-v2-nationality-empty';
+    empty.setAttribute('data-nationality-empty', '1');
+    empty.hidden = true;
+    empty.textContent = tx('Nincs egyező nemzetiség');
+    wrapper.appendChild(empty);
+
+    select.insertAdjacentElement('afterend', wrapper);
+
+    search.addEventListener('input', function onNationalitySearchInput() {
+      filterNationalityPicker(picker, search.value);
+    });
 
     picker.addEventListener('click', function onNationalityPickerClick(event) {
       const item = event.target && event.target.closest ? event.target.closest('[data-nationality-value]') : null;
@@ -4719,7 +5315,7 @@
       renderU21Results(panel, results);
       return;
     }
-    setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','Elérhetőség','Klub / utolsó klub','MV most','MV változás','Játékidő','Utolsó szezonok','Forrás','TM profil']);
+    setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','Elérhetőség','Klub / utolsó klub + liga','MV most','MV változás','Játékidő','Utolsó szezonok','Forrás','TM profil']);
     const tbody = panel.querySelector('[data-role="results"]');
     if (!tbody) return;
     tbody.textContent = '';
@@ -4742,8 +5338,8 @@
         `${player.positionGroup || '—'}${player.positionDetail ? `/${player.positionDetail}` : ''}${player.position ? ` · ${player.position}` : ''}`,
         player.age === null || player.age === undefined ? '—' : String(player.age),
         player.nationality || '—',
-        player.availability || '—',
-        player.club || '—',
+        translateRuntimeText(player.availability || '—'),
+        formatClubLeagueText(player),
         formatEuro(player.currentMarketValue),
         formatGrowth(player.mv),
         formatPlayingTime(player.playingTime),
@@ -4811,7 +5407,7 @@
   function buildCsvExport(results) {
     if (isU21Mode(state.settings)) return buildU21CsvExport(results);
     const headers = [
-      ex('player'), ex('position'), ex('age'), ex('nationality'), ex('availability'), ex('club'),
+      ex('player'), ex('position'), ex('age'), ex('nationality'), ex('availability'), ex('clubLeague'),
       ex('currentMv'), ex('mvChange'), ex('playingTime'), ex('recentSeasons'), ex('tmProfile')
     ];
     const rows = results.map(function row(player) {
@@ -4821,7 +5417,7 @@
         player.age,
         player.nationality,
         player.availability,
-        player.club,
+        formatClubLeagueText(player),
         formatEuro(player.currentMarketValue),
         formatGrowth(player.mv),
         formatPlayingTime(player.playingTime),
@@ -4892,6 +5488,7 @@
         availability: 'Elérhetőség',
         club: 'Klub',
         clubTeam: 'Klub / csapat',
+        clubLeague: 'Klub / utolsó klub + liga',
         currentMv: 'MV most',
         mvChange: 'MV változás',
         playingTime: 'Játékidő',
@@ -4965,6 +5562,7 @@
         availability: 'Availability',
         club: 'Club',
         clubTeam: 'Club / team',
+        clubLeague: 'Club / last club + league',
         currentMv: 'Current MV',
         mvChange: 'MV change',
         playingTime: 'Playing time',
@@ -5038,6 +5636,7 @@
         availability: 'Disponibilitate',
         club: 'Club',
         clubTeam: 'Club / echipă',
+        clubLeague: 'Club / ultimul club + ligă',
         currentMv: 'MV actual',
         mvChange: 'Schimbare MV',
         playingTime: 'Minute jucate',
@@ -5111,10 +5710,16 @@
     return selected.length === 0 || selected.length === detailPairs.length ? ex('allDetail') : selected.join(', ');
   }
 
+  function formatSelectedCountries(values) {
+    const list = values || [];
+    if (!list.length) return ex('all');
+    return list.map(function country(value) { return countryLabel(value); }).join(', ');
+  }
+
   function buildExportCriteria(settings) {
     const s = settings || {};
     if (isU21Mode(s)) {
-      const countries = (s.u21Nationalities || []).length ? s.u21Nationalities.join(', ') : ex('all');
+      const countries = formatSelectedCountries(s.u21Nationalities || []);
       return [
         `${ex('criteriaAge')}: ${s.u21MinAge || '—'}–${s.u21MaxAge || '—'}`,
         `${ex('criteriaMv')}: ${formatEuro(s.u21MinMv || 0)} – ${formatEuro(s.u21MaxMv || 0)}`,
@@ -5127,7 +5732,7 @@
         ex('u21Weights')
       ];
     }
-    const countries = (s.contractNationalities || []).length ? s.contractNationalities.join(', ') : ex('all');
+    const countries = formatSelectedCountries(s.contractNationalities || []);
     return [
       `${ex('criteriaMv')}: ${formatEuro(s.minMv)}–${formatEuro(s.maxMv)}`,
       `${ex('criteriaAge')}: ${s.minAge || '—'}–${s.maxAge || '—'}`,
@@ -5179,6 +5784,13 @@
       const label = cleanDash(player.position || '—');
       const detailLine = player.positionDetail ? `<div class="position-detail">${escapeHtml(detail)}</div>` : '';
       return ['<div class="position-cell">', `<div class="position-code">${escapeHtml(group)}</div>`, detailLine, `<div class="position-label">${escapeHtml(label)}</div>`, '</div>'].join('');
+    }
+
+    function renderClubLeague(player) {
+      const club = cleanDash(player && (player.club || player.lastClub));
+      const league = cleanDash(player && (player.lastLeague || player.currentLeague));
+      const leagueLine = league !== '—' ? `<span class="muted-line">${escapeHtml(ex('leagueLevel'))}: ${escapeHtml(league)}</span>` : '';
+      return `<div class="club-cell"><strong>${escapeHtml(club)}</strong>${leagueLine}</div>`;
     }
 
     function renderAvailability(text) {
@@ -5278,9 +5890,9 @@
     const rows = results.map(function row(player, index) {
       const u21 = player.u21 || buildU21Metrics(player, settings);
       if (mode === 'u21') {
-        return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('u21Status', 'availability-col', `<div class="availability-cell"><strong>${escapeHtml(formatU21Score(u21))}</strong><span>${escapeHtml(formatU21MatchRatio(u21, player.playingTime))}</span></div>`), cell('clubTeam', 'club-col', `<strong>${escapeHtml(formatU21Club(u21, player))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime, u21)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
+        return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('u21Status', 'availability-col', `<div class="availability-cell"><strong>${escapeHtml(formatU21Score(u21))}</strong><span>${escapeHtml(formatU21MatchRatio(u21, player.playingTime))}</span></div>`), cell('clubTeam', 'club-col', renderClubLeague(player)), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime, u21)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
       }
-      return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('availability', 'availability-col', renderAvailability(player.availability)), cell('club', 'club-col', `<strong>${escapeHtml(cleanDash(player.club))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
+      return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('availability', 'availability-col', renderAvailability(player.availability)), cell('clubLeague', 'club-col', renderClubLeague(player)), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
     }).join('\n');
 
     const criteria = buildExportCriteria(settings);
@@ -5294,7 +5906,7 @@
 
     const headers = mode === 'u21'
       ? ['player','position','age','nationality','u21Status','clubTeam','currentMv','mvChange','playingTime','recentSeasons','profile']
-      : ['player','position','age','nationality','availability','club','currentMv','mvChange','playingTime','recentSeasons','profile'];
+      : ['player','position','age','nationality','availability','clubLeague','currentMv','mvChange','playingTime','recentSeasons','profile'];
     const colClasses = mode === 'u21'
       ? ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link']
       : ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link'];
@@ -5645,7 +6257,7 @@
       .tm-scout-v2-panel button{border:1px solid rgba(125,166,200,.28);border-radius:10px;background:#102235;color:#eaf4ff;padding:8px 10px;font:700 12px/1 Inter,system-ui,-apple-system,Segoe UI,sans-serif;cursor:pointer}.tm-scout-v2-panel button:hover{background:#152d42}.tm-scout-v2-panel button:disabled{opacity:.55;cursor:wait}.tm-scout-v2-primary{background:#1f8f64!important;border-color:#2ab07b!important;color:#fff!important}
       .tm-scout-v2-body{min-height:0;flex:1;display:grid;grid-template-columns:440px minmax(0,1fr);gap:0}.tm-scout-v2-controls{overflow:auto;padding:15px 15px 140px!important;border-right:1px solid rgba(125,166,200,.18);background:#08121b;scrollbar-color:#31516b #08121b;scroll-padding-bottom:150px}
       .tm-scout-v2-controls fieldset{border:1px solid rgba(125,166,200,.24)!important;border-radius:15px!important;margin:0 0 13px!important;padding:15px 15px 14px!important;background:#0a1621!important;box-shadow:none!important;min-width:0!important}.tm-scout-v2-controls legend{display:inline-block!important;background:#0a1621!important;color:#9bd8ab!important;border:0!important;border-radius:0!important;font:800 11px/1.1 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;letter-spacing:.02em!important;margin:0!important;padding:0 7px!important;white-space:normal!important;width:auto!important;max-width:100%!important}
-      .tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 12px!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks)>legend{grid-column:1/-1!important}.tm-scout-v2-controls [hidden],.tm-scout-v2-controls .tm-scout-v2-mode-hidden{display:none!important}.tm-scout-v2-controls label{display:block!important;color:#c8d8e7!important;font:700 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;margin:0!important;min-width:0!important}.tm-scout-v2-controls input,.tm-scout-v2-controls select,.tm-scout-v2-controls textarea{width:100%!important;max-width:100%!important;min-width:0!important;border:1px solid rgba(125,166,200,.32)!important;border-radius:9px!important;background:#07111a!important;color:#eef6ff!important;padding:7px 8px!important;font:650 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;box-shadow:none!important;outline:none!important}.tm-scout-v2-controls label>input:not([type="checkbox"]),.tm-scout-v2-controls label>select,.tm-scout-v2-controls label>textarea{display:block!important;margin-top:6px!important}.tm-scout-v2-controls input:focus,.tm-scout-v2-controls select:focus,.tm-scout-v2-controls textarea:focus{border-color:#73add7!important;background:#091722!important}.tm-scout-v2-controls select{display:block!important;height:36px!important;min-height:36px!important;line-height:1.2!important;padding:8px 34px 8px 10px!important;font-size:12px!important;font-weight:750!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-appearance:menulist!important;appearance:auto!important;background-color:#07111a!important;color:#eef6ff!important}.tm-scout-v2-controls select option{background:#07111a!important;color:#eef6ff!important;font:700 13px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{height:auto!important;min-height:220px!important;max-height:320px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:8px 10px!important;white-space:normal!important;text-overflow:clip!important;-webkit-appearance:listbox!important;appearance:auto!important;background-image:none!important}.tm-scout-v2-controls select[multiple] option,.tm-scout-v2-controls .tm-scout-v2-multi-select option{padding:5px 8px!important;min-height:24px!important;line-height:1.25!important;white-space:normal!important}.tm-scout-v2-native-multi-hidden{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;min-height:1px!important;max-height:1px!important;opacity:0!important;pointer-events:none!important}.tm-scout-v2-nationality-picker{grid-column:1/-1!important;display:grid!important;grid-template-columns:1fr!important;gap:4px!important;max-height:260px!important;overflow:auto!important;padding:7px!important;border:1px solid rgba(125,166,200,.32)!important;border-radius:10px!important;background:#07111a!important;scrollbar-color:#31516b #07111a!important}.tm-scout-v2-nationality-option{display:flex!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:28px!important;padding:6px 8px!important;border:0!important;border-radius:8px!important;background:transparent!important;color:#eef6ff!important;text-align:left!important;font:800 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;cursor:pointer!important}.tm-scout-v2-nationality-option:hover{background:#0e2233!important}.tm-scout-v2-nationality-option.is-selected{background:#235f8d!important;color:#fff!important}.tm-scout-v2-nationality-check{width:14px!important;height:14px!important;border:1px solid rgba(125,166,200,.55)!important;border-radius:4px!important;background:#101f2d!important;flex:0 0 14px!important}.tm-scout-v2-nationality-option.is-selected .tm-scout-v2-nationality-check{background:#56f097!important;border-color:#56f097!important;box-shadow:inset 0 0 0 3px #235f8d!important}.tm-scout-v2-nationality-name{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.tm-scout-v2-controls input[type="checkbox"]{width:15px!important;height:15px!important;flex:0 0 15px!important;padding:0!important;margin:0!important;accent-color:#3cae78!important}.tm-scout-v2-controls textarea{resize:vertical;min-height:92px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}.tm-scout-v2-controls label.tm-scout-v2-wide{grid-column:1/-1!important;display:block!important}.tm-scout-v2-controls label.tm-scout-v2-checkline{grid-column:1/-1!important;display:flex!important;align-items:center!important;gap:9px!important;margin:2px 0!important;color:#d1e1ee!important}
+      .tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 12px!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks)>legend{grid-column:1/-1!important}.tm-scout-v2-controls [hidden],.tm-scout-v2-controls .tm-scout-v2-mode-hidden{display:none!important}.tm-scout-v2-controls label{display:block!important;color:#c8d8e7!important;font:700 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;margin:0!important;min-width:0!important}.tm-scout-v2-controls input,.tm-scout-v2-controls select,.tm-scout-v2-controls textarea{width:100%!important;max-width:100%!important;min-width:0!important;border:1px solid rgba(125,166,200,.32)!important;border-radius:9px!important;background:#07111a!important;color:#eef6ff!important;padding:7px 8px!important;font:650 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;box-shadow:none!important;outline:none!important}.tm-scout-v2-controls label>input:not([type="checkbox"]),.tm-scout-v2-controls label>select,.tm-scout-v2-controls label>textarea{display:block!important;margin-top:6px!important}.tm-scout-v2-controls input:focus,.tm-scout-v2-controls select:focus,.tm-scout-v2-controls textarea:focus{border-color:#73add7!important;background:#091722!important}.tm-scout-v2-controls select{display:block!important;height:36px!important;min-height:36px!important;line-height:1.2!important;padding:8px 34px 8px 10px!important;font-size:12px!important;font-weight:750!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-appearance:menulist!important;appearance:auto!important;background-color:#07111a!important;color:#eef6ff!important}.tm-scout-v2-controls select option{background:#07111a!important;color:#eef6ff!important;font:700 13px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{height:auto!important;min-height:220px!important;max-height:320px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:8px 10px!important;white-space:normal!important;text-overflow:clip!important;-webkit-appearance:listbox!important;appearance:auto!important;background-image:none!important}.tm-scout-v2-controls select[multiple] option,.tm-scout-v2-controls .tm-scout-v2-multi-select option{padding:5px 8px!important;min-height:24px!important;line-height:1.25!important;white-space:normal!important}.tm-scout-v2-native-multi-hidden{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;min-height:1px!important;max-height:1px!important;opacity:0!important;pointer-events:none!important}.tm-scout-v2-nationality-wrapper{grid-column:1/-1!important;display:grid!important;gap:7px!important}.tm-scout-v2-nationality-search{width:100%!important;margin:0!important;border:1px solid rgba(125,166,200,.36)!important;border-radius:10px!important;background:#07111a!important;color:#eef6ff!important;padding:9px 10px!important;font:800 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}.tm-scout-v2-nationality-empty{padding:8px 10px!important;border:1px dashed rgba(125,166,200,.34)!important;border-radius:10px!important;color:#9fb3c7!important;font:800 12px/1.25 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}.tm-scout-v2-field-note{grid-column:1/-1!important;margin:-4px 0 2px!important;color:#9fb3c7!important;font:700 11px/1.35 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}.club-cell{display:grid!important;gap:3px!important}.tm-scout-v2-nationality-picker{grid-column:1/-1!important;display:grid!important;grid-template-columns:1fr!important;gap:4px!important;max-height:260px!important;overflow:auto!important;padding:7px!important;border:1px solid rgba(125,166,200,.32)!important;border-radius:10px!important;background:#07111a!important;scrollbar-color:#31516b #07111a!important}.tm-scout-v2-nationality-option{display:flex!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:28px!important;padding:6px 8px!important;border:0!important;border-radius:8px!important;background:transparent!important;color:#eef6ff!important;text-align:left!important;font:800 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important;cursor:pointer!important}.tm-scout-v2-nationality-option:hover{background:#0e2233!important}.tm-scout-v2-nationality-option.is-selected{background:#235f8d!important;color:#fff!important}.tm-scout-v2-nationality-check{width:14px!important;height:14px!important;border:1px solid rgba(125,166,200,.55)!important;border-radius:4px!important;background:#101f2d!important;flex:0 0 14px!important}.tm-scout-v2-nationality-option.is-selected .tm-scout-v2-nationality-check{background:#56f097!important;border-color:#56f097!important;box-shadow:inset 0 0 0 3px #235f8d!important}.tm-scout-v2-nationality-name{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}.tm-scout-v2-controls input[type="checkbox"]{width:15px!important;height:15px!important;flex:0 0 15px!important;padding:0!important;margin:0!important;accent-color:#3cae78!important}.tm-scout-v2-controls textarea{resize:vertical;min-height:92px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}.tm-scout-v2-controls label.tm-scout-v2-wide{grid-column:1/-1!important;display:block!important}.tm-scout-v2-controls label.tm-scout-v2-checkline{grid-column:1/-1!important;display:flex!important;align-items:center!important;gap:9px!important;margin:2px 0!important;color:#d1e1ee!important}
       .tm-scout-v2-checks{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px 14px!important}.tm-scout-v2-checks legend{grid-column:1/-1!important}.tm-scout-v2-checks label{display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;color:#c9d8e5!important;font-weight:700!important;line-height:1.2!important}.tm-scout-v2-source-options{display:block!important}.tm-scout-v2-source-options label{display:flex!important;align-items:center!important;gap:8px!important;margin:9px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide{display:block!important;margin:10px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide select,.tm-scout-v2-source-options label.tm-scout-v2-wide input{margin-top:6px!important}.tm-scout-v2-detail-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;position:static!important;bottom:auto!important;z-index:1!important;margin:14px 0 0!important;padding:9px!important;background:#091722!important;border:1px solid rgba(125,166,200,.24)!important;border-radius:14px!important;box-shadow:none!important}.tm-scout-v2-actions button{width:100%!important;min-height:32px!important;padding:7px 6px!important;border-radius:9px!important;font-size:11px!important;line-height:1.05!important;white-space:nowrap!important}.tm-scout-v2-actions .tm-scout-v2-primary{grid-column:auto!important}
       .tm-scout-v2-output{min-width:0;display:flex;flex-direction:column;overflow:hidden}.tm-scout-v2-statusbar{padding:13px 16px;border-bottom:1px solid rgba(125,166,200,.18);background:#0b1722}.tm-scout-v2-status{color:#d7e8f8;font-size:13px;font-weight:750;margin-bottom:9px}.tm-scout-v2-progress{height:8px;background:#071018;border-radius:999px;overflow:hidden;border:1px solid rgba(125,166,200,.18)}.tm-scout-v2-progress span{display:block;height:100%;width:0;background:#3a97d4;transition:width .2s ease}
       .tm-scout-v2-note-mini{font-size:11px;line-height:1.35;color:#95aabd;grid-column:1/-1;margin:2px 0 0}.tm-scout-v2-muted-block{opacity:.45}.tm-scout-v2-muted-block legend::after{content:' (inaktív)';font-weight:700;color:#c49d51}.tm-scout-v2-note{border:1px solid rgba(125,166,200,.22);background:#0a1621;border-radius:11px;padding:9px 11px;margin-bottom:12px;color:#bdd4e7;font-size:12px;line-height:1.35}.tm-scout-v2-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid rgba(125,166,200,.18)}.tm-scout-v2-stat{background:#0a1621;border:1px solid rgba(125,166,200,.18);border-radius:11px;padding:9px 10px}.tm-scout-v2-stat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#95aabd;font-weight:800}.tm-scout-v2-stat strong{display:block;margin-top:3px;color:#fff;font-size:18px}
