@@ -23,11 +23,12 @@ const CORS = {
 };
 
 // batch24-dedupe-cache-nat-mv-v3-20260706
-// 24 Transfermarkt URL / Worker request + batchen belüli URL dedupe + Cloudflare cache.
-const MAX_BATCH = 24;
-const UPSTREAM_CONCURRENCY = 6;
-const CACHE_TTL_SECONDS = 6 * 60 * 60;
-const MAX_CACHEABLE_BODY_CHARS = 1_250_000;
+// 40 Transfermarkt URL / Worker request + batchen belüli URL dedupe + Cloudflare cache.
+// 40 alatt maradunk, hogy ne legyen subrequest-limit / túl nagy JSON válasz para, de a Worker request count így is sokkal kisebb.
+const MAX_BATCH = 40;
+const UPSTREAM_CONCURRENCY = 8;
+const CACHE_TTL_SECONDS = 8 * 60 * 60;
+const MAX_CACHEABLE_BODY_CHARS = 1_400_000;
 
 export default {
   async fetch(request, env, ctx) {
@@ -180,6 +181,17 @@ function normalizeAllowedUrl(raw) {
   if (!['http:', 'https:'].includes(target.protocol)) throw new Error('Invalid protocol');
   if (!ALLOWED_HOSTS.has(target.hostname)) throw new Error(`Host not allowed: ${target.hostname}`);
   target.hash = '';
+
+  // Same Transfermarkt page can arrive with the query params in different order.
+  // Canonicalizing here improves Cloudflare cache hits and batch dedupe.
+  const entries = [];
+  target.searchParams.forEach((value, key) => {
+    if (/^(utm_|fbclid$|gclid$|ref$|from$)/i.test(String(key || ''))) return;
+    entries.push([String(key), String(value)]);
+  });
+  entries.sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+  target.search = '';
+  entries.forEach(([key, value]) => target.searchParams.append(key, value));
   return target;
 }
 

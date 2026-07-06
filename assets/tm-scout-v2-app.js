@@ -1,5 +1,5 @@
 /*
- * always-deep-candidate-budget-v10-20260707
+ * no-source-column-v12-20260707
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -8,7 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
-  // always-deep-candidate-budget-v10-20260707
+  // no-source-column-v12-20260707
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -113,7 +113,7 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
-  // always-deep-candidate-budget-v10-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
+  // no-source-column-v12-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
@@ -128,18 +128,18 @@
   });
 
 
-  // always-deep-candidate-budget-v10-20260707:
+  // no-source-column-v12-20260707:
   // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
-  // A batch proxy most 24 URL-t fog össze egy POST-ba, plusz kliensoldali URL dedupe/pending cache
-  // is van. Ez a Cloudflare Worker request countot tipikusan még kb. felezi a 12-es batchhez képest,
-  // és a duplikált/egyszerre újrakért TM oldalakat ugyanazon böngészőfülben nem küldi ki újra.
+  // A batch proxy most nagyobb, Worker-kímélő csomagokban dolgozik.
+  // Fontos: a böngészőoldali concurrency is ehhez igazodik, különben a 24/48-as batch sosem telne meg.
+  // Így ugyanannyi Transfermarkt oldalhoz jóval kevesebb Cloudflare Worker request kell.
   const TM_SCOUT_BATCH_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
-  const TM_SCOUT_BATCH_SIZE = 24;
-  const TM_SCOUT_BATCH_DELAY_MS = 35;
-  const TM_SCOUT_BATCH_MEMORY_CACHE_TTL_MS = 30 * 60 * 1000;
-  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEMS = 900;
-  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_CHARS = 32 * 1024 * 1024;
-  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEM_CHARS = 750000;
+  const TM_SCOUT_BATCH_SIZE = 40;
+  const TM_SCOUT_BATCH_DELAY_MS = 120;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_TTL_MS = 45 * 60 * 1000;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEMS = 1400;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_CHARS = 48 * 1024 * 1024;
+  const TM_SCOUT_BATCH_MEMORY_CACHE_MAX_ITEM_CHARS = 950000;
   let tmScoutBatchQueue = [];
   let tmScoutBatchTimer = null;
   let tmScoutBatchMemoryCacheChars = 0;
@@ -159,13 +159,31 @@
     }
   }
 
-  function tmScoutBatchCacheKey(url, responseKind) {
-    let normalized = String(url || '');
+  function canonicalizeScoutUrl(url) {
     try {
-      const parsed = new URL(normalized, window.location.href);
+      const parsed = new URL(String(url || ''), window.location.href);
       parsed.hash = '';
-      normalized = parsed.toString();
-    } catch (_error) {}
+
+      // Same URL, different query-order = same Worker/cache job. TM doesn't care about query order.
+      const removable = /^(utm_|fbclid$|gclid$|ref$|from$)/i;
+      const entries = [];
+      parsed.searchParams.forEach(function collect(value, key) {
+        if (removable.test(String(key || ''))) return;
+        entries.push([String(key), String(value)]);
+      });
+      entries.sort(function sortQuery(a, b) {
+        return a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]);
+      });
+      parsed.search = '';
+      entries.forEach(function addQuery(entry) { parsed.searchParams.append(entry[0], entry[1]); });
+      return parsed.toString();
+    } catch (_error) {
+      return String(url || '');
+    }
+  }
+
+  function tmScoutBatchCacheKey(url, responseKind) {
+    const normalized = canonicalizeScoutUrl(url);
     return `${responseKind === 'json' ? 'json' : 'text'}::${normalized}`;
   }
 
@@ -1197,7 +1215,7 @@
     posMID: true,
     posFWD: true,
     extraSourceUrls: '',
-    concurrency: 4,
+    concurrency: 12,
 
     // U21 prospect mode: broad youth search. MV is useful, but missing MV is not an exclusion reason.
     scoutMode: 'contract',
@@ -1709,7 +1727,6 @@
       '              <th>MV változás</th>',
       '              <th>Játékidő</th>',
       '              <th>Utolsó szezonok</th>',
-      '              <th>Forrás</th>',
       '              <th>TM profil</th>',
       '            </tr>',
       '          </thead>',
@@ -1848,6 +1865,69 @@
     });
   }
 
+  function getWorkerBatchConcurrency(settings, extraSlots) {
+    const saved = Math.max(1, Number(settings && settings.concurrency || DEFAULTS.concurrency || 8));
+    if (!tmScoutBatchEndpoint()) return saved;
+
+    const batchSize = Math.max(8, Number(TM_SCOUT_BATCH_SIZE || 24));
+    const targetCandidates = Math.max(1, Number(isU21Mode(settings) ? settings.u21MaxCandidates : settings.maxCandidates) || (isU21Mode(settings) ? DEFAULTS.u21MaxCandidates : DEFAULTS.maxCandidates));
+    let scaled = Math.ceil(batchSize * 0.55);
+    if (targetCandidates >= 120) scaled = Math.ceil(batchSize * 0.70);
+    if (targetCandidates >= 220) scaled = Math.ceil(batchSize * 0.85);
+    if (targetCandidates >= 360) scaled = batchSize;
+
+    return Math.max(saved, Math.min(batchSize, scaled + Math.max(0, Number(extraSlots || 0))));
+  }
+
+  function parsedSourceCacheKey(source) {
+    return `${APP.cachePrefix}parsedSource:${hashString(canonicalizeScoutUrl(source && source.url || ''))}`;
+  }
+
+  async function getCachedParsedSource(source) {
+    try {
+      const cached = await gmGet(parsedSourceCacheKey(source), null);
+      if (cached && cached.savedAt && Date.now() - cached.savedAt < Math.min(APP.ttlMs, 36 * 60 * 60 * 1000) && Array.isArray(cached.rows)) {
+        state.debug.cacheHits += 1;
+        return cached.rows.map(function cloneCandidate(row) { return Object.assign({}, row); });
+      }
+    } catch (error) {
+      pushError('parsed source cache read skipped', stringifyError(error));
+    }
+    return null;
+  }
+
+  async function setCachedParsedSource(source, rows) {
+    try {
+      if (!Array.isArray(rows) || !rows.length) return;
+      const compact = rows.slice(0, 80).map(function compactCandidate(row) {
+        return {
+          playerId: row.playerId,
+          slug: row.slug,
+          name: row.name,
+          profileUrl: row.profileUrl,
+          age: row.age,
+          nationality: row.nationality,
+          position: row.position,
+          positionGroup: row.positionGroup,
+          club: row.club,
+          clubIds: row.clubIds,
+          contractUntil: row.contractUntil,
+          marketValue: row.marketValue,
+          currentMarketValue: row.currentMarketValue,
+          sourceTypes: row.sourceTypes,
+          sourceLabels: row.sourceLabels,
+          sourceUrls: row.sourceUrls,
+          competitionCodes: row.competitionCodes
+        };
+      });
+      const payload = { savedAt: Date.now(), rows: compact };
+      const serialized = JSON.stringify(payload);
+      if (serialized.length <= 220000) await gmSet(parsedSourceCacheKey(source), payload);
+    } catch (error) {
+      pushError('parsed source cache write skipped', stringifyError(error));
+    }
+  }
+
   async function runScout(panel) {
     if (state.running) return;
     state.running = true;
@@ -1874,9 +1954,11 @@
       if (!sources.length) throw new Error('Nincs source URL. Legalább egy Transfermarkt forrás kell.');
 
       setStatus(panel, `Forrásoldalak letöltése: ${sources.length} oldal...`, 5);
-      const sourceDocs = await mapLimit(sources, Math.min(6, settings.concurrency + 2), async function loadSource(source, index) {
+      const sourceDocs = await mapLimit(sources, getWorkerBatchConcurrency(settings, 2), async function loadSource(source, index) {
         setStatus(panel, `Forrásoldal ${index + 1}/${sources.length}`, progressRatio(5, 25, index, sources.length));
         try {
+          const cachedRows = await getCachedParsedSource(source);
+          if (cachedRows) return { source: source, parsedCandidates: cachedRows, fromParsedCache: true };
           const html = await httpGetCached(source.url, 'text');
           state.debug.sourcePagesFetched += 1;
           return { source: source, html: html };
@@ -1894,7 +1976,8 @@
       setStatus(panel, 'Játékoslisták feldolgozása...', 28);
       const candidateMap = new Map();
       sourceDocs.filter(Boolean).forEach(function parseSourceDoc(item) {
-        const parsed = parseSourcePage(item.html, item.source);
+        const parsed = Array.isArray(item.parsedCandidates) ? item.parsedCandidates : parseSourcePage(item.html, item.source);
+        if (!item.fromParsedCache) setCachedParsedSource(item.source, parsed);
         parsed.forEach(function mergeCandidate(candidate) {
           const key = String(candidate.playerId || '');
           if (!key) return;
@@ -1946,7 +2029,7 @@
       setStatus(panel, `Részletes adatok lekérése: ${rawCandidates.length} játékos...`, 32);
       const results = [];
 
-      await mapLimit(rawCandidates, settings.concurrency, async function enrichOne(candidate, index) {
+      await mapLimit(rawCandidates, Math.min(rawCandidates.length, getWorkerBatchConcurrency(settings, 0)), async function enrichOne(candidate, index) {
         setStatus(panel, `Játékos ${index + 1}/${rawCandidates.length}: ${candidate.name || candidate.playerId}`, progressRatio(32, 94, index, rawCandidates.length));
         try {
           const enriched = await enrichCandidate(candidate, settings);
@@ -3159,8 +3242,7 @@
       if (!/transfermarkt\.(com|us|co\.uk|de|at|world)$/i.test(parsed.hostname)) {
         return '';
       }
-      parsed.hash = '';
-      return parsed.toString();
+      return canonicalizeScoutUrl(parsed.toString());
     } catch (_error) {
       return '';
     }
@@ -3756,6 +3838,17 @@
   }
 
   async function getProfileInfo(candidate) {
+    const cacheKey = `${APP.cachePrefix}profileInfo:${candidate.playerId || hashString(candidate.profileUrl || '')}`;
+    try {
+      const cached = await gmGet(cacheKey, null);
+      if (cached && cached.savedAt && Date.now() - cached.savedAt < Math.min(APP.ttlMs, 48 * 60 * 60 * 1000) && cached.value) {
+        state.debug.cacheHits += 1;
+        return Object.assign({}, cached.value);
+      }
+    } catch (error) {
+      pushError('profile cache read skipped', stringifyError(error));
+    }
+
     const html = await httpGetCached(candidate.profileUrl, 'text');
     const doc = parseHtml(html);
     const bodyText = cleanText(doc.body ? doc.body.textContent : html);
@@ -3770,7 +3863,7 @@
     const futureTransfer = detectFutureTransfer(bodyText);
     const competitionCodes = extractCompetitionCodesFromProfile(doc, bodyText, candidate.profileUrl);
 
-    return {
+    const profile = {
       playerId: candidate.playerId,
       slug: candidate.slug,
       name: name,
@@ -3786,6 +3879,15 @@
       futureTransferDetected: futureTransfer.detected,
       futureTransferEvidence: futureTransfer.evidence
     };
+
+    try {
+      const serialized = JSON.stringify(profile);
+      if (serialized.length <= 60000) await gmSet(cacheKey, { savedAt: Date.now(), value: profile });
+    } catch (error) {
+      pushError('profile cache write skipped', stringifyError(error));
+    }
+
+    return profile;
   }
 
   function extractProfileName(doc) {
@@ -5661,7 +5763,7 @@
       renderU21Results(panel, results);
       return;
     }
-    setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','Elérhetőség','Klub / utolsó klub + liga','MV most','MV változás','Játékidő','Utolsó szezonok','Forrás','TM profil']);
+    setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','Elérhetőség','Klub / utolsó klub + liga','MV most','MV változás','Játékidő','Utolsó szezonok','TM profil']);
     const tbody = panel.querySelector('[data-role="results"]');
     if (!tbody) return;
     tbody.textContent = '';
@@ -5669,7 +5771,7 @@
     if (!results.length) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 12;
+      td.colSpan = 11;
       td.className = 'tm-scout-v2-empty';
       td.textContent = tx('Nincs találat még. Vagy túl szigorú a filter, vagy Transfermarkt épp trollkodik.');
       tr.appendChild(td);
@@ -5689,11 +5791,10 @@
         formatEuro(player.currentMarketValue),
         formatGrowth(player.mv),
         formatPlayingTime(player.playingTime),
-        formatRecentSeasons(player.playingTime),
-        unique(player.sourceLabels || player.sourceTypes || []).join(', ') || '—'
+        formatRecentSeasons(player.playingTime)
       ];
 
-      const cellClasses = ['player','position','age','nation','availability','club','mv','growth','playing','seasons','source'];
+      const cellClasses = ['player','position','age','nation','availability','club','mv','growth','playing','seasons'];
       cells.forEach(function addCell(value, index) {
         const td = document.createElement('td');
         td.className = 'tm-scout-v2-cell-' + (cellClasses[index] || 'plain');
@@ -5852,7 +5953,6 @@
         mvChange: 'MV változás',
         playingTime: 'Játékidő',
         recentSeasons: 'Utolsó szezonok',
-        list: 'Lista',
         profile: 'Profil',
         tmProfile: 'TM profil',
         u21Status: 'U21 állapot',
@@ -5930,7 +6030,6 @@
         mvChange: 'MV change',
         playingTime: 'Playing time',
         recentSeasons: 'Recent seasons',
-        list: 'List',
         profile: 'Profile',
         tmProfile: 'TM profile',
         u21Status: 'U21 status',
@@ -6008,7 +6107,6 @@
         mvChange: 'Schimbare MV',
         playingTime: 'Minute jucate',
         recentSeasons: 'Sezoane recente',
-        list: 'Listă',
         profile: 'Profil',
         tmProfile: 'Profil TM',
         u21Status: 'Status U21',
@@ -6219,12 +6317,6 @@
       return `<div class="season-list">${safe.recentSeasons.map(function seasonRow(season) { return `<div class="season-row"><strong>${escapeHtml(season.season)}</strong><span class="season-stats"><span>${escapeHtml(String(season.apps))} ${escapeHtml(Number(season.apps || 0) === 1 ? ex('app') : ex('apps'))}</span><span>${escapeHtml(String(season.minutes))} ${escapeHtml(ex('min'))}</span></span></div>`; }).join('')}</div>`;
     }
 
-    function renderSource(player) {
-      const labels = unique(player.sourceLabels || player.sourceTypes || []);
-      if (!labels.length) return '<span class="muted">—</span>';
-      return `<div class="source-list">${labels.slice(0, 4).map(function sourceLabel(label) { return `<span>${escapeHtml(translateRuntimeText(label))}</span>`; }).join('')}</div>`;
-    }
-
     function isExportFreeAgent(player) {
       const blob = [player.availability || '', (player.sourceTypes || []).join(' '), (player.sourceLabels || []).join(' '), player.club || ''].join(' ').toLowerCase();
       return /free[-\s]?agent|current[-\s]?free|without club|vertragslos|vereinslos/.test(blob);
@@ -6295,7 +6387,7 @@
   function exportCss() {
     return [
       ':root{color-scheme:dark;--bg:#071018;--panel:#0b1722;--panel2:#0e1f2e;--line:rgba(125,166,200,.24);--line2:rgba(125,166,200,.14);--text:#eef7ff;--muted:#9fb3c7;--green:#56f097;--blue:#9bd2ff;--red:#ff8b8b}',
-      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1820px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1640px;border-collapse:collapse;table-layout:fixed}th,td{padding:13px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left;overflow-wrap:anywhere}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:10.2px;text-transform:uppercase;letter-spacing:.035em;z-index:1;white-space:normal;word-break:normal;overflow-wrap:normal;hyphens:auto;line-height:1.18}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:16px;font-weight:950;line-height:1;margin-bottom:4px}.player-cell strong{display:block;font-size:19px;line-height:1.16;letter-spacing:-.018em}.profile-mini{display:inline-block;font-size:12px;line-height:1.12;font-weight:800;margin-top:3px}.open-link{font-weight:800}.position-code{font-weight:950;font-size:15px;line-height:1.18}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:3px;font-size:14px;line-height:1.2}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.25}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:7px;min-width:0}.season-row{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;align-items:start;line-height:1.24}.season-row span{display:block}.season-row strong{font-size:14.6px;color:#eef7ff;white-space:nowrap;font-weight:950}.season-stats{display:flex!important;flex-wrap:wrap;gap:2px 10px;color:#e8f4ff;font-size:14.1px;font-weight:850}.season-stats span{white-space:nowrap}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:950}.growth-negative{color:var(--red);font-weight:950}.mv-route{display:flex;gap:7px;color:#f0f8ff;font-size:14.5px;font-weight:950;line-height:1.18;letter-spacing:-.01em}.mv-route span{white-space:nowrap}.growth-line{font-size:15.2px;line-height:1.16;margin-top:4px}.playing-cell strong{color:#fff}.season-row{font-size:14px;color:#e8f4ff}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}col.player{width:175px}col.position{width:130px}col.age{width:82px}col.nation{width:150px}col.availability{width:285px}col.club{width:165px}col.mvnow{width:100px}col.growth{width:160px}col.playing{width:135px}col.season{width:300px}col.link{width:92px}.club-col strong{display:block;line-height:1.24}.availability-cell{line-height:1.28}.availability-cell strong{font-size:14px;line-height:1.25}.mv-now-col strong{font-size:16px}.player-col{font-weight:800}.is-hidden{display:none!important}',
+      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1820px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1540px;border-collapse:collapse;table-layout:fixed}th,td{padding:13px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left;overflow-wrap:anywhere}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:10.2px;text-transform:uppercase;letter-spacing:.035em;z-index:1;white-space:normal;word-break:normal;overflow-wrap:normal;hyphens:auto;line-height:1.18}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:16px;font-weight:950;line-height:1;margin-bottom:4px}.player-cell strong{display:block;font-size:19px;line-height:1.16;letter-spacing:-.018em}.profile-mini{display:inline-block;font-size:12px;line-height:1.12;font-weight:800;margin-top:3px}.open-link{font-weight:800}.position-code{font-weight:950;font-size:15px;line-height:1.18}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:3px;font-size:14px;line-height:1.2}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.25}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:7px;min-width:0}.season-row{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;align-items:start;line-height:1.24}.season-row span{display:block}.season-row strong{font-size:14.6px;color:#eef7ff;white-space:nowrap;font-weight:950}.season-stats{display:flex!important;flex-wrap:wrap;gap:2px 10px;color:#e8f4ff;font-size:14.1px;font-weight:850}.season-stats span{white-space:nowrap}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:950}.growth-negative{color:var(--red);font-weight:950}.mv-route{display:flex;gap:7px;color:#f0f8ff;font-size:14.5px;font-weight:950;line-height:1.18;letter-spacing:-.01em}.mv-route span{white-space:nowrap}.growth-line{font-size:15.2px;line-height:1.16;margin-top:4px}.playing-cell strong{color:#fff}.season-row{font-size:14px;color:#e8f4ff}col.player{width:175px}col.position{width:130px}col.age{width:82px}col.nation{width:150px}col.availability{width:285px}col.club{width:165px}col.mvnow{width:100px}col.growth{width:160px}col.playing{width:135px}col.season{width:300px}col.link{width:92px}.club-col strong{display:block;line-height:1.24}.availability-cell{line-height:1.28}.availability-cell strong{font-size:14px;line-height:1.25}.mv-now-col strong{font-size:16px}.player-col{font-weight:800}.is-hidden{display:none!important}',
       '@media(max-width:900px){main{width:100%;padding:12px 8px 28px}.hero{padding:17px;border-radius:16px}.topline{display:block}.criteria{justify-content:flex-start;margin-top:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}',
       '@media(max-width:540px){.stats,.export-control-grid{grid-template-columns:1fr}td{grid-template-columns:1fr;gap:4px}.criteria span{font-size:11px}}'
     ].join('');
@@ -6639,7 +6731,7 @@
       .tm-scout-v2-checks{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px 14px!important}.tm-scout-v2-checks legend{grid-column:1/-1!important}.tm-scout-v2-checks label{display:flex!important;align-items:center!important;gap:8px!important;margin:0!important;color:#c9d8e5!important;font-weight:700!important;line-height:1.2!important}.tm-scout-v2-source-options{display:block!important}.tm-scout-v2-source-options label{display:flex!important;align-items:center!important;gap:8px!important;margin:9px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide{display:block!important;margin:10px 0!important}.tm-scout-v2-source-options label.tm-scout-v2-wide select,.tm-scout-v2-source-options label.tm-scout-v2-wide input{margin-top:6px!important}.tm-scout-v2-detail-options{grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;position:static!important;bottom:auto!important;z-index:1!important;margin:14px 0 0!important;padding:9px!important;background:#091722!important;border:1px solid rgba(125,166,200,.24)!important;border-radius:14px!important;box-shadow:none!important}.tm-scout-v2-actions button{width:100%!important;min-height:32px!important;padding:7px 6px!important;border-radius:9px!important;font-size:11px!important;line-height:1.05!important;white-space:nowrap!important}.tm-scout-v2-actions .tm-scout-v2-primary{grid-column:auto!important}
       .tm-scout-v2-output{min-width:0;display:flex;flex-direction:column;overflow:hidden}.tm-scout-v2-statusbar{padding:13px 16px;border-bottom:1px solid rgba(125,166,200,.18);background:#0b1722}.tm-scout-v2-status{color:#d7e8f8;font-size:13px;font-weight:750;margin-bottom:9px}.tm-scout-v2-progress{height:8px;background:#071018;border-radius:999px;overflow:hidden;border:1px solid rgba(125,166,200,.18)}.tm-scout-v2-progress span{display:block;height:100%;width:0;background:#3a97d4;transition:width .2s ease}
       .tm-scout-v2-note-mini{font-size:11px;line-height:1.35;color:#95aabd;grid-column:1/-1;margin:2px 0 0}.tm-scout-v2-muted-block{opacity:.45}.tm-scout-v2-muted-block legend::after{content:' (inaktív)';font-weight:700;color:#c49d51}.tm-scout-v2-note{border:1px solid rgba(125,166,200,.22);background:#0a1621;border-radius:11px;padding:9px 11px;margin-bottom:12px;color:#bdd4e7;font-size:12px;line-height:1.35}.tm-scout-v2-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid rgba(125,166,200,.18)}.tm-scout-v2-stat{background:#0a1621;border:1px solid rgba(125,166,200,.18);border-radius:11px;padding:9px 10px}.tm-scout-v2-stat span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#95aabd;font-weight:800}.tm-scout-v2-stat strong{display:block;margin-top:3px;color:#fff;font-size:18px}
-      .tm-scout-v2-table-wrap{overflow:auto;min-height:0;flex:1;padding:0 0 14px;background:#071018!important}.tm-scout-v2-table{width:100%;border-collapse:separate!important;border-spacing:0!important;min-width:1620px;background:#071018!important;table-layout:auto!important}.tm-scout-v2-table th,.tm-scout-v2-table td{padding:9px 10px!important;border-bottom:1px solid rgba(126,163,196,.18)!important;text-align:left!important;vertical-align:top!important;font-size:12px!important;line-height:1.34!important}.tm-scout-v2-table th{position:sticky!important;top:0!important;z-index:2!important;background:#102235!important;color:#d7e7f5!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.035em!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:auto!important}.tm-scout-v2-table th:nth-child(1),.tm-scout-v2-table td:nth-child(1){min-width:160px!important}.tm-scout-v2-table th:nth-child(2),.tm-scout-v2-table td:nth-child(2){min-width:145px!important}.tm-scout-v2-table th:nth-child(3),.tm-scout-v2-table td:nth-child(3){min-width:72px!important}.tm-scout-v2-table th:nth-child(4),.tm-scout-v2-table td:nth-child(4){min-width:145px!important}.tm-scout-v2-table th:nth-child(5),.tm-scout-v2-table td:nth-child(5){min-width:270px!important}.tm-scout-v2-table th:nth-child(6),.tm-scout-v2-table td:nth-child(6){min-width:175px!important}.tm-scout-v2-table th:nth-child(7),.tm-scout-v2-table td:nth-child(7){min-width:92px!important}.tm-scout-v2-table th:nth-child(8),.tm-scout-v2-table td:nth-child(8){min-width:145px!important}.tm-scout-v2-table th:nth-child(9),.tm-scout-v2-table td:nth-child(9){min-width:130px!important}.tm-scout-v2-table th:nth-child(10),.tm-scout-v2-table td:nth-child(10){min-width:220px!important}.tm-scout-v2-table th:nth-child(11),.tm-scout-v2-table td:nth-child(11){min-width:130px!important}.tm-scout-v2-table tbody tr:nth-child(odd) td{background:#0a1722!important}.tm-scout-v2-table tbody tr:nth-child(even) td{background:#0c1b27!important}.tm-scout-v2-table tbody tr:hover td{background:#10263a!important;color:#ffffff!important}.tm-scout-v2-table td{color:#dcecff!important}.tm-scout-v2-table a{color:#9bd2ff!important;font-weight:800!important}.tm-scout-v2-cell-player{font-weight:800!important;color:#ffffff!important;min-width:150px}.tm-scout-v2-cell-position{color:#a7f0bf!important;font-weight:800!important;min-width:150px}.tm-scout-v2-cell-growth{color:#dbeff0!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-playing{color:#ecd996!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-seasons{color:#c2d7eb!important;min-width:180px}.tm-scout-v2-cell-availability{color:#cfe2f6!important;min-width:310px}.tm-scout-v2-cell-source{color:#aebfd0!important;min-width:170px}.tm-scout-v2-empty{text-align:center!important;color:#9fb4c6!important;padding:30px!important;background:#0a1724!important}
+      .tm-scout-v2-table-wrap{overflow:auto;min-height:0;flex:1;padding:0 0 14px;background:#071018!important}.tm-scout-v2-table{width:100%;border-collapse:separate!important;border-spacing:0!important;min-width:1480px;background:#071018!important;table-layout:auto!important}.tm-scout-v2-table th,.tm-scout-v2-table td{padding:9px 10px!important;border-bottom:1px solid rgba(126,163,196,.18)!important;text-align:left!important;vertical-align:top!important;font-size:12px!important;line-height:1.34!important}.tm-scout-v2-table th{position:sticky!important;top:0!important;z-index:2!important;background:#102235!important;color:#d7e7f5!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.035em!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:auto!important}.tm-scout-v2-table th:nth-child(1),.tm-scout-v2-table td:nth-child(1){min-width:160px!important}.tm-scout-v2-table th:nth-child(2),.tm-scout-v2-table td:nth-child(2){min-width:145px!important}.tm-scout-v2-table th:nth-child(3),.tm-scout-v2-table td:nth-child(3){min-width:72px!important}.tm-scout-v2-table th:nth-child(4),.tm-scout-v2-table td:nth-child(4){min-width:145px!important}.tm-scout-v2-table th:nth-child(5),.tm-scout-v2-table td:nth-child(5){min-width:270px!important}.tm-scout-v2-table th:nth-child(6),.tm-scout-v2-table td:nth-child(6){min-width:175px!important}.tm-scout-v2-table th:nth-child(7),.tm-scout-v2-table td:nth-child(7){min-width:92px!important}.tm-scout-v2-table th:nth-child(8),.tm-scout-v2-table td:nth-child(8){min-width:145px!important}.tm-scout-v2-table th:nth-child(9),.tm-scout-v2-table td:nth-child(9){min-width:130px!important}.tm-scout-v2-table th:nth-child(10),.tm-scout-v2-table td:nth-child(10){min-width:220px!important}.tm-scout-v2-table th:nth-child(11),.tm-scout-v2-table td:nth-child(11){min-width:96px!important}.tm-scout-v2-table tbody tr:nth-child(odd) td{background:#0a1722!important}.tm-scout-v2-table tbody tr:nth-child(even) td{background:#0c1b27!important}.tm-scout-v2-table tbody tr:hover td{background:#10263a!important;color:#ffffff!important}.tm-scout-v2-table td{color:#dcecff!important}.tm-scout-v2-table a{color:#9bd2ff!important;font-weight:800!important}.tm-scout-v2-cell-player{font-weight:800!important;color:#ffffff!important;min-width:150px}.tm-scout-v2-cell-position{color:#a7f0bf!important;font-weight:800!important;min-width:150px}.tm-scout-v2-cell-growth{color:#dbeff0!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-playing{color:#ecd996!important;font-weight:800!important;white-space:nowrap}.tm-scout-v2-cell-seasons{color:#c2d7eb!important;min-width:180px}.tm-scout-v2-cell-availability{color:#cfe2f6!important;min-width:310px}.tm-scout-v2-empty{text-align:center!important;color:#9fb4c6!important;padding:30px!important;background:#0a1724!important}
       .tm-scout-v2-collapsed{inset:auto 16px 16px auto;width:min(520px,calc(100vw - 32px));height:auto}.tm-scout-v2-collapsed .tm-scout-v2-body{display:none}.tm-scout-v2-collapsed .tm-scout-v2-shell{height:auto}.tm-scout-v2-collapsed .tm-scout-v2-head{border-bottom:0}
 
       .tm-scout-v2-ui-modal{position:fixed!important;inset:0!important;z-index:2147483647!important;display:grid!important;place-items:center!important;padding:18px!important;background:rgba(2,8,13,.72)!important;backdrop-filter:blur(8px)!important}.tm-scout-v2-ui-modal-card{width:min(420px,calc(100vw - 28px))!important;border:1px solid rgba(86,240,151,.38)!important;border-radius:22px!important;background:linear-gradient(180deg,#102235,#08131d)!important;box-shadow:0 28px 90px rgba(0,0,0,.55)!important;color:#eef7ff!important;padding:18px!important;text-align:left!important}.tm-scout-v2-ui-modal-icon{width:42px!important;height:42px!important;border-radius:16px!important;display:grid!important;place-items:center!important;background:rgba(86,240,151,.16)!important;border:1px solid rgba(86,240,151,.35)!important;margin-bottom:10px!important}.tm-scout-v2-ui-modal-card h3{margin:0 0 8px!important;font-size:18px!important;line-height:1.1!important;color:#fff!important}.tm-scout-v2-ui-modal-card p{margin:0 0 14px!important;color:#cfe0ef!important;font-size:13px!important;line-height:1.45!important}.tm-scout-v2-ui-modal-card button{width:100%!important;border:0!important;border-radius:13px!important;background:#56f097!important;color:#06120d!important;font-weight:950!important;padding:10px 14px!important;cursor:pointer!important}.tm-scout-v2-ui-modal.is-error .tm-scout-v2-ui-modal-card{border-color:rgba(255,184,77,.45)!important}.tm-scout-v2-ui-modal.is-error .tm-scout-v2-ui-modal-icon{background:rgba(255,184,77,.16)!important;border-color:rgba(255,184,77,.38)!important}.tm-scout-v2-actions button{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
