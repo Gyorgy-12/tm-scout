@@ -113,6 +113,7 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
+  // u21-nationality-mv-source-prune-20260706: U21 source discovery is pruned by selected nationality + MV window, not just capped after generation.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
@@ -1773,12 +1774,43 @@
 
 
 
-  function getU21NationalTeamSourceUrls(settings) {
-    const selected = (settings.u21Nationalities || []).map(function normalizeCountry(value) {
+  function getU21SelectedCountryKeys(settings) {
+    return (settings.u21Nationalities || []).map(function normalizeCountry(value) {
       const n = normalizeText(value);
       if (n === 'usa' || n === 'united states') return 'united states';
       return n;
     }).filter(Boolean);
+  }
+
+  function getTransfermarktNationalityLandId(countryKey) {
+    const map = {
+      // TM land_id values. Unknown countries intentionally fall back to 0 so the search still works.
+      'romania': '140',
+      'hungary': '178'
+    };
+    return map[normalizeText(countryKey)] || '';
+  }
+
+  function getSelectedU21NationalityLandIds(settings) {
+    return unique(getU21SelectedCountryKeys(settings).map(getTransfermarktNationalityLandId).filter(Boolean));
+  }
+
+  function getU21DomesticCompetitionBoost(code, settings) {
+    const c = String(code || '').toUpperCase();
+    const countryKeys = getU21SelectedCountryKeys(settings);
+    if (!countryKeys.length) return 0;
+    const domesticCodes = {
+      'romania': ['RO1', 'RO2'],
+      'hungary': ['UNG1', 'UNG2']
+    };
+    for (const country of countryKeys) {
+      if ((domesticCodes[country] || []).includes(c)) return 18;
+    }
+    return 0;
+  }
+
+  function getU21NationalTeamSourceUrls(settings) {
+    const selected = getU21SelectedCountryKeys(settings);
 
     if (!selected.length) return [];
 
@@ -1848,19 +1880,26 @@
       };
     });
 
-    const codes = buildU21CompactCompetitionCodes(settings);
+    const requestedPages = Math.max(1, Number(settings.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages || 16));
     const seen = new Set();
     const plan = [];
-    const requestedPages = Math.max(1, Number(settings.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages || 16));
+    const nationalityLandIds = getSelectedU21NationalityLandIds(settings);
+    const hasNationalitySourceFilter = nationalityLandIds.length > 0;
+    const safetyMaxSources = Math.max(80, Math.min(900, requestedPages * 18));
 
-    // A kiválasztott nemzetiségekhez tartozó U21/U19 válogatott keretoldalak seedként mennek be.
-    // Ez nem hazai liga-szűkítés: csak plusz belépési pont, hogy a Techereș-szerű profilok ne essenek ki,
-    // ha épp nem kerültek fel elég magasra valamelyik liga market-value listáján.
-    for (const seed of getU21NationalTeamSourceUrls(settings)) {
-      const key = seed.url.replace(/\/$/, '');
-      if (seen.has(key)) continue;
+    function pushSource(source) {
+      if (!source || !source.url || plan.length >= safetyMaxSources) return false;
+      const key = source.url.replace(/\/$/, '');
+      if (seen.has(key)) return false;
       seen.add(key);
-      plan.push(seed);
+      plan.push(source);
+      return true;
+    }
+
+    // U21/U19 national squad pages stay as seed sources. They catch no-MV / academy-like players
+    // that a market-value list can miss.
+    for (const seed of getU21NationalTeamSourceUrls(settings)) {
+      pushSource(seed);
       state.debug.adaptivePageLimits.push({
         group: seed.sourceGroup,
         label: seed.label,
@@ -1870,56 +1909,157 @@
       });
     }
 
-    // U21-nél a nemzetiség NEM azt jelenti, hogy csak a hazai bajnokságban nézünk körül.
-    // Előbb minden bekapcsolt liga kap legalább egy esélyt, utána mélyítünk oldalanként.
-    // Így egy román/magyar/szerb U21 játékos akkor is előkerülhet, ha külföldön játszik.
-    const maxTotalSources = Math.max(160, Math.min(760, requestedPages * Math.max(10, sourceFilters.length * 7)));
     const targets = [];
 
-    unique(codes).forEach(function addCompetition(code) {
-      const codePriority = getU21CompetitionPriority(code, settings);
+    if (hasNationalitySourceFilter) {
+      // Selected nationality is a player filter, not a domestic-league filter.
+      // So the main discovery source is the worldwide TM market-value table filtered by:
+      // nationality + U21 age class + selected position. This searches every club/league where that
+      // nationality appears, without multiplying every competition by every position.
       sourceFilters.forEach(function addFilter(filter) {
-        const url = buildCompetitionMarketValuesQueryUrl(code, filter);
-        const pageLimit = getU21SourcePageLimit(code, filter.weight || 0, requestedPages, settings, codePriority);
-        targets.push({ code, filter, url, pageLimit, codePriority });
-        state.debug.adaptivePageLimits.push({
-          group: 'u21-market-values',
-          label: `U21 ${code} ${filter.label || ''}`.trim(),
-          filterWeight: filter.weight || 0,
-          pageLimit: pageLimit,
-          cappedTotalSources: maxTotalSources,
-          note: 'round-robin broad nationality search'
+        nationalityLandIds.forEach(function addLand(landId) {
+          const mvWindow = getU21MvSourcePageWindow(settings, requestedPages, filter.weight || 0);
+          targets.push({
+            url: buildGlobalU21MarketValueQueryUrl(filter, landId),
+            label: `U21 global nat ${landId}${filter && filter.label ? ` · ${filter.label}` : ''}`,
+            sourceGroup: 'u21-global-nationality-mv-search',
+            pageStart: mvWindow.start,
+            pageEnd: mvWindow.end,
+            filter: filter,
+            priority: 100,
+            landId: landId,
+            note: mvWindow.note
+          });
+          state.debug.adaptivePageLimits.push({
+            group: 'u21-global-nationality-mv-search',
+            label: `U21 global nat ${landId}${filter && filter.label ? ` · ${filter.label}` : ''}`,
+            filterWeight: filter.weight || 0,
+            pageStart: mvWindow.start,
+            pageLimit: mvWindow.end,
+            note: mvWindow.note
+          });
         });
       });
-    });
+
+      // Tiny domestic probe only: it improves club/competition signal for RO/HU/etc., but it no longer
+      // owns the whole source plan. This is intentionally small and still nationality-filtered.
+      const domesticProbeCodes = unique(buildU21CompactCompetitionCodes(settings)
+        .filter(function domesticOnly(code) { return getU21DomesticCompetitionBoost(code, settings) > 0; }))
+        .slice(0, 6);
+      domesticProbeCodes.forEach(function addDomesticProbe(code) {
+        const basePriority = getU21CompetitionPriority(code, settings);
+        sourceFilters.slice(0, 2).forEach(function addFilter(filter) {
+          nationalityLandIds.forEach(function addLand(landId) {
+            const url = buildCompetitionMarketValuesQueryUrl(code, filter, landId, settings);
+            targets.push({
+              url: url,
+              label: `U21 ${code}${filter && filter.label ? ` · ${filter.label}` : ''} · nat ${landId}`,
+              sourceGroup: 'u21-domestic-nationality-probe',
+              pageStart: 1,
+              pageEnd: Math.max(1, Math.min(2, requestedPages)),
+              filter: filter,
+              priority: basePriority + 18,
+              landId: landId,
+              code: code,
+              note: 'small nationality-filtered domestic probe'
+            });
+          });
+        });
+      });
+    } else {
+      // No nationality filter selected: fall back to the competition-based broad scan.
+      const codes = buildU21CompactCompetitionCodes(settings);
+      unique(codes).forEach(function addCompetition(code) {
+        const basePriority = getU21CompetitionPriority(code, settings);
+        const codePriority = basePriority + getU21DomesticCompetitionBoost(code, settings);
+        sourceFilters.forEach(function addFilter(filter) {
+          const mvWindow = getU21MvSourcePageWindow(settings, requestedPages, filter.weight || 0);
+          const url = buildCompetitionMarketValuesQueryUrl(code, filter, '0', settings);
+          targets.push({
+            code: code,
+            filter: filter,
+            url: url,
+            pageStart: Math.max(1, mvWindow.start),
+            pageEnd: Math.min(getU21SourcePageLimit(code, filter.weight || 0, requestedPages, settings, basePriority), mvWindow.end),
+            priority: codePriority,
+            landId: '0',
+            sourceGroup: 'u21-broad-mv-window-search',
+            label: `U21 ${code}${filter && filter.label ? ` · ${filter.label}` : ''}`,
+            note: mvWindow.note
+          });
+          state.debug.adaptivePageLimits.push({
+            group: 'u21-broad-mv-window-search',
+            label: `U21 ${code}${filter && filter.label ? ` · ${filter.label}` : ''}`,
+            filterWeight: filter.weight || 0,
+            pageStart: Math.max(1, mvWindow.start),
+            pageLimit: Math.min(getU21SourcePageLimit(code, filter.weight || 0, requestedPages, settings, basePriority), mvWindow.end),
+            note: mvWindow.note
+          });
+        });
+      });
+    }
 
     targets.sort(function bySignal(a, b) {
-      return (b.codePriority - a.codePriority)
-        || ((a.filter.weight || 0) - (b.filter.weight || 0))
-        || String(a.code).localeCompare(String(b.code));
+      return (Number(b.priority || 0) - Number(a.priority || 0))
+        || (Number(a.pageStart || 1) - Number(b.pageStart || 1))
+        || (Number(a.filter && a.filter.weight || 0) - Number(b.filter && b.filter.weight || 0))
+        || String(a.label || '').localeCompare(String(b.label || ''));
     });
 
-    for (let page = 1; page <= requestedPages && plan.length < maxTotalSources; page += 1) {
+    const minPage = targets.reduce(function min(acc, target) { return Math.min(acc, Number(target.pageStart || 1)); }, requestedPages);
+    const maxPage = targets.reduce(function max(acc, target) { return Math.max(acc, Number(target.pageEnd || 1)); }, 1);
+
+    // Round-robin by page so every selected nationality/position gets a chance before deepening.
+    for (let page = minPage; page <= maxPage && plan.length < safetyMaxSources; page += 1) {
       for (const target of targets) {
-        if (plan.length >= maxTotalSources) break;
-        if (page > target.pageLimit) continue;
+        if (plan.length >= safetyMaxSources) break;
+        if (page < Number(target.pageStart || 1) || page > Number(target.pageEnd || 1)) continue;
         const pagedUrl = addTransfermarktPage(target.url, page);
-        const key = pagedUrl.replace(/\/$/, '');
-        if (seen.has(key)) continue;
-        seen.add(key);
-        plan.push({
+        pushSource({
           url: pagedUrl,
           type: 'u21-prospect',
-          label: `U21 ${target.code}${target.filter && target.filter.label ? ` · ${target.filter.label}` : ''}${page > 1 ? ` p.${page}` : ''}`,
-          sourceGroup: 'u21-broad-nationality-search',
+          label: `${target.label}${page > 1 ? ` p.${page}` : ''}`,
+          sourceGroup: target.sourceGroup,
           page: page,
-          plannedPageLimit: target.pageLimit,
-          sourceFilterWeight: target.filter ? target.filter.weight || 0 : 0
+          plannedPageLimit: target.pageEnd,
+          sourceFilterWeight: target.filter ? target.filter.weight || 0 : 0,
+          mvWindowNote: target.note || ''
         });
       }
     }
 
     return plan;
+  }
+
+  function buildGlobalU21MarketValueQueryUrl(filter, landId) {
+    const f = normalizeSourceFilter(filter);
+    return `https://www.transfermarkt.com/spieler-statistik/wertvollstespieler/marktwertetop/plus/ausrichtung/${encodeURIComponent(f.alignment)}/spielerposition_id/${encodeURIComponent(f.detailId)}/altersklasse/${encodeURIComponent(f.ageClass)}/jahrgang/0/land_id/${encodeURIComponent(String(landId || '0'))}/yt0/Show/0/`;
+  }
+
+  function getU21MvSourcePageWindow(settings, requestedPages, filterWeight) { // u21-nationality-mv-source-prune
+    const minMv = Number(settings.u21MinMv || 0);
+    const maxMvRaw = Number(settings.u21MaxMv || 0);
+    const requested = Math.max(1, Number(requestedPages || DEFAULTS.u21MaxSourcePages || 16));
+    const detailPenalty = Number(filterWeight || 0) >= 2 ? 1 : 0;
+
+    // Transfermarkt market-value lists are sorted from highest MV downward. There is no dependable
+    // competition-specific MV min/max URL on every table, so we shrink the source pages by using the
+    // selected MV band as a page-window before scraping, then the row-level MV filter remains exact.
+    if (maxMvRaw > 0 && maxMvRaw <= 100000) {
+      return { start: Math.max(1, 6 - detailPenalty), end: Math.min(requested, 18), note: 'mv-window <=100k' };
+    }
+    if (maxMvRaw > 0 && maxMvRaw <= 250000) {
+      return { start: Math.max(1, 4 - detailPenalty), end: Math.min(requested, 16), note: 'mv-window <=250k' };
+    }
+    if (maxMvRaw > 0 && maxMvRaw <= 500000) {
+      return { start: Math.max(1, 2 - detailPenalty), end: Math.min(requested, 14), note: 'mv-window <=500k' };
+    }
+    if (maxMvRaw > 0 && maxMvRaw <= 1000000) {
+      return { start: 1, end: Math.min(requested, 12), note: 'mv-window <=1m' };
+    }
+    if (minMv >= 1000000) return { start: 1, end: Math.min(requested, 8), note: 'mv-window min>=1m' };
+    if (minMv >= 500000) return { start: 1, end: Math.min(requested, 10), note: 'mv-window min>=500k' };
+    return { start: 1, end: Math.min(requested, 16), note: 'mv-window broad' };
   }
 
   function buildU21CompactSourceFilters(settings) {
@@ -1989,10 +2129,11 @@
 
     if (!codes.length) addMany(getEuropeCompetitionCodes().concat(getStrongLowerCompetitionCodes(settings.lowerLeagueDepth)));
 
+    const limit = getSelectedU21NationalityLandIds(settings).length ? 48 : 72;
     return unique(codes).sort(function byPriority(a, b) {
-      return getU21CompetitionPriority(b, settings) - getU21CompetitionPriority(a, settings)
+      return (getU21CompetitionPriority(b, settings) + getU21DomesticCompetitionBoost(b, settings)) - (getU21CompetitionPriority(a, settings) + getU21DomesticCompetitionBoost(a, settings))
         || String(a).localeCompare(String(b));
-    }).slice(0, 72);
+    }).slice(0, limit);
   }
 
   function getU21CompetitionPriority(code, settings) {
@@ -2021,14 +2162,18 @@
     return Math.max(1, Math.min(requested, 3 - filterPenalty));
   }
 
-  function buildCompetitionMarketValuesQueryUrl(code, filter) {
+  function buildCompetitionMarketValuesQueryUrl(code, filter, landId, settings) {
     const cleanCode = String(code || '').trim().toUpperCase();
     const f = normalizeSourceFilter(filter);
     const url = new URL(`https://www.transfermarkt.com/-/marktwerte/wettbewerb/${encodeURIComponent(cleanCode)}/plus/1`);
     url.searchParams.set('ausrichtung', f.alignment);
     url.searchParams.set('spielerposition_id', f.detailId);
     url.searchParams.set('altersklasse', f.ageClass);
-    url.searchParams.set('land_id', '0');
+    url.searchParams.set('land_id', String(landId || '0'));
+    // These query params are harmless if TM ignores them, but useful on pages/routes where the
+    // market-value form accepts them. Exact filtering still happens row-by-row after parsing.
+    if (settings && Number(settings.u21MinMv || 0) > 0) url.searchParams.set('marktwert_von', String(Math.max(0, Number(settings.u21MinMv || 0))));
+    if (settings && Number(settings.u21MaxMv || 0) > 0) url.searchParams.set('marktwert_bis', String(Math.max(0, Number(settings.u21MaxMv || 0))));
     url.searchParams.set('yt0', 'Show');
     return url.toString();
   }
@@ -2045,6 +2190,16 @@
        * Query-based routes must paginate with ?page=N; only legacy /plus/1
        * routes should fall back to /galerie/0/page/N.
        */
+      if (/\/spieler-statistik\/wertvollstespieler\/marktwertetop(?:\/|$)/i.test(path)) {
+        if (/\/page\/\d+$/i.test(path)) {
+          path = path.replace(/\/page\/\d+$/i, `/page/${page}`);
+        } else {
+          path = `${path.replace(/\/$/, '')}/page/${page}`;
+        }
+        parsed.pathname = path;
+        return parsed.toString();
+      }
+
       if (/\/transfers\/endendevertraege\/statistik(?:\/|$)/i.test(path)
         || /\/statistik\/(vertragslosespieler|endendevertraege)$/i.test(path)
         || /\/endendevertraege\/wettbewerb\/[A-Z0-9]+(?:\/|$)/i.test(path)) {
