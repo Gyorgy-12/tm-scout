@@ -1,3 +1,4 @@
+// source-prefilter-contract-nat-mv-v3-20260706
 const ALLOWED_HOSTS = new Set([
   'www.transfermarkt.com',
   'transfermarkt.com',
@@ -21,7 +22,7 @@ const CORS = {
   'Access-Control-Max-Age': '86400'
 };
 
-// batch24-dedupe-cache-20260706
+// batch24-dedupe-cache-nat-mv-v3-20260706
 // 24 Transfermarkt URL / Worker request + batchen belüli URL dedupe + Cloudflare cache.
 const MAX_BATCH = 24;
 const UPSTREAM_CONCURRENCY = 6;
