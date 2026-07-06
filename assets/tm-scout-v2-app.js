@@ -198,6 +198,8 @@
     "HTML nézet megnyitása": "Open HTML view",
     "Megnyitás": "Open",
     "Oké": "OK",
+    "Hoppá": "Oops",
+    "HTML nézet": "HTML view",
     "Nincs exportálható találat. Előbb futtasd a keresést.": "No exportable results. Run the search first.",
     "CSV export": "CSV export",
     "JSON export": "JSON export",
@@ -338,6 +340,8 @@
     "HTML nézet megnyitása": "Deschide vizualizarea HTML",
     "Megnyitás": "Deschide",
     "Oké": "OK",
+    "Hoppá": "Ups",
+    "HTML nézet": "Vizualizare HTML",
     "Nincs exportálható találat. Előbb futtasd a keresést.": "Nu există rezultate exportabile. Rulează mai întâi căutarea.",
     "CSV export": "Export CSV",
     "JSON export": "Export JSON",
@@ -4420,8 +4424,8 @@
   function buildCsvExport(results) {
     if (isU21Mode(state.settings)) return buildU21CsvExport(results);
     const headers = [
-      'Játékos', 'Poszt', 'Kor', 'Nemzetiség', 'Elérhetőség', 'Klub / utolsó klub',
-      'MV most', 'MV változás', 'Játékidő', 'Utolsó szezonok', 'Forrás', 'TM profil'
+      ex('player'), ex('position'), ex('age'), ex('nationality'), ex('availability'), ex('club'),
+      ex('currentMv'), ex('mvChange'), ex('playingTime'), ex('recentSeasons'), ex('list'), ex('tmProfile')
     ];
     const rows = results.map(function row(player) {
       return [
@@ -4446,7 +4450,7 @@
 
 
   function buildU21CsvExport(results) {
-    const headers = ['Játékos','Poszt','Kor','Nemzetiség','U21 score','Klub / csapat','MV most','MV változás','Játszott meccsarány','Utolsó szezonok','TM profil'];
+    const headers = [ex('player'), ex('position'), ex('age'), ex('nationality'), ex('u21Score'), ex('clubTeam'), ex('currentMv'), ex('mvChange'), ex('matchRatio'), ex('recentSeasons'), ex('tmProfile')];
     const rows = results.map(function row(player) {
       const u21 = player.u21 || {};
       return [
@@ -4468,310 +4472,271 @@
     }).join('\r\n');
   }
 
-  function buildU21ExportFilterSummary(settings) {
+  function exportLocale() {
+    const lang = currentUiLanguage();
+    if (lang === 'ro') return 'ro-RO';
+    if (lang === 'en') return 'en-US';
+    return 'hu-HU';
+  }
+
+  function ex(key) {
+    const lang = currentUiLanguage();
+    const dict = {
+      hu: {
+        exportTitle: 'TM Scout V2 · Export',
+        scoutExport: 'Transfermarkt Scout Export',
+        generated: 'Export',
+        u21Export: 'U21 export',
+        contractExport: 'Lejáró szerződés / free agent export',
+        results: 'találatok',
+        checkedPlayers: 'vizsgált játékosok',
+        enriched: 'ellenőrizve',
+        mode: 'mód',
+        filtersAndSorting: 'Szűrés és rendezés',
+        players: 'játékos',
+        sort: 'Rendezés',
+        reset: 'Reset',
+        noResults: 'Nincs találat.',
+        noExportRows: 'Nincs exportálható találat.',
+        clientNote: 'A szűrés és rendezés kliensoldali. Nem indít új scrapinget.',
+        player: 'Játékos',
+        position: 'Poszt',
+        age: 'Kor',
+        nationality: 'Nemzetiség',
+        availability: 'Elérhetőség',
+        club: 'Klub',
+        clubTeam: 'Klub / csapat',
+        currentMv: 'MV most',
+        mvChange: 'MV változás',
+        playingTime: 'Játékidő',
+        recentSeasons: 'Utolsó szezonok',
+        list: 'Lista',
+        profile: 'Profil',
+        tmProfile: 'TM profil',
+        u21Status: 'U21 állapot',
+        u21Score: 'U21 score',
+        matchRatio: 'Játszott meccsarány',
+        broadPos: 'Tág poszt',
+        detailPos: 'Konkrét poszt',
+        allBroad: 'Összes tág poszt',
+        allDetail: 'Összes konkrét poszt',
+        allNationalities: 'Összes nemzetiség',
+        availabilityFilter: 'Elérhetőség',
+        allPlayers: 'Összes játékos',
+        freeAgentsOnly: 'Csak free agentek',
+        nonFreeOnly: 'Nem free agentek',
+        absGrowth: 'Abszolút MV növekedés',
+        mvNowSort: 'Jelenlegi MV',
+        pctImprove: 'Százalékos javulás',
+        pctDrop: 'Százalékos romlás',
+        nameAZ: 'Név A–Z',
+        scoreSort: 'U21 score',
+        matchSort: 'Meccsarány',
+        youngerFirst: 'Fiatalabb előre',
+        criteriaMv: 'MV',
+        criteriaAge: 'Kor',
+        contractYear: 'Szerződés lejárati éve',
+        mvRef: 'MV ref',
+        maxMvDrop: 'Max MV drop',
+        sortAbsGrowth: 'Rendezés: abszolút MV növekedés',
+        countries: 'Nemzetiségek',
+        all: 'összes',
+        minMatchRatio: 'Min meccsarány',
+        maxPages: 'Max oldalak',
+        maxCandidates: 'Max jelöltek',
+        sortU21: 'Rendezés: U21 score',
+        u21Weights: 'Fő súlyok: meccsarány · MV-változás · életkor · játékvolumen',
+        joined: 'Érkezett',
+        ends: 'Lejár',
+        leagueLevel: 'Liga-szint',
+        apps: 'meccs',
+        app: 'meccs',
+        min: 'perc',
+        unknown: 'ismeretlen',
+        other: 'Other/unknown'
+      },
+      en: {
+        exportTitle: 'TM Scout V2 · Export',
+        scoutExport: 'Transfermarkt Scout Export',
+        generated: 'Export',
+        u21Export: 'U21 export',
+        contractExport: 'Contract / free agent export',
+        results: 'results',
+        checkedPlayers: 'players checked',
+        enriched: 'enriched',
+        mode: 'mode',
+        filtersAndSorting: 'Filters and sorting',
+        players: 'players',
+        sort: 'Sort',
+        reset: 'Reset',
+        noResults: 'No results.',
+        noExportRows: 'No exportable results.',
+        clientNote: 'Filtering and sorting are client-side. No new scraping is started.',
+        player: 'Player',
+        position: 'Position',
+        age: 'Age',
+        nationality: 'Nationality',
+        availability: 'Availability',
+        club: 'Club',
+        clubTeam: 'Club / team',
+        currentMv: 'Current MV',
+        mvChange: 'MV change',
+        playingTime: 'Playing time',
+        recentSeasons: 'Recent seasons',
+        list: 'List',
+        profile: 'Profile',
+        tmProfile: 'TM profile',
+        u21Status: 'U21 status',
+        u21Score: 'U21 score',
+        matchRatio: 'Played-match ratio',
+        broadPos: 'Broad position',
+        detailPos: 'Exact position',
+        allBroad: 'All broad positions',
+        allDetail: 'All exact positions',
+        allNationalities: 'All nationalities',
+        availabilityFilter: 'Availability',
+        allPlayers: 'All players',
+        freeAgentsOnly: 'Free agents only',
+        nonFreeOnly: 'Non-free agents',
+        absGrowth: 'Absolute MV growth',
+        mvNowSort: 'Current MV',
+        pctImprove: 'Percentage improvement',
+        pctDrop: 'Percentage decline',
+        nameAZ: 'Name A–Z',
+        scoreSort: 'U21 score',
+        matchSort: 'Match ratio',
+        youngerFirst: 'Younger first',
+        criteriaMv: 'MV',
+        criteriaAge: 'Age',
+        contractYear: 'Contract expiry year',
+        mvRef: 'MV ref',
+        maxMvDrop: 'Max MV drop',
+        sortAbsGrowth: 'Sort: absolute MV growth',
+        countries: 'Nationalities',
+        all: 'all',
+        minMatchRatio: 'Min match ratio',
+        maxPages: 'Max pages',
+        maxCandidates: 'Max candidates',
+        sortU21: 'Sort: U21 score',
+        u21Weights: 'Main weights: match ratio · MV change · age · playing volume',
+        joined: 'Joined',
+        ends: 'Ends',
+        leagueLevel: 'League level',
+        apps: 'apps',
+        app: 'app',
+        min: 'min',
+        unknown: 'unknown',
+        other: 'Other/unknown'
+      },
+      ro: {
+        exportTitle: 'TM Scout V2 · Export',
+        scoutExport: 'Export Transfermarkt Scout',
+        generated: 'Export',
+        u21Export: 'Export U21',
+        contractExport: 'Export contracte / jucători liberi',
+        results: 'rezultate',
+        checkedPlayers: 'jucători analizați',
+        enriched: 'verificați',
+        mode: 'mod',
+        filtersAndSorting: 'Filtre și sortare',
+        players: 'jucători',
+        sort: 'Sortare',
+        reset: 'Resetare',
+        noResults: 'Nu există rezultate.',
+        noExportRows: 'Nu există rezultate exportabile.',
+        clientNote: 'Filtrarea și sortarea sunt locale. Nu pornește o nouă scanare.',
+        player: 'Jucător',
+        position: 'Post',
+        age: 'Vârstă',
+        nationality: 'Naționalitate',
+        availability: 'Disponibilitate',
+        club: 'Club',
+        clubTeam: 'Club / echipă',
+        currentMv: 'MV actual',
+        mvChange: 'Schimbare MV',
+        playingTime: 'Minute jucate',
+        recentSeasons: 'Sezoane recente',
+        list: 'Listă',
+        profile: 'Profil',
+        tmProfile: 'Profil TM',
+        u21Status: 'Status U21',
+        u21Score: 'Scor U21',
+        matchRatio: 'Procent meciuri jucate',
+        broadPos: 'Grupă post',
+        detailPos: 'Post exact',
+        allBroad: 'Toate grupele',
+        allDetail: 'Toate posturile exacte',
+        allNationalities: 'Toate naționalitățile',
+        availabilityFilter: 'Disponibilitate',
+        allPlayers: 'Toți jucătorii',
+        freeAgentsOnly: 'Doar jucători liberi',
+        nonFreeOnly: 'Nu sunt jucători liberi',
+        absGrowth: 'Creștere MV absolută',
+        mvNowSort: 'MV actual',
+        pctImprove: 'Îmbunătățire procentuală',
+        pctDrop: 'Scădere procentuală',
+        nameAZ: 'Nume A–Z',
+        scoreSort: 'Scor U21',
+        matchSort: 'Procent meciuri',
+        youngerFirst: 'Mai tineri primii',
+        criteriaMv: 'MV',
+        criteriaAge: 'Vârstă',
+        contractYear: 'Anul expirării contractului',
+        mvRef: 'MV ref',
+        maxMvDrop: 'Scădere MV max',
+        sortAbsGrowth: 'Sortare: creștere MV absolută',
+        countries: 'Naționalități',
+        all: 'toate',
+        minMatchRatio: 'Procent minim meciuri',
+        maxPages: 'Pagini maxime',
+        maxCandidates: 'Candidați maximi',
+        sortU21: 'Sortare: scor U21',
+        u21Weights: 'Ponderi principale: procent meciuri · schimbare MV · vârstă · volum de joc',
+        joined: 'Sosit',
+        ends: 'Expiră',
+        leagueLevel: 'Nivel ligă',
+        apps: 'meciuri',
+        app: 'meci',
+        min: 'min',
+        unknown: 'necunoscut',
+        other: 'Altul/necunoscut'
+      }
+    };
+    return (dict[lang] && dict[lang][key]) || dict.hu[key] || key;
+  }
+
+  function buildExportCriteria(settings) {
     const s = settings || {};
-    const countries = (s.u21Nationalities || []).length ? s.u21Nationalities.join(', ') : 'összes';
-    const posMode = normalizePositionFilterMode(s.positionFilterMode);
-    const position = posMode === 'detail'
-      ? DETAIL_POSITION_KEYS.filter(function enabled(key) { return Boolean(s[key]); }).map(function label(key) { return key.replace(/^detail/, ''); }).join(', ') || 'összes'
-      : ['GK', 'DEF', 'MID', 'FWD'].filter(function enabled(group) { return isGroupEnabled(group, s); }).join(', ') || 'összes';
+    if (isU21Mode(s)) {
+      const countries = (s.u21Nationalities || []).length ? s.u21Nationalities.join(', ') : ex('all');
+      return [
+        `${ex('criteriaAge')}: ${s.u21MinAge || '—'}–${s.u21MaxAge || '—'}`,
+        `${ex('criteriaMv')}: ${formatEuro(s.u21MinMv || 0)} – ${formatEuro(s.u21MaxMv || 0)}`,
+        `${ex('minMatchRatio')}: ${s.u21MinMatchRatio || 0}%`,
+        `${ex('countries')}: ${countries}`,
+        `${ex('maxPages')}: ${s.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages}`,
+        `${ex('maxCandidates')}: ${s.u21MaxCandidates || DEFAULTS.u21MaxCandidates}`,
+        ex('sortU21'),
+        ex('u21Weights')
+      ];
+    }
     return [
-      `Kor: ${s.u21MinAge || '—'}–${s.u21MaxAge || '—'}`,
-      `MV: ${formatEuro(s.u21MinMv || 0)} – ${formatEuro(s.u21MaxMv || 0)}`,
-      `Min meccsarány: ${s.u21MinMatchRatio || 0}%`,
-      `Nemzetiség: ${countries}`,
-      `Poszt: ${position}`,
-      `Források: ${s.europeLeaguePages ? '1. osztályok' : ''}${s.europeLeaguePages && s.lowerLeaguePages ? ' + ' : ''}${s.lowerLeaguePages ? '2–3. osztályok' : ''}` || 'Források: alap',
-      `Max oldalak: ${s.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages}`,
-      `Max jelöltek: ${s.u21MaxCandidates || DEFAULTS.u21MaxCandidates}`
+      `${ex('criteriaMv')}: ${formatEuro(s.minMv)}–${formatEuro(s.maxMv)}`,
+      `${ex('criteriaAge')}: ${s.minAge || '—'}–${s.maxAge || '—'}`,
+      `${ex('contractYear')}: ${s.contractYear || '—'}`,
+      `${ex('mvRef')}: ${s.growthSince || '—'}`,
+      `${ex('maxMvDrop')}: ${s.maxMvDropPct || 0}%`,
+      ex('sortAbsGrowth')
     ];
   }
 
-  function buildU21HtmlExport() {
-    const results = state.results || [];
-    const settings = state.settings || {};
-    const debug = state.debug || {};
-
-    function cleanDash(value) {
-      const text = String(value === null || value === undefined || value === '' ? '—' : value).trim();
-      return text || '—';
-    }
-
-    function renderPlayer(player, index) {
-      return [
-        '<div class="player-cell">',
-        `<div class="rank-line" data-rank>#${index + 1}</div>`,
-        `<strong>${escapeHtml(cleanDash(player.name))}</strong>`,
-        `<a class="profile-mini" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">TM profil</a>`,
-        '</div>'
-      ].join('');
-    }
-
-    function renderPosition(player) {
-      const group = cleanDash(player.positionGroup || '—');
-      const detail = cleanDash(player.positionDetail || '—');
-      const label = cleanDash(player.position || '—');
-      return [
-        '<div class="position-cell">',
-        `<div class="position-code">${escapeHtml(group)}${player.positionDetail ? ` / ${escapeHtml(detail)}` : ''}</div>`,
-        `<div class="position-label">${escapeHtml(label)}</div>`,
-        '</div>'
-      ].join('');
-    }
-
-    function renderPlainList(text, fallback) {
-      const value = String(text || '').split(',').map(function trimItem(item) { return item.trim(); }).filter(Boolean).join(', ');
-      return value ? `<span class="plain-list">${escapeHtml(value)}</span>` : `<span class="muted">${escapeHtml(fallback || '—')}</span>`;
-    }
-
-    function renderU21Status(player) {
-      const u21 = player.u21 || {};
-      return [
-        '<div class="availability-cell">',
-        `<strong>U21 jelölt</strong>`,
-        `<span>${escapeHtml(formatU21Score(u21))}</span>`,
-        `<span class="date-line">${escapeHtml(formatU21MatchRatio(u21, player.playingTime))}</span>`,
-        '</div>'
-      ].join('');
-    }
-
-    function renderGrowth(mv) {
-      if (!mv || mv.absGrowth === null || mv.absGrowth === undefined) {
-        return `<div class="growth-cell"><span class="muted">${escapeHtml(mv && mv.unknown ? 'unknown' : '—')}</span></div>`;
-      }
-      const pct = mv.pctGrowth === null || mv.pctGrowth === undefined ? '—' : `${mv.pctGrowth >= 0 ? '+' : ''}${mv.pctGrowth.toFixed(1)}%`;
-      const cls = mv.absGrowth >= 0 ? 'growth-positive' : 'growth-negative';
-      return [
-        '<div class="growth-cell">',
-        `<div class="mv-route"><span>${escapeHtml(formatEuro(mv.baselineValue))}</span><span>→</span><span>${escapeHtml(formatEuro(mv.latestValue))}</span></div>`,
-        `<div class="growth-line ${cls}">${mv.absGrowth >= 0 ? '+' : ''}${escapeHtml(formatEuro(mv.absGrowth))} (${escapeHtml(pct)})</div>`,
-        '</div>'
-      ].join('');
-    }
-
-    function renderPlayingTime(pt) {
-      const safe = pt || emptyPlayingTime();
-      const u21 = (arguments.length > 1 && arguments[1]) || {};
-      return `<div class="playing-cell"><strong>${escapeHtml(String(safe.apps || 0))}</strong> apps · <strong>${escapeHtml(String(safe.minutes || 0))}</strong> min${u21.matchRatio !== undefined ? `<br><span class="muted-line">${escapeHtml(String(u21.matchRatio))}% meccsarány</span>` : ''}</div>`;
-    }
-
-    function renderSeasons(pt) {
-      const safe = pt || emptyPlayingTime();
-      if (!safe.recentSeasons || !safe.recentSeasons.length) return '<span class="muted">—</span>';
-      return `<div class="season-list">${safe.recentSeasons.map(function seasonRow(season) {
-        return `<div class="season-row"><strong>${escapeHtml(season.season)}</strong>: ${escapeHtml(String(season.apps))} app / ${escapeHtml(String(season.minutes))} min</div>`;
-      }).join('')}</div>`;
-    }
-
-    function renderSource(player) {
-      const labels = unique(player.sourceLabels || player.sourceTypes || []);
-      if (!labels.length) return '<span class="muted">—</span>';
-      return `<div class="source-list">${labels.slice(0, 4).map(function sourceLabel(label) {
-        return `<span>${escapeHtml(label)}</span>`;
-      }).join('')}</div>`;
-    }
-
-    function getExportDetail(player) {
-      const detail = String(player.positionDetail || '').toUpperCase().trim();
-      if (detail) return detail;
-      const label = String(player.position || '').toLowerCase();
-      if (/goalkeeper|keeper|\bgk\b/.test(label)) return 'GK';
-      if (/centre[-\s]?back|center[-\s]?back|\bcb\b/.test(label)) return 'CB';
-      if (/left[-\s]?back|\blb\b/.test(label)) return 'LB';
-      if (/right[-\s]?back|\brb\b/.test(label)) return 'RB';
-      if (/defensive midfield|\bdm\b/.test(label)) return 'DM';
-      if (/central midfield|centre midfield|center midfield|\bcm\b/.test(label)) return 'CM';
-      if (/attacking midfield|\bam\b/.test(label)) return 'AM';
-      if (/left midfield|\blm\b/.test(label)) return 'LM';
-      if (/right midfield|\brm\b/.test(label)) return 'RM';
-      if (/left winger|left wing|\blw\b/.test(label)) return 'LW';
-      if (/right winger|right wing|\brw\b/.test(label)) return 'RW';
-      if (/winger|wing/.test(label)) return 'WING';
-      if (/centre[-\s]?forward|center[-\s]?forward|striker|\bcf\b|\bst\b/.test(label)) return 'CF';
-      if (/second striker|\bss\b/.test(label)) return 'SS';
-      return 'OTHER';
-    }
-
-    function rowDataAttrs(player) {
-      const u21 = player.u21 || {};
-      const mvNow = Number(player.currentMarketValue || 0);
-      const abs = player && player.mv && Number.isFinite(Number(player.mv.absGrowth)) ? Number(player.mv.absGrowth) : -999999999999;
-      const pct = player && player.mv && Number.isFinite(Number(player.mv.pctGrowth)) ? Number(player.mv.pctGrowth) : -999999999999;
-      const broad = String(player.positionGroup || 'OTHER').toUpperCase();
-      const detail = getExportDetail(player);
-      return [
-        'data-row="1"',
-        `data-broad-pos="${escapeAttr(broad)}"`,
-        `data-detail-pos="${escapeAttr(detail)}"`,
-        `data-nationality="${escapeAttr(normalizeText(player.nationality || ''))}"`,
-        `data-u21-score="${escapeAttr(u21.total || 0)}"`,
-        `data-match-ratio="${escapeAttr(u21.matchRatio || 0)}"`,
-        `data-age="${escapeAttr(player.age === null || player.age === undefined ? 999 : Number(player.age || 999))}"`,
-        `data-mv-now="${Number.isFinite(mvNow) ? mvNow : 0}"`,
-        `data-mv-abs="${abs}"`,
-        `data-mv-pct="${pct}"`,
-        `data-player-name="${escapeAttr(cleanDash(player.name).toLowerCase())}"`
-      ].join(' ');
-    }
-
-    const rows = results.map(function row(player, index) {
-      const u21 = player.u21 || {};
-      return [
-        `<tr ${rowDataAttrs(player)}>` ,
-        `<td class="player-col">${renderPlayer(player, index)}</td>`,
-        `<td class="position-col">${renderPosition(player)}</td>`,
-        `<td class="age-col">${escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))}</td>`,
-        `<td class="nation-col">${renderPlainList(player.nationality, '—')}</td>`,
-        `<td class="availability-col">${renderU21Status(player)}</td>`,
-        `<td class="club-col"><strong>${escapeHtml(formatU21Club(u21, player))}</strong></td>`,
-        `<td class="mv-now-col"><strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong></td>`,
-        `<td class="growth-col">${renderGrowth(player.mv)}</td>`,
-        `<td class="playing-col">${renderPlayingTime(player.playingTime, u21)}</td>`,
-        `<td class="season-col">${renderSeasons(player.playingTime)}</td>`,
-        `<td class="source-col">${renderSource(player)}</td>`,
-        `<td class="link-col"><a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">Profil</a></td>`,
-        '</tr>'
-      ].join('');
-    }).join('\n');
-
-    const criteria = buildU21ExportFilterSummary(settings).concat([
-      'Rendezés: U21 score',
-      'Fő súlyok: meccsarány · MV-változás · életkor · játékvolumen'
-    ]);
-
-    const nationalityOptions = unique(results.map(function nat(player) { return player.nationality || ''; }).filter(Boolean)).sort().map(function natOption(nat) {
-      return `<option value="${escapeAttr(normalizeText(nat))}">${escapeHtml(nat)}</option>`;
-    }).join('');
-
-    const filterControls = [
-      '<section class="export-controls" aria-label="Export szűrés és rendezés">',
-      '<div class="export-control-head"><strong>Szűrés és rendezés</strong><span><b id="visibleCount">' + escapeHtml(String(results.length)) + '</b> / <b id="totalCount">' + escapeHtml(String(results.length)) + '</b> játékos</span></div>',
-      '<div class="export-control-grid">',
-      '<label>Rendezés<select id="sortBy"><option value="scoreDesc">U21 score</option><option value="matchDesc">Meccsarány</option><option value="mvGrowthDesc">MV növekedés</option><option value="mvDesc">Jelenlegi MV</option><option value="ageAsc">Fiatalabb előre</option><option value="nameAsc">Név A–Z</option></select></label>',
-      '<label>Tág poszt<select id="broadFilter"><option value="all">Összes tág poszt</option><option value="GK">GK</option><option value="DEF">DEF</option><option value="MID">MID</option><option value="FWD">ATT/FWD</option></select></label>',
-      '<label>Konkrét poszt<select id="detailFilter"><option value="all">Összes konkrét poszt</option><option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="DM">DM</option><option value="CM">CM</option><option value="AM">AM</option><option value="LM">LM</option><option value="RM">RM</option><option value="LW">Left Winger</option><option value="RW">Right Winger</option><option value="WING">Winger, oldal nélkül</option><option value="CF">CF/ST</option><option value="SS">SS</option><option value="OTHER">Other/unknown</option></select></label>',
-      '<label>Nemzetiség<select id="nationalityFilter"><option value="all">Összes nemzetiség</option>' + nationalityOptions + '</select></label>',
-      '<button type="button" id="resetFilters">Reset</button>',
-      '</div>',
-      '<p class="export-control-note">A szűrés és rendezés ugyanúgy kliensoldali, mint a lejáró szerződéses exportban. Nem indít új scrapinget.</p>',
-      '</section>'
-    ].join('\n');
-
-    return [
-      '<!doctype html>',
-      '<html lang="hu">',
-      '<head>',
-      '<meta charset="utf-8">',
-      '<meta name="viewport" content="width=device-width, initial-scale=1">',
-      '<title>TM Scout V2 · U21 Export</title>',
-      '<style>',
-      u21ExportCss(),
-      '</style>',
-      '</head>',
-      '<body>',
-      '<main>',
-      '<section class="hero">',
-      '<div class="topline">',
-      '<div>',
-      '<div class="kicker">Transfermarkt Scout Export</div>',
-      '<h1>TM Scout V2</h1>',
-      `<p>U21 export · ${escapeHtml(new Date().toLocaleString())}</p>`,
-      '</div>',
-      `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`,
-      '</div>',
-      '<div class="stats">',
-      `<div class="stat"><span>találatok</span><strong>${escapeHtml(String(results.length))}</strong></div>`,
-      `<div class="stat"><span>vizsgált játékosok</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`,
-      `<div class="stat"><span>ellenőrizve</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`,
-      '<div class="stat"><span>mód</span><strong>U21</strong></div>',
-      '</div>',
-      '</section>',
-      filterControls,
-      '<section class="table-wrap">',
-      '<table>',
-      '<colgroup><col class="player"><col class="position"><col class="age"><col class="nation"><col class="availability"><col class="club"><col class="mvnow"><col class="growth"><col class="playing"><col class="season"><col class="source"><col class="link"></colgroup>',
-      '<thead><tr><th>Játékos</th><th>Poszt</th><th>Kor</th><th>Nemzetiség</th><th>U21 állapot</th><th>Klub</th><th>MV most</th><th>MV változás</th><th>Játékidő</th><th>Utolsó szezonok</th><th>Lista</th><th>Profil</th></tr></thead>',
-      `<tbody data-export-body>${rows || '<tr><td colspan="12">Nincs találat.</td></tr>'}</tbody>`,
-      '</table>',
-      '</section>',
-      '</main>',
-      '<script>',
-      u21ExportScript(),
-      '</script>',
-      '</body>',
-      '</html>'
-    ].join('\n');
-  }
-
-  function u21ExportScript() {
-    return `(function(){
-      const tbody = document.querySelector('[data-export-body]');
-      if (!tbody) return;
-      const rows = Array.from(tbody.querySelectorAll('tr[data-row]'));
-      const sortBy = document.getElementById('sortBy');
-      const broadFilter = document.getElementById('broadFilter');
-      const detailFilter = document.getElementById('detailFilter');
-      const nationalityFilter = document.getElementById('nationalityFilter');
-      const visibleCount = document.getElementById('visibleCount');
-      const reset = document.getElementById('resetFilters');
-      function num(row,key){ const value = Number(row.dataset[key]); return Number.isFinite(value) ? value : -999999999; }
-      function name(row){ return String(row.dataset.playerName || ''); }
-      function compareRows(a,b){
-        const mode = sortBy ? sortBy.value : 'scoreDesc';
-        if (mode === 'matchDesc') return num(b,'matchRatio') - num(a,'matchRatio') || num(b,'u21Score') - num(a,'u21Score') || name(a).localeCompare(name(b));
-        if (mode === 'mvGrowthDesc') return num(b,'mvAbs') - num(a,'mvAbs') || num(b,'mvPct') - num(a,'mvPct') || name(a).localeCompare(name(b));
-        if (mode === 'mvDesc') return num(b,'mvNow') - num(a,'mvNow') || num(b,'u21Score') - num(a,'u21Score') || name(a).localeCompare(name(b));
-        if (mode === 'ageAsc') return num(a,'age') - num(b,'age') || num(b,'u21Score') - num(a,'u21Score') || name(a).localeCompare(name(b));
-        if (mode === 'nameAsc') return name(a).localeCompare(name(b));
-        return num(b,'u21Score') - num(a,'u21Score') || num(b,'matchRatio') - num(a,'matchRatio') || name(a).localeCompare(name(b));
-      }
-      function passes(row){
-        const broad = broadFilter ? broadFilter.value : 'all';
-        const detail = detailFilter ? detailFilter.value : 'all';
-        const nat = nationalityFilter ? nationalityFilter.value : 'all';
-        if (detail && detail !== 'all' && row.dataset.detailPos !== detail) return false;
-        if (broad && broad !== 'all' && row.dataset.broadPos !== broad) return false;
-        if (nat && nat !== 'all' && !String(row.dataset.nationality || '').includes(nat)) return false;
-        return true;
-      }
-      function apply(){
-        const filtered = rows.filter(passes).sort(compareRows);
-        rows.forEach(function(row){ row.classList.add('is-hidden'); });
-        filtered.forEach(function(row,index){
-          row.classList.remove('is-hidden');
-          tbody.appendChild(row);
-          const rank = row.querySelector('[data-rank]');
-          if (rank) rank.textContent = String(index + 1);
-        });
-        if (visibleCount) visibleCount.textContent = String(filtered.length);
-      }
-      [sortBy,broadFilter,detailFilter,nationalityFilter].forEach(function(el){ if (el) el.addEventListener('change', apply); });
-      if (reset) reset.addEventListener('click', function(){ if(sortBy) sortBy.value='scoreDesc'; if(broadFilter) broadFilter.value='all'; if(detailFilter) detailFilter.value='all'; if(nationalityFilter) nationalityFilter.value='all'; apply(); });
-      apply();
-    })();`;
-  }
-
-  function u21ExportCss() {
-    return [
-      ':root{color-scheme:dark;--bg:#071018;--card:#0d1b27;--card2:#102235;--line:#24415a;--line2:rgba(132,165,196,.18);--text:#eef6ff;--muted:#9bb2c7;--muted2:#71879b;--accent:#77d99a;--accent2:#8ec7ff;--warn:#ead48b;--good:#86dfa6;--bad:#f2a3a3;}',
-      '*{box-sizing:border-box}html{scrollbar-color:#31506b #071018}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#071018;color:var(--text);font-size:13px;line-height:1.4}',
-      'main{max-width:1640px;margin:0 auto;padding:24px 18px 40px}.hero{border:1px solid var(--line);background:#0a1621;border-radius:18px;padding:22px 24px;box-shadow:0 14px 50px rgba(0,0,0,.28)}',
-      '.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#75d797;font-weight:800}h1{margin:.35rem 0 .45rem;font-size:42px;line-height:1.05;letter-spacing:-.025em}p{margin:.25rem 0;color:var(--muted)}',
-      '.criteria{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;max-width:920px;color:#bfd4e7}.criteria span{font-size:12px;font-weight:700}.criteria span::before{content:"•";color:#6aa5d4;margin-right:7px}.criteria span:first-child::before{content:"";margin:0}',
-      '.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px}.stat{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#08131d}.stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:750}.stat strong{font-size:24px;color:#fff;letter-spacing:-.02em}',
-      '.table-wrap{margin-top:20px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#08131d;box-shadow:0 12px 42px rgba(0,0,0,.24)}table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:1450px;background:#08131d}col.player{width:145px}col.position{width:145px}col.age{width:48px}col.nation{width:150px}col.availability{width:265px}col.club{width:135px}col.mvnow{width:78px}col.growth{width:150px}col.playing{width:120px}col.season{width:145px}col.source{width:150px}col.link{width:70px}',
-      'th,td{padding:12px 11px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top;font-size:12.5px;line-height:1.38;overflow-wrap:anywhere;word-break:normal}th{position:sticky;top:0;z-index:2;background:#102235;color:#d7e7f5;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:800}tbody tr:nth-child(odd) td{background:#0a1722}tbody tr:nth-child(even) td{background:#0c1b27}tbody tr:hover td{background:#10263a}',
-      '.player-cell,.position-cell,.availability-cell,.growth-cell,.source-list,.season-list{display:flex;flex-direction:column;gap:4px}.player-cell strong{font-size:12.8px;color:#fff;line-height:1.25}.rank-line{color:#86a0b8;font-size:11px;font-weight:800}.profile-mini{font-size:11px}.position-code{font-size:11px;color:#9fbed8;font-weight:800}.position-label{font-weight:800;color:#a7f0bf;line-height:1.25}.plain-list{color:#d9e7f3}.availability-cell strong{color:#fff;font-size:12.5px}.availability-cell span,.muted-line{color:#b8cadd}.date-line{color:#ead48b!important;font-weight:800}.club-col strong{color:#e3edf7}.mv-now-col strong{white-space:nowrap;color:#fff}.mv-route{display:flex;align-items:center;gap:5px;flex-wrap:wrap;color:#dbeff0;font-weight:800}.growth-line{font-weight:800}.growth-positive{color:#8ee5aa}.growth-negative{color:#f0a4a4}.playing-cell{color:#ecd996;font-weight:750;white-space:normal}.playing-cell strong{color:#fff;font-size:12.5px}.season-row{color:#c2d7eb}.season-row strong{color:#fff}.source-list span{border-left:2px solid rgba(122,174,220,.55);padding-left:7px;color:#c0cfdd}.open-link{color:#9bd2ff;font-weight:800}.muted{color:var(--muted2)}a{color:#9bd2ff;text-decoration:none;font-weight:800}a:hover{text-decoration:underline}',
-      '.export-controls{margin-top:18px;border:1px solid var(--line);border-radius:16px;background:#0a1621;padding:14px 16px}.export-control-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:minmax(180px,1.1fr) minmax(160px,1fr) minmax(150px,1fr) minmax(180px,1.1fr) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.is-hidden{display:none!important}',
-      '@media(max-width:900px){main{padding:14px 10px}.hero{padding:17px;border-radius:16px}h1{font-size:34px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}td:nth-child(1)::before{content:"Játékos"}td:nth-child(2)::before{content:"Poszt"}td:nth-child(3)::before{content:"Kor"}td:nth-child(4)::before{content:"Nemzetiség"}td:nth-child(5)::before{content:"U21"}td:nth-child(6)::before{content:"Klub"}td:nth-child(7)::before{content:"MV most"}td:nth-child(8)::before{content:"MV változás"}td:nth-child(9)::before{content:"Játékidő"}td:nth-child(10)::before{content:"Szezonok"}td:nth-child(11)::before{content:"Forrás"}td:nth-child(12)::before{content:"Profil"}.criteria{gap:6px 10px}.criteria span{font-size:11px}}',
-      '@media(max-width:540px){.export-control-grid{grid-template-columns:1fr}}'
-    ].join('');
-  }
-
   function buildHtmlExport() {
-    if (isU21Mode(state.settings)) return buildU21HtmlExport();
-    const debug = state.debug;
+    const mode = isU21Mode(state.settings) ? 'u21' : 'contract';
+    const debug = state.debug || {};
     const settings = state.settings || debug.settings || {};
+    const results = state.results || [];
+    const lang = currentUiLanguage();
+    const locale = exportLocale();
 
     function cleanDash(value) {
       const text = String(value === null || value === undefined || value === '' ? '—' : value).trim();
@@ -4779,10 +4744,7 @@
     }
 
     function splitChips(text) {
-      return String(text || '')
-        .split(',')
-        .map(function trimChip(part) { return part.trim(); })
-        .filter(Boolean);
+      return String(text || '').split(',').map(function trimChip(part) { return part.trim(); }).filter(Boolean);
     }
 
     function renderInlineList(text, fallback) {
@@ -4796,7 +4758,7 @@
         '<div class="player-cell">',
         `<div class="rank-line" data-rank>#${index + 1}</div>`,
         `<strong>${escapeHtml(cleanDash(player.name))}</strong>`,
-        `<a class="profile-mini" href="${escapeAttr(player.profileUrl)}" target="_blank" rel="noopener noreferrer">TM profil</a>`,
+        `<a class="profile-mini" href="${escapeAttr(player.profileUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('tmProfile'))}</a>`,
         '</div>'
       ].join('');
     }
@@ -4805,12 +4767,7 @@
       const group = cleanDash(player.positionGroup || '—');
       const detail = cleanDash(player.positionDetail || '—');
       const label = cleanDash(player.position || '—');
-      return [
-        '<div class="position-cell">',
-        `<div class="position-code">${escapeHtml(group)}${player.positionDetail ? ` / ${escapeHtml(detail)}` : ''}</div>`,
-        `<div class="position-label">${escapeHtml(label)}</div>`,
-        '</div>'
-      ].join('');
+      return ['<div class="position-cell">', `<div class="position-code">${escapeHtml(group)}${player.positionDetail ? ` / ${escapeHtml(detail)}` : ''}</div>`, `<div class="position-label">${escapeHtml(label)}</div>`, '</div>'].join('');
     }
 
     function renderAvailability(text) {
@@ -4822,7 +4779,7 @@
       const joinedMatch = details.match(/Joined:\s*(\d{2}\/\d{2}\/\d{4})/i);
       const joined = joinedMatch ? joinedMatch[1] : '';
       const expires = dates.length ? dates[dates.length - 1] : '';
-      details = details.replace(/Joined:\s*\d{2}\/\d{2}\/\d{4}/i, '');
+      details = details.replace(/Joined:\s*\d{2}\/\d{2}\/\d{4}/i, '').trim();
       if (expires) details = details.replace(new RegExp(expires.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$'), '');
       details = details.replace(/\s+/g, ' ').trim();
       let leagueLevel = '';
@@ -4831,58 +4788,38 @@
         leagueLevel = levelMatch[1].trim();
         details = details.slice(0, levelMatch.index).trim();
       }
-      return [
-        '<div class="availability-cell">',
-        `<strong>${escapeHtml(title)}</strong>`,
-        details ? `<span>${escapeHtml(details)}</span>` : '',
-        leagueLevel ? `<span class="muted-line">League level: ${escapeHtml(leagueLevel)}</span>` : '',
-        (joined || expires) ? `<span class="date-line">${joined ? `Joined ${escapeHtml(joined)}` : ''}${joined && expires ? ' · ' : ''}${expires ? `Ends ${escapeHtml(expires)}` : ''}</span>` : '',
-        '</div>'
-      ].join('');
+      return ['<div class="availability-cell">', `<strong>${escapeHtml(translateRuntimeText(title))}</strong>`, details ? `<span>${escapeHtml(translateRuntimeText(details))}</span>` : '', leagueLevel ? `<span class="muted-line">${escapeHtml(ex('leagueLevel'))}: ${escapeHtml(leagueLevel)}</span>` : '', (joined || expires) ? `<span class="date-line">${joined ? `${escapeHtml(ex('joined'))} ${escapeHtml(joined)}` : ''}${joined && expires ? ' · ' : ''}${expires ? `${escapeHtml(ex('ends'))} ${escapeHtml(expires)}` : ''}</span>` : '', '</div>'].join('');
     }
 
     function renderGrowth(mv) {
       if (!mv || mv.absGrowth === null || mv.absGrowth === undefined) {
-        return `<div class="growth-cell"><span class="muted">${escapeHtml(mv && mv.unknown ? 'unknown' : '—')}</span></div>`;
+        return `<div class="growth-cell"><span class="muted">${escapeHtml(mv && mv.unknown ? ex('unknown') : '—')}</span></div>`;
       }
       const pct = mv.pctGrowth === null || mv.pctGrowth === undefined ? '—' : `${mv.pctGrowth >= 0 ? '+' : ''}${mv.pctGrowth.toFixed(1)}%`;
       const cls = mv.absGrowth >= 0 ? 'growth-positive' : 'growth-negative';
-      return [
-        '<div class="growth-cell">',
-        `<div class="mv-route"><span>${escapeHtml(formatEuro(mv.baselineValue))}</span><span>→</span><span>${escapeHtml(formatEuro(mv.latestValue))}</span></div>`,
-        `<div class="growth-line ${cls}">${mv.absGrowth >= 0 ? '+' : ''}${escapeHtml(formatEuro(mv.absGrowth))} (${escapeHtml(pct)})</div>`,
-        '</div>'
-      ].join('');
+      return ['<div class="growth-cell">', `<div class="mv-route"><span>${escapeHtml(formatEuro(mv.baselineValue))}</span><span>→</span><span>${escapeHtml(formatEuro(mv.latestValue))}</span></div>`, `<div class="growth-line ${cls}">${mv.absGrowth >= 0 ? '+' : ''}${escapeHtml(formatEuro(mv.absGrowth))} (${escapeHtml(pct)})</div>`, '</div>'].join('');
     }
 
-    function renderPlayingTime(pt) {
+    function renderPlayingTime(pt, u21) {
       const safe = pt || emptyPlayingTime();
-      return `<div class="playing-cell"><strong>${escapeHtml(String(safe.apps || 0))}</strong> apps · <strong>${escapeHtml(String(safe.minutes || 0))}</strong> min</div>`;
+      const ratio = u21 && u21.matchRatio !== undefined ? `<br><span class="muted-line">${escapeHtml(String(u21.matchRatio))}% ${escapeHtml(ex('matchRatio').toLowerCase())}</span>` : '';
+      return `<div class="playing-cell"><strong>${escapeHtml(String(safe.apps || 0))}</strong> ${escapeHtml(Number(safe.apps || 0) === 1 ? ex('app') : ex('apps'))} · <strong>${escapeHtml(String(safe.minutes || 0))}</strong> ${escapeHtml(ex('min'))}${ratio}</div>`;
     }
 
     function renderSeasons(pt) {
       const safe = pt || emptyPlayingTime();
       if (!safe.recentSeasons || !safe.recentSeasons.length) return '<span class="muted">—</span>';
-      return `<div class="season-list">${safe.recentSeasons.map(function seasonRow(season) {
-        return `<div class="season-row"><strong>${escapeHtml(season.season)}</strong>: ${escapeHtml(String(season.apps))} app / ${escapeHtml(String(season.minutes))} min</div>`;
-      }).join('')}</div>`;
+      return `<div class="season-list">${safe.recentSeasons.map(function seasonRow(season) { return `<div class="season-row"><strong>${escapeHtml(season.season)}</strong>: ${escapeHtml(String(season.apps))} ${escapeHtml(Number(season.apps || 0) === 1 ? ex('app') : ex('apps'))} / ${escapeHtml(String(season.minutes))} ${escapeHtml(ex('min'))}</div>`; }).join('')}</div>`;
     }
 
     function renderSource(player) {
       const labels = unique(player.sourceLabels || player.sourceTypes || []);
       if (!labels.length) return '<span class="muted">—</span>';
-      return `<div class="source-list">${labels.map(function sourceLabel(label) {
-        return `<span>${escapeHtml(label)}</span>`;
-      }).join('')}</div>`;
+      return `<div class="source-list">${labels.slice(0, 4).map(function sourceLabel(label) { return `<span>${escapeHtml(translateRuntimeText(label))}</span>`; }).join('')}</div>`;
     }
 
     function isExportFreeAgent(player) {
-      const blob = [
-        player.availability || '',
-        (player.sourceTypes || []).join(' '),
-        (player.sourceLabels || []).join(' '),
-        player.club || ''
-      ].join(' ').toLowerCase();
+      const blob = [player.availability || '', (player.sourceTypes || []).join(' '), (player.sourceLabels || []).join(' '), player.club || ''].join(' ').toLowerCase();
       return /free[-\s]?agent|current[-\s]?free|without club|vertragslos|vereinslos/.test(blob);
     }
 
@@ -4908,165 +4845,62 @@
     }
 
     function rowDataAttrs(player) {
+      const u21 = player.u21 || {};
       const mvNow = Number(player.currentMarketValue || 0);
       const abs = player && player.mv && Number.isFinite(Number(player.mv.absGrowth)) ? Number(player.mv.absGrowth) : -999999999999;
       const pct = player && player.mv && Number.isFinite(Number(player.mv.pctGrowth)) ? Number(player.mv.pctGrowth) : -999999999999;
       const broad = String(player.positionGroup || 'OTHER').toUpperCase();
       const detail = getExportDetail(player);
-      return [
-        'data-row="1"',
-        `data-free-agent="${isExportFreeAgent(player) ? 'true' : 'false'}"`,
-        `data-broad-pos="${escapeAttr(broad)}"`,
-        `data-detail-pos="${escapeAttr(detail)}"`,
-        `data-mv-now="${Number.isFinite(mvNow) ? mvNow : 0}"`,
-        `data-mv-abs="${abs}"`,
-        `data-mv-pct="${pct}"`,
-        `data-player-name="${escapeAttr(cleanDash(player.name).toLowerCase())}"`
-      ].join(' ');
+      return ['data-row="1"', `data-free-agent="${isExportFreeAgent(player) ? 'true' : 'false'}"`, `data-broad-pos="${escapeAttr(broad)}"`, `data-detail-pos="${escapeAttr(detail)}"`, `data-nationality="${escapeAttr(normalizeText(player.nationality || ''))}"`, `data-u21-score="${escapeAttr(u21.total || 0)}"`, `data-match-ratio="${escapeAttr(u21.matchRatio || 0)}"`, `data-age="${escapeAttr(player.age === null || player.age === undefined ? 999 : Number(player.age || 999))}"`, `data-mv-now="${Number.isFinite(mvNow) ? mvNow : 0}"`, `data-mv-abs="${abs}"`, `data-mv-pct="${pct}"`, `data-player-name="${escapeAttr(cleanDash(player.name).toLowerCase())}"`].join(' ');
     }
 
-    const rows = state.results.map(function row(player, index) {
-      return [
-        `<tr ${rowDataAttrs(player)}>` ,
-        `<td class="player-col">${renderPlayer(player, index)}</td>`,
-        `<td class="position-col">${renderPosition(player)}</td>`,
-        `<td class="age-col">${escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))}</td>`,
-        `<td class="nation-col">${renderInlineList(player.nationality, '—')}</td>`,
-        `<td class="availability-col">${renderAvailability(player.availability)}</td>`,
-        `<td class="club-col"><strong>${escapeHtml(cleanDash(player.club))}</strong></td>`,
-        `<td class="mv-now-col"><strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong></td>`,
-        `<td class="growth-col">${renderGrowth(player.mv)}</td>`,
-        `<td class="playing-col">${renderPlayingTime(player.playingTime)}</td>`,
-        `<td class="season-col">${renderSeasons(player.playingTime)}</td>`,
-        `<td class="source-col">${renderSource(player)}</td>`,
-        `<td class="link-col"><a class="open-link" href="${escapeAttr(player.profileUrl)}" target="_blank" rel="noopener noreferrer">Profil</a></td>`,
-        '</tr>'
-      ].join('');
+    function cell(labelKey, className, html) {
+      return `<td class="${className}" data-label="${escapeAttr(ex(labelKey))}">${html}</td>`;
+    }
+
+    const rows = results.map(function row(player, index) {
+      const u21 = player.u21 || buildU21Metrics(player, settings);
+      if (mode === 'u21') {
+        return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('u21Status', 'availability-col', `<div class="availability-cell"><strong>${escapeHtml(formatU21Score(u21))}</strong><span>${escapeHtml(formatU21MatchRatio(u21, player.playingTime))}</span></div>`), cell('clubTeam', 'club-col', `<strong>${escapeHtml(formatU21Club(u21, player))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime, u21)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('list', 'source-col', renderSource(player)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
+      }
+      return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('availability', 'availability-col', renderAvailability(player.availability)), cell('club', 'club-col', `<strong>${escapeHtml(cleanDash(player.club))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('list', 'source-col', renderSource(player)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
     }).join('\n');
 
-    const criteria = [
-      `MV: ${formatEuro(settings.minMv)}–${formatEuro(settings.maxMv)}`,
-      `Age: ${settings.minAge || '—'}–${settings.maxAge || '—'}`,
-      `Szerződés lejárati éve: ${settings.contractYear || '—'}`,
-      `MV ref: ${settings.growthSince || '—'}`,
-      `Max MV drop: ${settings.maxMvDropPct || 0}%`,
-      `Sort: absolute MV growth`
-    ];
+    const criteria = buildExportCriteria(settings);
+    const nationalityOptions = mode === 'u21' ? unique(results.map(function nat(player) { return player.nationality || ''; }).filter(Boolean)).sort().map(function natOption(nat) { return `<option value="${escapeAttr(normalizeText(nat))}">${escapeHtml(nat)}</option>`; }).join('') : '';
 
-    const filterControls = [
-      '<section class="export-controls" aria-label="Export szűrés és rendezés">',
-      '<div class="export-control-head"><strong>Szűrés és rendezés</strong><span><b id="visibleCount">' + escapeHtml(String(state.results.length)) + '</b> / <b id="totalCount">' + escapeHtml(String(state.results.length)) + '</b> játékos</span></div>',
-      '<div class="export-control-grid">',
-      '<label>Rendezés<select id="sortBy"><option value="absDesc">Abszolút MV növekedés</option><option value="mvDesc">Jelenlegi MV</option><option value="pctDesc">Százalékos javulás</option><option value="pctAsc">Százalékos romlás</option><option value="nameAsc">Név A–Z</option></select></label>',
-      '<label>Elérhetőség<select id="freeFilter"><option value="all">Összes</option><option value="free">Csak free agentek</option><option value="nonfree">Csak nem free agentek</option></select></label>',
-      '<label>Tág poszt<select id="broadFilter"><option value="all">Összes tág poszt</option><option value="GK">GK</option><option value="DEF">DEF</option><option value="MID">MID</option><option value="FWD">ATT/FWD</option></select></label>',
-      '<label>Konkrét poszt<select id="detailFilter"><option value="all">Összes konkrét poszt</option><option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="DM">DM</option><option value="CM">CM</option><option value="AM">AM</option><option value="LM">LM</option><option value="RM">RM</option><option value="LW">Left Winger</option><option value="RW">Right Winger</option><option value="WING">Winger, oldal nélkül</option><option value="CF">CF/ST</option><option value="SS">SS</option><option value="OTHER">Other/unknown</option></select></label>',
-      '<button type="button" id="resetFilters">Reset</button>',
-      '</div>',
-      '<p class="export-control-note">Ha konkrét posztot választasz, az felülírja a tág posztszűrőt. A rendezés kliensoldali, nem generál új scrapinget.</p>',
-      '</section>'
-    ].join('\n');
+    const controls = mode === 'u21'
+      ? ['<label>' + ex('sort') + '<select id="sortBy"><option value="scoreDesc">' + ex('scoreSort') + '</option><option value="matchDesc">' + ex('matchSort') + '</option><option value="mvGrowthDesc">' + ex('absGrowth') + '</option><option value="mvDesc">' + ex('mvNowSort') + '</option><option value="ageAsc">' + ex('youngerFirst') + '</option><option value="nameAsc">' + ex('nameAZ') + '</option></select></label>', '<label>' + ex('broadPos') + '<select id="broadFilter"><option value="all">' + ex('allBroad') + '</option><option value="GK">GK</option><option value="DEF">DEF</option><option value="MID">MID</option><option value="FWD">ATT/FWD</option></select></label>', '<label>' + ex('detailPos') + '<select id="detailFilter"><option value="all">' + ex('allDetail') + '</option><option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="DM">DM</option><option value="CM">CM</option><option value="AM">AM</option><option value="LM">LM</option><option value="RM">RM</option><option value="LW">Left Winger</option><option value="RW">Right Winger</option><option value="WING">Winger</option><option value="CF">CF/ST</option><option value="SS">SS</option><option value="OTHER">' + ex('other') + '</option></select></label>', '<label>' + ex('nationality') + '<select id="nationalityFilter"><option value="all">' + ex('allNationalities') + '</option>' + nationalityOptions + '</select></label>'].join('\n')
+      : ['<label>' + ex('sort') + '<select id="sortBy"><option value="absDesc">' + ex('absGrowth') + '</option><option value="mvDesc">' + ex('mvNowSort') + '</option><option value="pctDesc">' + ex('pctImprove') + '</option><option value="pctAsc">' + ex('pctDrop') + '</option><option value="nameAsc">' + ex('nameAZ') + '</option></select></label>', '<label>' + ex('availabilityFilter') + '<select id="freeFilter"><option value="all">' + ex('allPlayers') + '</option><option value="free">' + ex('freeAgentsOnly') + '</option><option value="nonfree">' + ex('nonFreeOnly') + '</option></select></label>', '<label>' + ex('broadPos') + '<select id="broadFilter"><option value="all">' + ex('allBroad') + '</option><option value="GK">GK</option><option value="DEF">DEF</option><option value="MID">MID</option><option value="FWD">ATT/FWD</option></select></label>', '<label>' + ex('detailPos') + '<select id="detailFilter"><option value="all">' + ex('allDetail') + '</option><option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="DM">DM</option><option value="CM">CM</option><option value="AM">AM</option><option value="LM">LM</option><option value="RM">RM</option><option value="LW">Left Winger</option><option value="RW">Right Winger</option><option value="WING">Winger</option><option value="CF">CF/ST</option><option value="SS">SS</option><option value="OTHER">' + ex('other') + '</option></select></label>'].join('\n');
 
-    return [
-      '<!doctype html>',
-      '<html lang="hu">',
-      '<head>',
-      '<meta charset="utf-8">',
-      '<meta name="viewport" content="width=device-width, initial-scale=1">',
-      '<title>TM Scout V2 Export</title>',
-      '<style>',
-      ':root{color-scheme:dark;--bg:#071018;--card:#0d1b27;--card2:#102235;--line:#24415a;--line2:rgba(132,165,196,.18);--text:#eef6ff;--muted:#9bb2c7;--muted2:#71879b;--accent:#77d99a;--accent2:#8ec7ff;--warn:#ead48b;--good:#86dfa6;--bad:#f2a3a3;}',
-      '*{box-sizing:border-box}html{scrollbar-color:#31506b #071018}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#071018;color:var(--text);font-size:13px;line-height:1.4}',
-      'main{max-width:1640px;margin:0 auto;padding:24px 18px 40px}.hero{border:1px solid var(--line);background:#0a1621;border-radius:18px;padding:22px 24px;box-shadow:0 14px 50px rgba(0,0,0,.28)}',
-      '.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:#75d797;font-weight:800}h1{margin:.35rem 0 .45rem;font-size:42px;line-height:1.05;letter-spacing:-.025em}p{margin:.25rem 0;color:var(--muted)}',
-      '.criteria{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;max-width:920px;color:#bfd4e7}.criteria span{font-size:12px;font-weight:700}.criteria span::before{content:"•";color:#6aa5d4;margin-right:7px}.criteria span:first-child::before{content:"";margin:0}',
-      '.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px}.stat{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#08131d}.stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:750}.stat strong{font-size:24px;color:#fff;letter-spacing:-.02em}',
-      '.table-wrap{margin-top:20px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:#08131d;box-shadow:0 12px 42px rgba(0,0,0,.24)}table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:1450px;background:#08131d}col.player{width:145px}col.position{width:145px}col.age{width:48px}col.nation{width:150px}col.availability{width:265px}col.club{width:135px}col.mvnow{width:78px}col.growth{width:150px}col.playing{width:120px}col.season{width:145px}col.source{width:150px}col.link{width:70px}',
-      'th,td{padding:12px 11px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top;font-size:12.5px;line-height:1.38;overflow-wrap:anywhere;word-break:normal}th{position:sticky;top:0;z-index:2;background:#102235;color:#d7e7f5;text-transform:uppercase;font-size:10px;letter-spacing:.06em;font-weight:800}tbody tr:nth-child(odd) td{background:#0a1722}tbody tr:nth-child(even) td{background:#0c1b27}tbody tr:hover td{background:#10263a}',
-      '.player-cell,.position-cell,.availability-cell,.growth-cell,.source-list,.season-list{display:flex;flex-direction:column;gap:4px}.player-cell strong{font-size:12.8px;color:#fff;line-height:1.25}.rank-line{color:#86a0b8;font-size:11px;font-weight:800}.profile-mini{font-size:11px}.position-code{font-size:11px;color:#9fbed8;font-weight:800}.position-label{font-weight:800;color:#a7f0bf;line-height:1.25}.plain-list{color:#d9e7f3}.availability-cell strong{color:#fff;font-size:12.5px}.availability-cell span,.muted-line{color:#b8cadd}.date-line{color:#ead48b!important;font-weight:800}.club-col strong{color:#e3edf7}.mv-now-col strong{white-space:nowrap;color:#fff}.mv-route{display:flex;align-items:center;gap:5px;flex-wrap:wrap;color:#dbeff0;font-weight:800}.growth-line{font-weight:800}.growth-positive{color:#8ee5aa}.growth-negative{color:#f0a4a4}.playing-cell{color:#ecd996;font-weight:750;white-space:normal}.playing-cell strong{color:#fff;font-size:12.5px}.season-row{color:#c2d7eb}.season-row strong{color:#fff}.source-list span{border-left:2px solid rgba(122,174,220,.55);padding-left:7px;color:#c0cfdd}.open-link{color:#9bd2ff;font-weight:800}.muted{color:var(--muted2)}a{color:#9bd2ff;text-decoration:none;font-weight:800}a:hover{text-decoration:underline}',
-      '.export-controls{margin-top:18px;border:1px solid var(--line);border-radius:16px;background:#0a1621;padding:14px 16px}.export-control-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:minmax(180px,1.1fr) minmax(160px,1fr) minmax(150px,1fr) minmax(180px,1.1fr) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.is-hidden{display:none!important}',
-      '@media(max-width:900px){main{padding:14px 10px}.hero{padding:17px;border-radius:16px}h1{font-size:34px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}td:nth-child(1)::before{content:"Játékos"}td:nth-child(2)::before{content:"Poszt"}td:nth-child(3)::before{content:"Kor"}td:nth-child(4)::before{content:"Nemzetiség"}td:nth-child(5)::before{content:"Elérhetőség"}td:nth-child(6)::before{content:"Klub"}td:nth-child(7)::before{content:"MV most"}td:nth-child(8)::before{content:"MV változás"}td:nth-child(9)::before{content:"Játékidő"}td:nth-child(10)::before{content:"Szezonok"}td:nth-child(11)::before{content:"Forrás"}td:nth-child(12)::before{content:"Profil"}.criteria{gap:6px 10px}.criteria span{font-size:11px}}',
-      '@media(max-width:540px){.export-control-grid{grid-template-columns:1fr}}',
-      '</style>',
-      '</head>',
-      '<body>',
-      '<main>',
-      '<section class="hero">',
-      '<div class="topline">',
-      '<div>',
-      '<div class="kicker">Transfermarkt Scout Export</div>',
-      '<h1>TM Scout V2</h1>',
-      `<p>Export · ${escapeHtml(new Date().toLocaleString())}</p>`,
-      '</div>',
-      `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`,
-      '</div>',
-      '<div class="stats">',
-      `<div class="stat"><span>találatok</span><strong>${escapeHtml(String(state.results.length))}</strong></div>`,
-      `<div class="stat"><span>vizsgált játékosok</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`,
-      `<div class="stat"><span>ellenőrizve</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`,
-      `<div class="stat"><span>mód</span><strong>${escapeHtml(isU21Mode(settings) ? 'U21' : 'Contract')}</strong></div>`,
-      '</div>',
-      '</section>',
-      filterControls,
-      '<section class="table-wrap">',
-      '<table>',
-      '<colgroup><col class="player"><col class="position"><col class="age"><col class="nation"><col class="availability"><col class="club"><col class="mvnow"><col class="growth"><col class="playing"><col class="season"><col class="source"><col class="link"></colgroup>',
-      '<thead><tr><th>Játékos</th><th>Poszt</th><th>Kor</th><th>Nemzetiség</th><th>Elérhetőség</th><th>Klub</th><th>MV most</th><th>MV változás</th><th>Játékidő</th><th>Utolsó szezonok</th><th>Lista</th><th>Profil</th></tr></thead>',
-      `<tbody data-export-body>${rows || '<tr><td colspan="12">Nincs találat.</td></tr>'}</tbody>`,
-      '</table>',
-      '</section>',
-      '</main>',
-      '<script>',
-      '(function(){',
-      '  const tbody = document.querySelector("[data-export-body]");',
-      '  if (!tbody) return;',
-      '  const rows = Array.from(tbody.querySelectorAll("tr[data-row]"));',
-      '  const sortBy = document.getElementById("sortBy");',
-      '  const freeFilter = document.getElementById("freeFilter");',
-      '  const broadFilter = document.getElementById("broadFilter");',
-      '  const detailFilter = document.getElementById("detailFilter");',
-      '  const visibleCount = document.getElementById("visibleCount");',
-      '  const reset = document.getElementById("resetFilters");',
-      '  function num(row, key){ const value = Number(row.dataset[key]); return Number.isFinite(value) ? value : -999999999999; }',
-      '  function name(row){ return String(row.dataset.playerName || ""); }',
-      '  function compareRows(a,b){',
-      '    const mode = sortBy ? sortBy.value : "absDesc";',
-      '    if (mode === "mvDesc") return num(b,"mvNow") - num(a,"mvNow") || num(b,"mvAbs") - num(a,"mvAbs") || name(a).localeCompare(name(b));',
-      '    if (mode === "pctDesc") return num(b,"mvPct") - num(a,"mvPct") || num(b,"mvAbs") - num(a,"mvAbs") || name(a).localeCompare(name(b));',
-      '    if (mode === "pctAsc") return num(a,"mvPct") - num(b,"mvPct") || num(a,"mvAbs") - num(b,"mvAbs") || name(a).localeCompare(name(b));',
-      '    if (mode === "nameAsc") return name(a).localeCompare(name(b));',
-      '    return num(b,"mvAbs") - num(a,"mvAbs") || num(b,"mvPct") - num(a,"mvPct") || num(b,"mvNow") - num(a,"mvNow") || name(a).localeCompare(name(b));',
-      '  }',
-      '  function passes(row){',
-      '    const freeMode = freeFilter ? freeFilter.value : "all";',
-      '    if (freeMode === "free" && row.dataset.freeAgent !== "true") return false;',
-      '    if (freeMode === "nonfree" && row.dataset.freeAgent === "true") return false;',
-      '    const detail = detailFilter ? detailFilter.value : "all";',
-      '    const broad = broadFilter ? broadFilter.value : "all";',
-      '    if (detail && detail !== "all") return row.dataset.detailPos === detail;',
-      '    if (broad && broad !== "all") return row.dataset.broadPos === broad;',
-      '    return true;',
-      '  }',
-      '  function apply(){',
-      '    const filtered = rows.filter(passes).sort(compareRows);',
-      '    rows.forEach(function(row){ row.classList.add("is-hidden"); });',
-      '    filtered.forEach(function(row, index){',
-      '      row.classList.remove("is-hidden");',
-      '      tbody.appendChild(row);',
-      '      const rank = row.querySelector("[data-rank]");',
-      '      if (rank) rank.textContent = "#" + (index + 1);',
-      '    });',
-      '    if (visibleCount) visibleCount.textContent = String(filtered.length);',
-      '  }',
-      '  [sortBy, freeFilter, broadFilter, detailFilter].forEach(function(el){ if (el) el.addEventListener("change", apply); });',
-      '  if (reset) reset.addEventListener("click", function(){ if (sortBy) sortBy.value="absDesc"; if (freeFilter) freeFilter.value="all"; if (broadFilter) broadFilter.value="all"; if (detailFilter) detailFilter.value="all"; apply(); });',
-      '  apply();',
-      '})();',
-      '</script>',
-      '</body>',
-      '</html>'
-    ].join('\n');
+    const filterControls = ['<section class="export-controls" aria-label="' + escapeAttr(ex('filtersAndSorting')) + '">', '<div class="export-control-head"><strong>' + escapeHtml(ex('filtersAndSorting')) + '</strong><span><b id="visibleCount">' + escapeHtml(String(results.length)) + '</b> / <b id="totalCount">' + escapeHtml(String(results.length)) + '</b> ' + escapeHtml(ex('players')) + '</span></div>', '<div class="export-control-grid">', controls, '<button type="button" id="resetFilters">' + escapeHtml(ex('reset')) + '</button>', '</div>', '<p class="export-control-note">' + escapeHtml(ex('clientNote')) + '</p>', '</section>'].join('\n');
+
+    const headers = mode === 'u21'
+      ? ['player','position','age','nationality','u21Status','clubTeam','currentMv','mvChange','playingTime','recentSeasons','list','profile']
+      : ['player','position','age','nationality','availability','club','currentMv','mvChange','playingTime','recentSeasons','list','profile'];
+    const colClasses = mode === 'u21'
+      ? ['player','position','age','nation','availability','club','mvnow','growth','playing','season','source','link']
+      : ['player','position','age','nation','availability','club','mvnow','growth','playing','season','source','link'];
+
+    return ['<!doctype html>', `<html lang="${escapeAttr(lang)}">`, '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${escapeHtml(ex('exportTitle'))}</title>`, '<style>', exportCss(), '</style>', '</head>', '<body>', '<main>', '<section class="hero">', '<div class="topline">', '<div>', `<div class="kicker">${escapeHtml(ex('scoutExport'))}</div>`, '<h1>TM Scout V2</h1>', `<p>${escapeHtml(mode === 'u21' ? ex('u21Export') : ex('contractExport'))} · ${escapeHtml(new Date().toLocaleString(locale))}</p>`, '</div>', `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`, '</div>', '<div class="stats">', `<div class="stat"><span>${escapeHtml(ex('results'))}</span><strong>${escapeHtml(String(results.length))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('checkedPlayers'))}</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('enriched'))}</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('mode'))}</span><strong>${escapeHtml(mode === 'u21' ? 'U21' : 'Contract')}</strong></div>`, '</div>', '</section>', filterControls, '<section class="table-wrap">', '<table>', `<colgroup>${colClasses.map(function cc(cls) { return `<col class="${escapeAttr(cls)}">`; }).join('')}</colgroup>`, `<thead><tr>${headers.map(function h(key) { return `<th>${escapeHtml(ex(key))}</th>`; }).join('')}</tr></thead>`, `<tbody data-export-body>${rows || '<tr><td colspan="12">' + escapeHtml(ex('noResults')) + '</td></tr>'}</tbody>`, '</table>', '</section>', '</main>', '<script>', exportScript(mode), '</script>', '</body>', '</html>'].join('\n');
   }
+
+  function exportCss() {
+    return [
+      ':root{color-scheme:dark;--bg:#071018;--panel:#0b1722;--panel2:#0e1f2e;--line:rgba(125,166,200,.24);--line2:rgba(125,166,200,.14);--text:#eef7ff;--muted:#9fb3c7;--green:#56f097;--blue:#9bd2ff;--red:#ff8b8b}',
+      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1560px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1220px;border-collapse:collapse}th,td{padding:12px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:11px;text-transform:uppercase;letter-spacing:.06em;z-index:1}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:11px;font-weight:900}.player-cell strong{display:block;font-size:14px}.profile-mini,.open-link{font-weight:800}.position-code{font-weight:900}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:900}.growth-negative{color:var(--red);font-weight:900}.mv-route{display:flex;gap:6px;color:#dbe9f5;font-size:12px}.playing-cell strong{color:#fff}.season-row{font-size:12px;color:#dceafa}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}.is-hidden{display:none!important}',
+      '@media(max-width:900px){main{width:100%;padding:12px 8px 28px}.hero{padding:17px;border-radius:16px}.topline{display:block}.criteria{justify-content:flex-start;margin-top:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}',
+      '@media(max-width:540px){.stats,.export-control-grid{grid-template-columns:1fr}td{grid-template-columns:1fr;gap:4px}.criteria span{font-size:11px}}'
+    ].join('');
+  }
+
+  function exportScript(mode) {
+    if (mode === 'u21') {
+      return `(function(){const tbody=document.querySelector('[data-export-body]');if(!tbody)return;const rows=Array.from(tbody.querySelectorAll('tr[data-row]'));const sortBy=document.getElementById('sortBy');const broadFilter=document.getElementById('broadFilter');const detailFilter=document.getElementById('detailFilter');const nationalityFilter=document.getElementById('nationalityFilter');const visibleCount=document.getElementById('visibleCount');const reset=document.getElementById('resetFilters');function num(row,key){const value=Number(row.dataset[key]);return Number.isFinite(value)?value:-999999999;}function name(row){return String(row.dataset.playerName||'');}function compareRows(a,b){const mode=sortBy?sortBy.value:'scoreDesc';if(mode==='matchDesc')return num(b,'matchRatio')-num(a,'matchRatio')||num(b,'u21Score')-num(a,'u21Score')||name(a).localeCompare(name(b));if(mode==='mvGrowthDesc')return num(b,'mvAbs')-num(a,'mvAbs')||num(b,'mvPct')-num(a,'mvPct')||name(a).localeCompare(name(b));if(mode==='mvDesc')return num(b,'mvNow')-num(a,'mvNow')||num(b,'u21Score')-num(a,'u21Score')||name(a).localeCompare(name(b));if(mode==='ageAsc')return num(a,'age')-num(b,'age')||num(b,'u21Score')-num(a,'u21Score')||name(a).localeCompare(name(b));if(mode==='nameAsc')return name(a).localeCompare(name(b));return num(b,'u21Score')-num(a,'u21Score')||num(b,'matchRatio')-num(a,'matchRatio')||name(a).localeCompare(name(b));}function passes(row){const detail=detailFilter?detailFilter.value:'all';const broad=broadFilter?broadFilter.value:'all';const nat=nationalityFilter?nationalityFilter.value:'all';if(detail&&detail!=='all'&&row.dataset.detailPos!==detail)return false;if((!detail||detail==='all')&&broad&&broad!=='all'&&row.dataset.broadPos!==broad)return false;if(nat&&nat!=='all'&&row.dataset.nationality!==nat)return false;return true;}function apply(){const filtered=rows.filter(passes).sort(compareRows);rows.forEach(function(row){row.classList.add('is-hidden');});filtered.forEach(function(row,index){row.classList.remove('is-hidden');tbody.appendChild(row);const rank=row.querySelector('[data-rank]');if(rank)rank.textContent='#'+(index+1);});if(visibleCount)visibleCount.textContent=String(filtered.length);}[sortBy,broadFilter,detailFilter,nationalityFilter].forEach(function(el){if(el)el.addEventListener('change',apply);});if(reset)reset.addEventListener('click',function(){if(sortBy)sortBy.value='scoreDesc';if(broadFilter)broadFilter.value='all';if(detailFilter)detailFilter.value='all';if(nationalityFilter)nationalityFilter.value='all';apply();});apply();})();`;
+    }
+    return `(function(){const tbody=document.querySelector('[data-export-body]');if(!tbody)return;const rows=Array.from(tbody.querySelectorAll('tr[data-row]'));const sortBy=document.getElementById('sortBy');const freeFilter=document.getElementById('freeFilter');const broadFilter=document.getElementById('broadFilter');const detailFilter=document.getElementById('detailFilter');const visibleCount=document.getElementById('visibleCount');const reset=document.getElementById('resetFilters');function num(row,key){const value=Number(row.dataset[key]);return Number.isFinite(value)?value:-999999999999;}function name(row){return String(row.dataset.playerName||'');}function compareRows(a,b){const mode=sortBy?sortBy.value:'absDesc';if(mode==='mvDesc')return num(b,'mvNow')-num(a,'mvNow')||num(b,'mvAbs')-num(a,'mvAbs')||name(a).localeCompare(name(b));if(mode==='pctDesc')return num(b,'mvPct')-num(a,'mvPct')||num(b,'mvAbs')-num(a,'mvAbs')||name(a).localeCompare(name(b));if(mode==='pctAsc')return num(a,'mvPct')-num(b,'mvPct')||num(a,'mvAbs')-num(b,'mvAbs')||name(a).localeCompare(name(b));if(mode==='nameAsc')return name(a).localeCompare(name(b));return num(b,'mvAbs')-num(a,'mvAbs')||num(b,'mvPct')-num(a,'mvPct')||num(b,'mvNow')-num(a,'mvNow')||name(a).localeCompare(name(b));}function passes(row){const freeMode=freeFilter?freeFilter.value:'all';if(freeMode==='free'&&row.dataset.freeAgent!=='true')return false;if(freeMode==='nonfree'&&row.dataset.freeAgent==='true')return false;const detail=detailFilter?detailFilter.value:'all';const broad=broadFilter?broadFilter.value:'all';if(detail&&detail!=='all')return row.dataset.detailPos===detail;if(broad&&broad!=='all')return row.dataset.broadPos===broad;return true;}function apply(){const filtered=rows.filter(passes).sort(compareRows);rows.forEach(function(row){row.classList.add('is-hidden');});filtered.forEach(function(row,index){row.classList.remove('is-hidden');tbody.appendChild(row);const rank=row.querySelector('[data-rank]');if(rank)rank.textContent='#'+(index+1);});if(visibleCount)visibleCount.textContent=String(filtered.length);}[sortBy,freeFilter,broadFilter,detailFilter].forEach(function(el){if(el)el.addEventListener('change',apply);});if(reset)reset.addEventListener('click',function(){if(sortBy)sortBy.value='absDesc';if(freeFilter)freeFilter.value='all';if(broadFilter)broadFilter.value='all';if(detailFilter)detailFilter.value='all';apply();});apply();})();`;
+  }
+
 
 
   function showUiModal(message, options) {
@@ -5075,7 +4909,7 @@
     overlay.className = `tm-scout-v2-ui-modal${opts.variant ? ' is-' + opts.variant : ''}`;
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    const title = opts.title || (opts.variant === 'error' ? 'Hoppá' : APP.name);
+    const title = opts.title || (opts.variant === 'error' ? tx('Hoppá') : APP.name);
     const text = translateRuntimeText(String(message || ''));
     overlay.innerHTML = [
       '<div class="tm-scout-v2-ui-modal-card">',
@@ -5102,7 +4936,7 @@
   }
 
   function ensureHasResults() {
-    if (!state.results.length) throw new Error('Nincs exportálható találat. Előbb futtasd a keresést.');
+    if (!state.results.length) throw new Error(tx('Nincs exportálható találat. Előbb futtasd a keresést.'));
   }
 
 
@@ -5116,10 +4950,10 @@
       overlay.className = 'tm-scout-v2-html-modal';
       overlay.innerHTML = [
         '<div class="tm-scout-v2-html-modal-head">',
-        '<strong>HTML nézet</strong>',
-        '<button type="button" data-close-html-view>Bezárás</button>',
+        `<strong>${escapeHtml(tx('HTML nézet'))}</strong>`,
+        `<button type="button" data-close-html-view>${escapeHtml(tx('Bezárás'))}</button>`,
         '</div>',
-        `<iframe title="TM Scout V2 HTML nézet" src="${escapeAttr(url)}"></iframe>`
+        `<iframe title="${escapeAttr(tx('HTML nézet'))}" src="${escapeAttr(url)}"></iframe>`
       ].join('');
       document.body.appendChild(overlay);
       overlay.querySelector('[data-close-html-view]').addEventListener('click', function closeHtmlView() {
