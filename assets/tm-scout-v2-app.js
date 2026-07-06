@@ -1,5 +1,6 @@
 /*
- * nationality-custom-picker-no-jump-20260706
+ * export-linebreak-no-list-20260706
+ * Based on full-i18n-export-popup; keeps old export design, removes List column, improves line breaks.
  * TM Scout V2 GitHub Pages build
  * Source: Tampermonkey userscript converted to static frontend.
  * Network: GM_xmlhttpRequest shim -> hardcoded Cloudflare Worker proxy endpoint.
@@ -4425,7 +4426,7 @@
     if (isU21Mode(state.settings)) return buildU21CsvExport(results);
     const headers = [
       ex('player'), ex('position'), ex('age'), ex('nationality'), ex('availability'), ex('club'),
-      ex('currentMv'), ex('mvChange'), ex('playingTime'), ex('recentSeasons'), ex('list'), ex('tmProfile')
+      ex('currentMv'), ex('mvChange'), ex('playingTime'), ex('recentSeasons'), ex('tmProfile')
     ];
     const rows = results.map(function row(player) {
       return [
@@ -4439,7 +4440,6 @@
         formatGrowth(player.mv),
         formatPlayingTime(player.playingTime),
         formatRecentSeasons(player.playingTime),
-        unique(player.sourceLabels || player.sourceTypes || []).join(', '),
         player.profileUrl
       ];
     });
@@ -4705,6 +4705,26 @@
     return (dict[lang] && dict[lang][key]) || dict.hu[key] || key;
   }
 
+  function buildExportPositionCriteria(settings) {
+    const s = settings || {};
+    const broad = [];
+    if (s.posGK) broad.push('GK');
+    if (s.posDEF) broad.push('DEF');
+    if (s.posMID) broad.push('MID');
+    if (s.posFWD) broad.push('FWD');
+    const allBroadSelected = broad.length === 0 || broad.length === 4;
+    if (String(s.positionFilterMode || DEFAULTS.positionFilterMode) !== 'detail') {
+      return allBroadSelected ? ex('allBroad') : broad.join(', ');
+    }
+    const detailPairs = [
+      ['detailGK', 'GK'], ['detailCB', 'CB'], ['detailLB', 'LB'], ['detailRB', 'RB'],
+      ['detailDM', 'DM'], ['detailCM', 'CM'], ['detailAM', 'AM'], ['detailLM', 'LM'], ['detailRM', 'RM'],
+      ['detailLW', 'LW'], ['detailRW', 'RW'], ['detailWING', 'Winger'], ['detailCF', 'CF/ST'], ['detailSS', 'SS'], ['detailOther', ex('other')]
+    ];
+    const selected = detailPairs.filter(function pairEnabled(pair) { return Boolean(s[pair[0]]); }).map(function pairLabel(pair) { return pair[1]; });
+    return selected.length === 0 || selected.length === detailPairs.length ? ex('allDetail') : selected.join(', ');
+  }
+
   function buildExportCriteria(settings) {
     const s = settings || {};
     if (isU21Mode(s)) {
@@ -4712,6 +4732,7 @@
       return [
         `${ex('criteriaAge')}: ${s.u21MinAge || '—'}–${s.u21MaxAge || '—'}`,
         `${ex('criteriaMv')}: ${formatEuro(s.u21MinMv || 0)} – ${formatEuro(s.u21MaxMv || 0)}`,
+        `${ex('position')}: ${buildExportPositionCriteria(s)}`,
         `${ex('minMatchRatio')}: ${s.u21MinMatchRatio || 0}%`,
         `${ex('countries')}: ${countries}`,
         `${ex('maxPages')}: ${s.u21MaxSourcePages || DEFAULTS.u21MaxSourcePages}`,
@@ -4723,6 +4744,7 @@
     return [
       `${ex('criteriaMv')}: ${formatEuro(s.minMv)}–${formatEuro(s.maxMv)}`,
       `${ex('criteriaAge')}: ${s.minAge || '—'}–${s.maxAge || '—'}`,
+      `${ex('position')}: ${buildExportPositionCriteria(s)}`,
       `${ex('contractYear')}: ${s.contractYear || '—'}`,
       `${ex('mvRef')}: ${s.growthSince || '—'}`,
       `${ex('maxMvDrop')}: ${s.maxMvDropPct || 0}%`,
@@ -4767,7 +4789,8 @@
       const group = cleanDash(player.positionGroup || '—');
       const detail = cleanDash(player.positionDetail || '—');
       const label = cleanDash(player.position || '—');
-      return ['<div class="position-cell">', `<div class="position-code">${escapeHtml(group)}${player.positionDetail ? ` / ${escapeHtml(detail)}` : ''}</div>`, `<div class="position-label">${escapeHtml(label)}</div>`, '</div>'].join('');
+      const detailLine = player.positionDetail ? `<div class="position-detail">${escapeHtml(detail)}</div>` : '';
+      return ['<div class="position-cell">', `<div class="position-code">${escapeHtml(group)}</div>`, detailLine, `<div class="position-label">${escapeHtml(label)}</div>`, '</div>'].join('');
     }
 
     function renderAvailability(text) {
@@ -4788,7 +4811,13 @@
         leagueLevel = levelMatch[1].trim();
         details = details.slice(0, levelMatch.index).trim();
       }
-      return ['<div class="availability-cell">', `<strong>${escapeHtml(translateRuntimeText(title))}</strong>`, details ? `<span>${escapeHtml(translateRuntimeText(details))}</span>` : '', leagueLevel ? `<span class="muted-line">${escapeHtml(ex('leagueLevel'))}: ${escapeHtml(leagueLevel)}</span>` : '', (joined || expires) ? `<span class="date-line">${joined ? `${escapeHtml(ex('joined'))} ${escapeHtml(joined)}` : ''}${joined && expires ? ' · ' : ''}${expires ? `${escapeHtml(ex('ends'))} ${escapeHtml(expires)}` : ''}</span>` : '', '</div>'].join('');
+      const detailParts = [];
+      if (details) {
+        const compact = translateRuntimeText(details);
+        const splitByDash = compact.split(/\s+[·•-]\s+/).map(function cleanPart(part) { return part.trim(); }).filter(Boolean);
+        detailParts.push.apply(detailParts, splitByDash.length > 1 ? splitByDash.slice(0, 3) : [compact]);
+      }
+      return ['<div class="availability-cell">', `<strong>${escapeHtml(translateRuntimeText(title))}</strong>`, detailParts.map(function detailLine(line) { return `<span>${escapeHtml(line)}</span>`; }).join(''), leagueLevel ? `<span class="muted-line">${escapeHtml(ex('leagueLevel'))}: ${escapeHtml(leagueLevel)}</span>` : '', (joined || expires) ? `<span class="date-line">${joined ? `${escapeHtml(ex('joined'))} ${escapeHtml(joined)}` : ''}${joined && expires ? ' · ' : ''}${expires ? `${escapeHtml(ex('ends'))} ${escapeHtml(expires)}` : ''}</span>` : '', '</div>'].join('');
     }
 
     function renderGrowth(mv) {
@@ -4802,14 +4831,14 @@
 
     function renderPlayingTime(pt, u21) {
       const safe = pt || emptyPlayingTime();
-      const ratio = u21 && u21.matchRatio !== undefined ? `<br><span class="muted-line">${escapeHtml(String(u21.matchRatio))}% ${escapeHtml(ex('matchRatio').toLowerCase())}</span>` : '';
-      return `<div class="playing-cell"><strong>${escapeHtml(String(safe.apps || 0))}</strong> ${escapeHtml(Number(safe.apps || 0) === 1 ? ex('app') : ex('apps'))} · <strong>${escapeHtml(String(safe.minutes || 0))}</strong> ${escapeHtml(ex('min'))}${ratio}</div>`;
+      const ratio = u21 && u21.matchRatio !== undefined ? `<span class="muted-line">${escapeHtml(String(u21.matchRatio))}% ${escapeHtml(ex('matchRatio').toLowerCase())}</span>` : '';
+      return `<div class="playing-cell"><span><strong>${escapeHtml(String(safe.apps || 0))}</strong> ${escapeHtml(Number(safe.apps || 0) === 1 ? ex('app') : ex('apps'))}</span><span><strong>${escapeHtml(String(safe.minutes || 0))}</strong> ${escapeHtml(ex('min'))}</span>${ratio}</div>`;
     }
 
     function renderSeasons(pt) {
       const safe = pt || emptyPlayingTime();
       if (!safe.recentSeasons || !safe.recentSeasons.length) return '<span class="muted">—</span>';
-      return `<div class="season-list">${safe.recentSeasons.map(function seasonRow(season) { return `<div class="season-row"><strong>${escapeHtml(season.season)}</strong>: ${escapeHtml(String(season.apps))} ${escapeHtml(Number(season.apps || 0) === 1 ? ex('app') : ex('apps'))} / ${escapeHtml(String(season.minutes))} ${escapeHtml(ex('min'))}</div>`; }).join('')}</div>`;
+      return `<div class="season-list">${safe.recentSeasons.map(function seasonRow(season) { return `<div class="season-row"><strong>${escapeHtml(season.season)}</strong><span>${escapeHtml(String(season.apps))} ${escapeHtml(Number(season.apps || 0) === 1 ? ex('app') : ex('apps'))}</span><span>${escapeHtml(String(season.minutes))} ${escapeHtml(ex('min'))}</span></div>`; }).join('')}</div>`;
     }
 
     function renderSource(player) {
@@ -4861,9 +4890,9 @@
     const rows = results.map(function row(player, index) {
       const u21 = player.u21 || buildU21Metrics(player, settings);
       if (mode === 'u21') {
-        return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('u21Status', 'availability-col', `<div class="availability-cell"><strong>${escapeHtml(formatU21Score(u21))}</strong><span>${escapeHtml(formatU21MatchRatio(u21, player.playingTime))}</span></div>`), cell('clubTeam', 'club-col', `<strong>${escapeHtml(formatU21Club(u21, player))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime, u21)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('list', 'source-col', renderSource(player)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
+        return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('u21Status', 'availability-col', `<div class="availability-cell"><strong>${escapeHtml(formatU21Score(u21))}</strong><span>${escapeHtml(formatU21MatchRatio(u21, player.playingTime))}</span></div>`), cell('clubTeam', 'club-col', `<strong>${escapeHtml(formatU21Club(u21, player))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime, u21)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
       }
-      return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('availability', 'availability-col', renderAvailability(player.availability)), cell('club', 'club-col', `<strong>${escapeHtml(cleanDash(player.club))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('list', 'source-col', renderSource(player)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
+      return ['<tr ' + rowDataAttrs(player) + '>', cell('player', 'player-col', renderPlayer(player, index)), cell('position', 'position-col', renderPosition(player)), cell('age', 'age-col', escapeHtml(player.age === null || player.age === undefined ? '—' : String(player.age))), cell('nationality', 'nation-col', renderInlineList(player.nationality, '—')), cell('availability', 'availability-col', renderAvailability(player.availability)), cell('club', 'club-col', `<strong>${escapeHtml(cleanDash(player.club))}</strong>`), cell('currentMv', 'mv-now-col', `<strong>${escapeHtml(formatEuro(player.currentMarketValue))}</strong>`), cell('mvChange', 'growth-col', renderGrowth(player.mv)), cell('playingTime', 'playing-col', renderPlayingTime(player.playingTime)), cell('recentSeasons', 'season-col', renderSeasons(player.playingTime)), cell('profile', 'link-col', `<a class="open-link" href="${escapeAttr(player.profileUrl || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex('profile'))}</a>`), '</tr>'].join('');
     }).join('\n');
 
     const criteria = buildExportCriteria(settings);
@@ -4876,19 +4905,19 @@
     const filterControls = ['<section class="export-controls" aria-label="' + escapeAttr(ex('filtersAndSorting')) + '">', '<div class="export-control-head"><strong>' + escapeHtml(ex('filtersAndSorting')) + '</strong><span><b id="visibleCount">' + escapeHtml(String(results.length)) + '</b> / <b id="totalCount">' + escapeHtml(String(results.length)) + '</b> ' + escapeHtml(ex('players')) + '</span></div>', '<div class="export-control-grid">', controls, '<button type="button" id="resetFilters">' + escapeHtml(ex('reset')) + '</button>', '</div>', '<p class="export-control-note">' + escapeHtml(ex('clientNote')) + '</p>', '</section>'].join('\n');
 
     const headers = mode === 'u21'
-      ? ['player','position','age','nationality','u21Status','clubTeam','currentMv','mvChange','playingTime','recentSeasons','list','profile']
-      : ['player','position','age','nationality','availability','club','currentMv','mvChange','playingTime','recentSeasons','list','profile'];
+      ? ['player','position','age','nationality','u21Status','clubTeam','currentMv','mvChange','playingTime','recentSeasons','profile']
+      : ['player','position','age','nationality','availability','club','currentMv','mvChange','playingTime','recentSeasons','profile'];
     const colClasses = mode === 'u21'
-      ? ['player','position','age','nation','availability','club','mvnow','growth','playing','season','source','link']
-      : ['player','position','age','nation','availability','club','mvnow','growth','playing','season','source','link'];
+      ? ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link']
+      : ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link'];
 
-    return ['<!doctype html>', `<html lang="${escapeAttr(lang)}">`, '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${escapeHtml(ex('exportTitle'))}</title>`, '<style>', exportCss(), '</style>', '</head>', '<body>', '<main>', '<section class="hero">', '<div class="topline">', '<div>', `<div class="kicker">${escapeHtml(ex('scoutExport'))}</div>`, '<h1>TM Scout V2</h1>', `<p>${escapeHtml(mode === 'u21' ? ex('u21Export') : ex('contractExport'))} · ${escapeHtml(new Date().toLocaleString(locale))}</p>`, '</div>', `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`, '</div>', '<div class="stats">', `<div class="stat"><span>${escapeHtml(ex('results'))}</span><strong>${escapeHtml(String(results.length))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('checkedPlayers'))}</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('enriched'))}</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('mode'))}</span><strong>${escapeHtml(mode === 'u21' ? 'U21' : 'Contract')}</strong></div>`, '</div>', '</section>', filterControls, '<section class="table-wrap">', '<table>', `<colgroup>${colClasses.map(function cc(cls) { return `<col class="${escapeAttr(cls)}">`; }).join('')}</colgroup>`, `<thead><tr>${headers.map(function h(key) { return `<th>${escapeHtml(ex(key))}</th>`; }).join('')}</tr></thead>`, `<tbody data-export-body>${rows || '<tr><td colspan="12">' + escapeHtml(ex('noResults')) + '</td></tr>'}</tbody>`, '</table>', '</section>', '</main>', '<script>', exportScript(mode), '</script>', '</body>', '</html>'].join('\n');
+    return ['<!doctype html>', `<html lang="${escapeAttr(lang)}">`, '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${escapeHtml(ex('exportTitle'))}</title>`, '<style>', exportCss(), '</style>', '</head>', '<body>', '<main>', '<section class="hero">', '<div class="topline">', '<div>', `<div class="kicker">${escapeHtml(ex('scoutExport'))}</div>`, '<h1>TM Scout V2</h1>', `<p>${escapeHtml(mode === 'u21' ? ex('u21Export') : ex('contractExport'))} · ${escapeHtml(new Date().toLocaleString(locale))}</p>`, '</div>', `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`, '</div>', '<div class="stats">', `<div class="stat"><span>${escapeHtml(ex('results'))}</span><strong>${escapeHtml(String(results.length))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('checkedPlayers'))}</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('enriched'))}</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('mode'))}</span><strong>${escapeHtml(mode === 'u21' ? 'U21' : 'Contract')}</strong></div>`, '</div>', '</section>', filterControls, '<section class="table-wrap">', '<table>', `<colgroup>${colClasses.map(function cc(cls) { return `<col class="${escapeAttr(cls)}">`; }).join('')}</colgroup>`, `<thead><tr>${headers.map(function h(key) { return `<th>${escapeHtml(ex(key))}</th>`; }).join('')}</tr></thead>`, `<tbody data-export-body>${rows || '<tr><td colspan="11">' + escapeHtml(ex('noResults')) + '</td></tr>'}</tbody>`, '</table>', '</section>', '</main>', '<script>', exportScript(mode), '</script>', '</body>', '</html>'].join('\n');
   }
 
   function exportCss() {
     return [
       ':root{color-scheme:dark;--bg:#071018;--panel:#0b1722;--panel2:#0e1f2e;--line:rgba(125,166,200,.24);--line2:rgba(125,166,200,.14);--text:#eef7ff;--muted:#9fb3c7;--green:#56f097;--blue:#9bd2ff;--red:#ff8b8b}',
-      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1560px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1220px;border-collapse:collapse}th,td{padding:12px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:11px;text-transform:uppercase;letter-spacing:.06em;z-index:1}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:11px;font-weight:900}.player-cell strong{display:block;font-size:14px}.profile-mini,.open-link{font-weight:800}.position-code{font-weight:900}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:900}.growth-negative{color:var(--red);font-weight:900}.mv-route{display:flex;gap:6px;color:#dbe9f5;font-size:12px}.playing-cell strong{color:#fff}.season-row{font-size:12px;color:#dceafa}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}.is-hidden{display:none!important}',
+      '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1560px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1120px;border-collapse:collapse}th,td{padding:12px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:11px;text-transform:uppercase;letter-spacing:.06em;z-index:1}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:11px;font-weight:900}.player-cell strong{display:block;font-size:14px}.profile-mini,.open-link{font-weight:800}.position-code{font-weight:900}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:2px}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:5px}.season-row{display:grid;grid-template-columns:auto 1fr;column-gap:7px;align-items:start}.season-row span{display:block}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:900}.growth-negative{color:var(--red);font-weight:900}.mv-route{display:flex;gap:6px;color:#dbe9f5;font-size:12px}.playing-cell strong{color:#fff}.season-row{font-size:12px;color:#dceafa}.source-list{display:flex;flex-wrap:wrap;gap:5px}.source-list span{border:1px solid var(--line2);background:rgba(255,255,255,.045);border-radius:999px;padding:3px 7px;color:#dceafa;font-size:11px}.is-hidden{display:none!important}',
       '@media(max-width:900px){main{width:100%;padding:12px 8px 28px}.hero{padding:17px;border-radius:16px}.topline{display:block}.criteria{justify-content:flex-start;margin-top:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}',
       '@media(max-width:540px){.stats,.export-control-grid{grid-template-columns:1fr}td{grid-template-columns:1fr;gap:4px}.criteria span{font-size:11px}}'
     ].join('');
