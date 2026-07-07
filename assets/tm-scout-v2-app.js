@@ -1,5 +1,5 @@
 /*
- * mv-extraction-deep-v17-20260707
+ * fast-i18n-v18-20260707
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -8,7 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
-  // mv-extraction-deep-v17-20260707
+  // fast-i18n-v18-20260707
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -113,12 +113,12 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
-  // mv-extraction-deep-v17-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
+  // fast-i18n-v18-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
     logPrefix: '[TM Scout V2]',
-    cachePrefix: 'tmScoutV2InteractiveHtmlExportV17:',
+    cachePrefix: 'tmScoutV2InteractiveHtmlExportV18:',
     ttlMs: 14 * 24 * 60 * 60 * 1000,
     launcherId: 'tm-scout-v2ihe-launcher',
     panelId: 'tm-scout-v2ihe-panel',
@@ -128,7 +128,7 @@
   });
 
 
-  // mv-extraction-deep-v17-20260707:
+  // fast-i18n-v18-20260707:
   // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
   // A batch proxy most nagyobb, Worker-kímélő csomagokban dolgozik.
   // Fontos: a böngészőoldali concurrency is ehhez igazodik, különben a 24/48-as batch sosem telne meg.
@@ -856,16 +856,64 @@
     return normalizeUiLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY) || 'hu');
   }
 
+
+  // fast-i18n-v18: build the expensive translation lookup tables once.
+  // Previous builds rebuilt the reverse dictionary for almost every text node,
+  // which made language switching feel sticky on mobile once the country list and
+  // result/export texts grew large.
+  const i18nFastCache = {
+    canonicalMap: null,
+    reverseEntries: null,
+    entriesByLang: Object.create(null)
+  };
+
+  function getCanonicalI18nMap() {
+    if (i18nFastCache.canonicalMap) return i18nFastCache.canonicalMap;
+    const map = new Map();
+    Object.values(I18N || {}).forEach(function collectDict(dict) {
+      Object.entries(dict || {}).forEach(function collectEntry(entry) {
+        const key = String(entry[0] || '').trim();
+        const value = String(entry[1] || '').trim();
+        if (key) map.set(key, key);
+        if (value) map.set(value, key);
+      });
+    });
+    i18nFastCache.canonicalMap = map;
+    return map;
+  }
+
+  function getReverseI18nEntries() {
+    if (i18nFastCache.reverseEntries) return i18nFastCache.reverseEntries;
+    const seen = new Set();
+    const entries = [];
+    Object.values(I18N || {}).forEach(function collectReverse(dict) {
+      Object.entries(dict || {}).forEach(function pushEntry(entry) {
+        const key = String(entry[0] || '');
+        const value = String(entry[1] || '');
+        const id = value + ' ' + key;
+        if (!key || !value || key === value || value.length < 3 || seen.has(id)) return;
+        seen.add(id);
+        entries.push([value, key]);
+      });
+    });
+    entries.sort(function byLength(a, b) { return b[0].length - a[0].length; });
+    i18nFastCache.reverseEntries = entries;
+    return entries;
+  }
+
+  function getI18nEntriesForLanguage(lang) {
+    const normalized = normalizeUiLanguage(lang);
+    if (i18nFastCache.entriesByLang[normalized]) return i18nFastCache.entriesByLang[normalized];
+    const dict = I18N[normalized] || I18N.hu || {};
+    const entries = Object.entries(dict).sort(function byLength(a, b) { return b[0].length - a[0].length; });
+    i18nFastCache.entriesByLang[normalized] = entries;
+    return entries;
+  }
+
   function canonicalI18nKey(text) {
     const raw = String(text || '').trim();
     if (!raw) return '';
-    if (Object.prototype.hasOwnProperty.call(I18N.en, raw) || Object.prototype.hasOwnProperty.call(I18N.ro, raw)) return raw;
-    for (const dict of Object.values(I18N)) {
-      for (const [hu, translated] of Object.entries(dict)) {
-        if (String(translated) === raw) return hu;
-      }
-    }
-    return raw;
+    return getCanonicalI18nMap().get(raw) || raw;
   }
 
   function tx(text) {
@@ -877,17 +925,7 @@
 
   function normalizeRuntimeTextToCanonical(text) {
     let out = String(text || '');
-    const reverseEntries = [];
-    Object.values(I18N || {}).forEach(function collectReverse(dict) {
-      Object.entries(dict || {}).forEach(function pushEntry(entry) {
-        const key = entry[0];
-        const value = String(entry[1] || '');
-        if (!key || !value || key === value || value.length < 3) return;
-        reverseEntries.push([value, key]);
-      });
-    });
-    reverseEntries.sort(function byLength(a, b) { return b[0].length - a[0].length; });
-    reverseEntries.forEach(function replaceTranslated(entry) {
+    getReverseI18nEntries().forEach(function replaceTranslated(entry) {
       out = out.split(entry[0]).join(entry[1]);
     });
     return out;
@@ -900,7 +938,7 @@
     const exactKey = canonicalI18nKey(out);
     if (Object.prototype.hasOwnProperty.call(dict, exactKey)) return dict[exactKey];
 
-    const entries = Object.entries(dict).sort(function byLength(a, b) { return b[0].length - a[0].length; });
+    const entries = getI18nEntriesForLanguage(lang);
     for (const [hu, translated] of entries) {
       if (!hu || translated == null || hu.length < 3) continue;
       out = out.split(hu).join(String(translated));
@@ -925,7 +963,7 @@
         const parent = node.parentElement;
         if (!parent) return NodeFilter.FILTER_REJECT;
         if (/^(SCRIPT|STYLE|TEXTAREA)$/i.test(parent.tagName)) return NodeFilter.FILTER_REJECT;
-        if (parent.closest && parent.closest('[data-role="results"]')) return NodeFilter.FILTER_REJECT;
+        if (parent.closest && parent.closest('[data-role="results"], [data-nationality-picker], .tm-scout-v2-nationality-picker, select.tm-scout-v2-multi-select')) return NodeFilter.FILTER_REJECT;
         if (!String(node.nodeValue || '').trim()) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       }
@@ -952,18 +990,23 @@
   function setUiLanguage(lang) {
     const normalized = normalizeUiLanguage(lang);
     window.localStorage.setItem(LANGUAGE_STORAGE_KEY, normalized);
-    localizeRoot(document);
-    updateNationalitySelectLabels(document);
+    try { document.documentElement.lang = normalized; } catch (_error) {}
+
     const panel = document.getElementById(APP.panelId);
     if (panel) {
       setScoutModeUi(panel, state.settings.scoutMode || DEFAULTS.scoutMode);
       setPositionModeUi(panel, state.settings.positionFilterMode || DEFAULTS.positionFilterMode);
-      renderStats(panel);
-      renderResults(panel, state.results || []);
+
+      // fast-i18n-v18: avoid walking the whole document and avoid rebuilding every
+      // result row. Translate the static panel, update nationality labels, headers,
+      // stats and language-sensitive result cells in-place.
       localizeRoot(panel);
       updateNationalitySelectLabels(panel);
+      renderStats(panel);
+      refreshRenderedResultsLanguage(panel, state.results || []);
       setLastKnownStatusLanguage(panel);
     }
+
     try { window.dispatchEvent(new CustomEvent('tmScoutV2LanguageApplied', { detail: { language: normalized } })); } catch (_error) {}
   }
 
@@ -6135,6 +6178,83 @@
     const canonical = status.getAttribute('data-status-canonical') || normalizeRuntimeTextToCanonical(status.textContent || '');
     status.setAttribute('data-status-canonical', canonical);
     status.textContent = translateRuntimeText(canonical);
+  }
+
+  function setRowCellText(row, index, value) {
+    if (!row || !row.children || !row.children[index]) return;
+    const text = value === null || value === undefined ? '' : String(value);
+    const cell = row.children[index];
+    if (cell.textContent !== text) cell.textContent = text;
+    if (cell.title !== text) cell.title = text;
+  }
+
+  function setRowProfileText(row, index) {
+    if (!row || !row.children || !row.children[index]) return;
+    const link = row.children[index].querySelector('a');
+    if (link) link.textContent = tx('Profil');
+  }
+
+  function refreshRenderedResultsLanguage(panel, results) {
+    if (!panel) return;
+    const tbody = panel.querySelector('[data-role="results"]');
+    if (!tbody) return;
+
+    if (isU21Mode(state.settings)) {
+      setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','U21 score','Klub / csapat','MV most','MV változás','Játszott meccsarány','Utolsó szezonok','TM profil']);
+      if (!results.length) {
+        const empty = tbody.querySelector('.tm-scout-v2-empty');
+        if (empty) empty.textContent = tx('Nincs U21 találat még. Engedj a meccsarány / MV / kor / poszt / nemzetiség szűrőn, vagy emelj Max pages értéket.');
+        return;
+      }
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      results.forEach(function updateU21Row(player, index) {
+        const row = rows[index];
+        if (!row) return;
+        const u21 = player.u21 || buildU21Metrics(player, state.settings || DEFAULTS);
+        const cells = [
+          player.name,
+          `${player.positionGroup || '—'}${player.positionDetail ? `/${player.positionDetail}` : ''}${player.position ? ` · ${player.position}` : ''}`,
+          player.age === null || player.age === undefined ? '—' : String(player.age),
+          player.nationality || '—',
+          formatU21Score(u21),
+          formatU21Club(u21, player),
+          formatEuro(player.currentMarketValue),
+          formatGrowth(player.mv),
+          formatU21MatchRatio(u21, player.playingTime),
+          formatRecentSeasons(player.playingTime)
+        ];
+        cells.forEach(function updateCell(value, cellIndex) { setRowCellText(row, cellIndex, value); });
+        setRowProfileText(row, 10);
+      });
+      return;
+    }
+
+    setResultTableHeaders(panel, ['Játékos','Poszt','Kor','Nemzetiség','Elérhetőség','Klub / utolsó klub + liga','MV most','MV változás','Játékidő','Utolsó szezonok','TM profil']);
+    if (!results.length) {
+      const empty = tbody.querySelector('.tm-scout-v2-empty');
+      if (empty) empty.textContent = tx('Nincs találat még. Vagy túl szigorú a filter, vagy Transfermarkt épp trollkodik.');
+      return;
+    }
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    results.forEach(function updateContractRow(player, index) {
+      const row = rows[index];
+      if (!row) return;
+      const cells = [
+        player.name,
+        `${player.positionGroup || '—'}${player.positionDetail ? `/${player.positionDetail}` : ''}${player.position ? ` · ${player.position}` : ''}`,
+        player.age === null || player.age === undefined ? '—' : String(player.age),
+        player.nationality || '—',
+        translateRuntimeText(player.availability || '—'),
+        formatClubLeagueText(player),
+        formatEuro(player.currentMarketValue),
+        formatGrowth(player.mv),
+        formatPlayingTime(player.playingTime),
+        formatRecentSeasons(player.playingTime)
+      ];
+      cells.forEach(function updateCell(value, cellIndex) { setRowCellText(row, cellIndex, value); });
+      setRowProfileText(row, 10);
+    });
   }
 
   function setStatus(panel, text, progress) {
