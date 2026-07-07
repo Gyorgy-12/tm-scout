@@ -1,5 +1,5 @@
 /*
- * fast-i18n-v18-20260707
+ * european-free-agent-lastclub-v19-20260707
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -8,7 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
-  // fast-i18n-v18-20260707
+  // european-free-agent-lastclub-v19-20260707
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -113,7 +113,7 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
-  // fast-i18n-v18-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
+  // european-free-agent-lastclub-v19-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
@@ -128,7 +128,7 @@
   });
 
 
-  // fast-i18n-v18-20260707:
+  // european-free-agent-lastclub-v19-20260707:
   // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
   // A batch proxy most nagyobb, Worker-kímélő csomagokban dolgozik.
   // Fontos: a böngészőoldali concurrency is ehhez igazodik, különben a 24/48-as batch sosem telne meg.
@@ -857,7 +857,7 @@
   }
 
 
-  // fast-i18n-v18: build the expensive translation lookup tables once.
+  // european-free-agent-lastclub-v19: build the expensive translation lookup tables once.
   // Previous builds rebuilt the reverse dictionary for almost every text node,
   // which made language switching feel sticky on mobile once the country list and
   // result/export texts grew large.
@@ -997,7 +997,7 @@
       setScoutModeUi(panel, state.settings.scoutMode || DEFAULTS.scoutMode);
       setPositionModeUi(panel, state.settings.positionFilterMode || DEFAULTS.positionFilterMode);
 
-      // fast-i18n-v18: avoid walking the whole document and avoid rebuilding every
+      // european-free-agent-lastclub-v19: avoid walking the whole document and avoid rebuilding every
       // result row. Translate the static panel, update nationality labels, headers,
       // stats and language-sensitive result cells in-place.
       localizeRoot(panel);
@@ -1062,7 +1062,7 @@
     const extra = {
       hu: {
         "Keresés nemzetiségre": "Keresés nemzetiségre",
-        "Csak európai klub/liga források": "Csak európai klub/liga források",
+        "Csak európai klub/liga források": "Csak európai klub/liga források + free agent utolsó klub Európából",
         "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.",
         "Utolsó liga": "Utolsó liga",
         "Utolsó klub": "Utolsó klub",
@@ -1081,7 +1081,7 @@
       },
       en: {
         "Keresés nemzetiségre": "Search nationality",
-        "Csak európai klub/liga források": "Only European club/league sources",
+        "Csak európai klub/liga források": "European clubs/leagues only + free-agent last club in Europe",
         "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Turn this off to include relevant leagues from around the world.",
         "Utolsó liga": "Last league",
         "Utolsó klub": "Last club",
@@ -1100,7 +1100,7 @@
       },
       ro: {
         "Keresés nemzetiségre": "Caută naționalitate",
-        "Csak európai klub/liga források": "Doar surse din cluburi/ligi europene",
+        "Csak európai klub/liga források": "Doar cluburi/ligi europene + ultimul club european pentru jucătorii liberi",
         "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Dacă dezactivezi opțiunea, pot apărea și jucători din ligi relevante din toată lumea.",
         "Utolsó liga": "Ultima ligă",
         "Utolsó klub": "Ultimul club",
@@ -1132,7 +1132,7 @@
         "Alapos recovery": "Alapos recovery",
         "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.": "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.",
         "Keresési mód": "Keresési mód",
-        "Csak európai klub/liga források": "Csak európai klub/liga források",
+        "Csak európai klub/liga források": "Csak európai klub/liga források + free agent utolsó klub Európából",
         "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.",
         "Kész": "Kész",
         "találat": "találat",
@@ -1169,7 +1169,7 @@
         "Alapos recovery": "Deep recovery",
         "Pontosabb source-terv: több célzott fallback, kevesebb elveszett jelölt.": "More precise source plan: targeted fallbacks, fewer lost candidates.",
         "Keresési mód": "Search mode",
-        "Csak európai klub/liga források": "European club/league sources only",
+        "Csak európai klub/liga források": "European clubs/leagues only + free-agent last club in Europe",
         "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Turn this off to also include players from relevant leagues worldwide.",
         "Kész": "Done",
         "találat": "result",
@@ -1200,7 +1200,7 @@
         "U21 nemzetiségek / szűrés": "Naționalități U21 / filtru",
         "Keresés nemzetiségre": "Caută naționalitate",
         "Nincs egyező nemzetiség": "Nicio naționalitate potrivită",
-        "Csak európai klub/liga források": "Doar surse cluburi/ligi europene",
+        "Csak európai klub/liga források": "Doar cluburi/ligi europene + ultimul club european pentru jucătorii liberi",
         "Ha kikapcsolod, a világ releváns ligáiból is jöhetnek játékosok.": "Dacă dezactivezi opțiunea, pot apărea și jucători din ligi relevante din toată lumea.",
         "Kész": "Gata",
         "találat": "rezultat",
@@ -5481,6 +5481,7 @@
     (player && player.competitionCodes || []).forEach(function addExisting(code) { if (code) codes.push(String(code).toUpperCase()); });
     collectCodesFromLabels(player && player.sourceLabels || []).forEach(function addLabelCode(code) { if (code) codes.push(String(code).toUpperCase()); });
     collectCodesFromLabels(player && player.sourceUrls || []).forEach(function addUrlCode(code) { if (code) codes.push(String(code).toUpperCase()); });
+    collectCodesFromLabels([player && player.lastLeague, player && player.currentLeague, player && player.clubLeagueContext, player && player.availability]).forEach(function addContextCode(code) { if (code) codes.push(String(code).toUpperCase()); });
     if (player && player.lastLeagueCode) codes.push(String(player.lastLeagueCode).toUpperCase());
     return unique(codes);
   }
@@ -5520,17 +5521,65 @@
     return club || league || '—';
   }
 
+  function isFreeAgentLikePlayer(player) {
+    const types = (player && player.sourceTypes) || [];
+    if (types.includes('free-agent')) return true;
+    const text = normalizeText([
+      player && player.availability,
+      player && player.club,
+      player && player.lastClub,
+      player && (player.sourceLabels || []).join(' '),
+      player && (player.sourceUrls || []).join(' ')
+    ].join(' '));
+    return /free agent|without club|vertragslos|szabadon igazolhato|szabadon igazolható|liber de contract|jucator liber|jucător liber/.test(text);
+  }
+
+  function textLooksEuropeanClubLeague(text) {
+    return /premier league|championship|league one|league two|laliga|la liga|serie a|serie b|serie c|bundesliga|2\. bundesliga|3\. liga|ligue 1|ligue 2|eredivisie|eerste divisie|liga portugal|superliga|allsvenskan|ekstraklasa|jupiler|challenger pro league|super league greece|süper lig|super lig|1\. lig|nb i|nb ii|hnl|prva nl|prvaliga|veikkausliiga|eliteserien|obos-ligaen|superettan|superligaen|austrian|swiss|romanian|serbian|croatian|hungarian|czech|slovak|slovenian|bulgarian|cypriot|israeli|irish|scottish|ukrainian|russian|liga 2|superliga|premier liga|first league bulgaria|cypriot first division|liga leumit|ykkosliiga|ykkösliiga/.test(text);
+  }
+
+  function textLooksNonEuropeanClubLeague(text) {
+    return /major league soccer|mls|usl championship|brasileir|serie a brazil|argentina|liga profesional argentina|primera nacional argentina|liga mx|liga de expansion|liga de expansión|j1 league|j2 league|chinese super league|k league|a-league|a league|saudi pro league|qatar stars|uae pro league|primera división|primera division|categoría primera|categoria primera|botola|egyptian|tunisian|algerian|south african|canadian premier|jap1|jap2|aus1|bra1|bra2|ar1n|mexa|kor1|csl|sa1|qsl|uae1/.test(text);
+  }
+
+  function hasEuropeanLastClubLeague(player) {
+    const lastContext = [
+      player && player.lastLeagueCode,
+      player && player.lastLeague,
+      player && player.currentLeague,
+      player && player.clubLeagueContext,
+      player && player.availability
+    ];
+    const lastCodes = collectCodesFromLabels(lastContext);
+    if (player && player.lastLeagueCode) lastCodes.push(String(player.lastLeagueCode).toUpperCase());
+    const uniqueLastCodes = unique(lastCodes);
+    if (uniqueLastCodes.some(isEuropeanCompetitionCode)) return true;
+    if (uniqueLastCodes.some(function knownGlobal(code) { return GLOBAL_EXTRA_FIRST_DIVISION_CODES.includes(String(code).toUpperCase()); })) return false;
+
+    const text = normalizeText(lastContext.join(' '));
+    if (textLooksEuropeanClubLeague(text)) return true;
+    if (textLooksNonEuropeanClubLeague(text)) return false;
+
+    // Free agents are special: when European-only is checked, unknown last-league
+    // context is not enough. We only keep them when the last club/league can be
+    // tied to Europe with a code or recognizable league text.
+    return false;
+  }
+
   function isEuropeanClubLeague(player) {
+    if (isFreeAgentLikePlayer(player)) return hasEuropeanLastClubLeague(player);
+
     const codes = getPlayerCompetitionCodes(player);
     if (codes.some(isEuropeanCompetitionCode)) return true;
     if (codes.length && codes.some(function knownGlobal(code) { return GLOBAL_EXTRA_FIRST_DIVISION_CODES.includes(code); })) return false;
 
     const text = normalizeText([player && player.lastLeague, player && player.availability, player && (player.sourceLabels || []).join(' ')].join(' '));
-    if (/premier league|championship|league one|laliga|serie a|serie b|bundesliga|ligue 1|ligue 2|eredivisie|liga portugal|superliga|allsvenskan|ekstraklasa|jupiler|super league greece|süper lig|super lig|nb i|nb ii|hnl|prvaliga|veikkausliiga|eliteserien|superettan|superligaen|austrian|swiss|romanian|serbian|croatian|hungarian|czech|slovak|slovenian|bulgarian|cypriot|israeli|irish|scottish|ukrainian|russian/.test(text)) return true;
-    if (/major league soccer|brasileir|argentina|liga mx|j1 league|j2 league|chinese super league|k league|a-league|saudi pro league|qatar stars|uae pro league|primera división|primera division|categoría primera|categoria primera|botola|egyptian|tunisian|algerian|south african|canadian premier/.test(text)) return false;
+    if (textLooksEuropeanClubLeague(text)) return true;
+    if (textLooksNonEuropeanClubLeague(text)) return false;
 
-    // Unknown league should not kill an otherwise good candidate. TM sometimes hides the
-    // current competition in profile HTML, so keep unknowns and show the missing league as —.
+    // Non-free-agent unknown league should not kill an otherwise good candidate.
+    // TM sometimes hides the current competition in profile HTML. Free agents are
+    // handled stricter above because the user expects the last club to be European.
     return true;
   }
 
