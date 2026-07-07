@@ -1,5 +1,5 @@
 /*
- * european-free-agent-lastclub-v19-20260707
+ * nationality-landid-autoresolve-v21-20260707
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -8,7 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
-  // european-free-agent-lastclub-v19-20260707
+  // nationality-landid-autoresolve-v21-20260707
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -113,7 +113,7 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
-  // european-free-agent-lastclub-v19-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
+  // nationality-landid-autoresolve-v21-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
@@ -128,7 +128,7 @@
   });
 
 
-  // european-free-agent-lastclub-v19-20260707:
+  // nationality-landid-autoresolve-v21-20260707:
   // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
   // A batch proxy most nagyobb, Worker-kímélő csomagokban dolgozik.
   // Fontos: a böngészőoldali concurrency is ehhez igazodik, különben a 24/48-as batch sosem telne meg.
@@ -857,7 +857,7 @@
   }
 
 
-  // european-free-agent-lastclub-v19: build the expensive translation lookup tables once.
+  // nationality-landid-autoresolve-v21: build the expensive translation lookup tables once.
   // Previous builds rebuilt the reverse dictionary for almost every text node,
   // which made language switching feel sticky on mobile once the country list and
   // result/export texts grew large.
@@ -997,7 +997,7 @@
       setScoutModeUi(panel, state.settings.scoutMode || DEFAULTS.scoutMode);
       setPositionModeUi(panel, state.settings.positionFilterMode || DEFAULTS.positionFilterMode);
 
-      // european-free-agent-lastclub-v19: avoid walking the whole document and avoid rebuilding every
+      // nationality-landid-autoresolve-v21: avoid walking the whole document and avoid rebuilding every
       // result row. Translate the static panel, update nationality labels, headers,
       // stats and language-sensitive result cells in-place.
       localizeRoot(panel);
@@ -1019,11 +1019,16 @@
   const COUNTRY_CATALOG = Object.freeze([{"key":"Afghanistan","alpha2":"AF","en":"Afghanistan","hu":"Afganisztán","ro":"Afganistan","aliases":["Islamic Republic of Afghanistan"],"europe":false},{"key":"Albania","alpha2":"AL","en":"Albania","hu":"Albánia","ro":"Albania","aliases":["Republic of Albania"],"europe":true},{"key":"Algeria","alpha2":"DZ","en":"Algeria","hu":"Algéria","ro":"Algeria","aliases":["People's Democratic Republic of Algeria"],"europe":false},{"key":"American Samoa","alpha2":"AS","en":"American Samoa","hu":"Amerikai Szamoa","ro":"Samoa Americană","aliases":[],"europe":false},{"key":"Andorra","alpha2":"AD","en":"Andorra","hu":"Andorra","ro":"Andorra","aliases":["Principality of Andorra"],"europe":true},{"key":"Angola","alpha2":"AO","en":"Angola","hu":"Angola","ro":"Angola","aliases":["Republic of Angola"],"europe":false},{"key":"Anguilla","alpha2":"AI","en":"Anguilla","hu":"Anguilla","ro":"Anguilla","aliases":[],"europe":false},{"key":"Antarctica","alpha2":"AQ","en":"Antarctica","hu":"Antarktisz","ro":"Antarctica","aliases":[],"europe":false},{"key":"Antigua & Barbuda","alpha2":"AG","en":"Antigua & Barbuda","hu":"Antigua és Barbuda","ro":"Antigua și Barbuda","aliases":["Antigua and Barbuda"],"europe":false},{"key":"Argentina","alpha2":"AR","en":"Argentina","hu":"Argentína","ro":"Argentina","aliases":["Argentine Republic"],"europe":false},{"key":"Armenia","alpha2":"AM","en":"Armenia","hu":"Örményország","ro":"Armenia","aliases":["Republic of Armenia"],"europe":true},{"key":"Aruba","alpha2":"AW","en":"Aruba","hu":"Aruba","ro":"Aruba","aliases":[],"europe":false},{"key":"Australia","alpha2":"AU","en":"Australia","hu":"Ausztrália","ro":"Australia","aliases":[],"europe":false},{"key":"Austria","alpha2":"AT","en":"Austria","hu":"Ausztria","ro":"Austria","aliases":["Republic of Austria"],"europe":true},{"key":"Azerbaijan","alpha2":"AZ","en":"Azerbaijan","hu":"Azerbajdzsán","ro":"Azerbaidjan","aliases":["Republic of Azerbaijan"],"europe":true},{"key":"Bahamas","alpha2":"BS","en":"Bahamas","hu":"Bahama-szigetek","ro":"Bahamas","aliases":["Commonwealth of the Bahamas"],"europe":false},{"key":"Bahrain","alpha2":"BH","en":"Bahrain","hu":"Bahrein","ro":"Bahrain","aliases":["Kingdom of Bahrain"],"europe":false},{"key":"Bangladesh","alpha2":"BD","en":"Bangladesh","hu":"Banglades","ro":"Bangladesh","aliases":["People's Republic of Bangladesh"],"europe":false},{"key":"Barbados","alpha2":"BB","en":"Barbados","hu":"Barbados","ro":"Barbados","aliases":[],"europe":false},{"key":"Belarus","alpha2":"BY","en":"Belarus","hu":"Belarusz","ro":"Belarus","aliases":["Republic of Belarus"],"europe":true},{"key":"Belgium","alpha2":"BE","en":"Belgium","hu":"Belgium","ro":"Belgia","aliases":["Kingdom of Belgium"],"europe":true},{"key":"Belize","alpha2":"BZ","en":"Belize","hu":"Belize","ro":"Belize","aliases":[],"europe":false},{"key":"Benin","alpha2":"BJ","en":"Benin","hu":"Benin","ro":"Benin","aliases":["Republic of Benin"],"europe":false},{"key":"Bermuda","alpha2":"BM","en":"Bermuda","hu":"Bermuda","ro":"Bermuda","aliases":[],"europe":false},{"key":"Bhutan","alpha2":"BT","en":"Bhutan","hu":"Bhután","ro":"Bhutan","aliases":["Kingdom of Bhutan"],"europe":false},{"key":"Bolivia","alpha2":"BO","en":"Bolivia","hu":"Bolívia","ro":"Bolivia","aliases":["Bolivia","Bolivia, Plurinational State of","Plurinational State of Bolivia"],"europe":false},{"key":"Bosnia & Herzegovina","alpha2":"BA","en":"Bosnia & Herzegovina","hu":"Bosznia-Hercegovina","ro":"Bosnia și Herțegovina","aliases":["Bosnia and Herzegovina","Republic of Bosnia and Herzegovina"],"europe":true},{"key":"Botswana","alpha2":"BW","en":"Botswana","hu":"Botswana","ro":"Botswana","aliases":["Republic of Botswana"],"europe":false},{"key":"Bouvet Island","alpha2":"BV","en":"Bouvet Island","hu":"Bouvet-sziget","ro":"Insula Bouvet","aliases":[],"europe":false},{"key":"Brazil","alpha2":"BR","en":"Brazil","hu":"Brazília","ro":"Brazilia","aliases":["Federative Republic of Brazil"],"europe":false},{"key":"British Indian Ocean Territory","alpha2":"IO","en":"British Indian Ocean Territory","hu":"Brit Indiai-óceáni Terület","ro":"Teritoriul Britanic din Oceanul Indian","aliases":[],"europe":false},{"key":"British Virgin Islands","alpha2":"VG","en":"British Virgin Islands","hu":"Brit Virgin-szigetek","ro":"Insulele Virgine Britanice","aliases":["Virgin Islands, British"],"europe":false},{"key":"Brunei","alpha2":"BN","en":"Brunei","hu":"Brunei","ro":"Brunei","aliases":["Brunei Darussalam"],"europe":false},{"key":"Bulgaria","alpha2":"BG","en":"Bulgaria","hu":"Bulgária","ro":"Bulgaria","aliases":["Republic of Bulgaria"],"europe":true},{"key":"Burkina Faso","alpha2":"BF","en":"Burkina Faso","hu":"Burkina Faso","ro":"Burkina Faso","aliases":[],"europe":false},{"key":"Burundi","alpha2":"BI","en":"Burundi","hu":"Burundi","ro":"Burundi","aliases":["Republic of Burundi"],"europe":false},{"key":"Cambodia","alpha2":"KH","en":"Cambodia","hu":"Kambodzsa","ro":"Cambodgia","aliases":["Kingdom of Cambodia"],"europe":false},{"key":"Cameroon","alpha2":"CM","en":"Cameroon","hu":"Kamerun","ro":"Camerun","aliases":["Republic of Cameroon"],"europe":false},{"key":"Canada","alpha2":"CA","en":"Canada","hu":"Kanada","ro":"Canada","aliases":[],"europe":false},{"key":"Cape Verde","alpha2":"CV","en":"Cape Verde","hu":"Zöld-foki Köztársaság","ro":"Capul Verde","aliases":["Cabo Verde","Cape Verde","Republic of Cabo Verde"],"europe":false},{"key":"Caribbean Netherlands","alpha2":"BQ","en":"Caribbean Netherlands","hu":"Holland Karib-térség","ro":"Insulele Caraibe Olandeze","aliases":["Bonaire, Sint Eustatius and Saba"],"europe":false},{"key":"Cayman Islands","alpha2":"KY","en":"Cayman Islands","hu":"Kajmán-szigetek","ro":"Insulele Cayman","aliases":[],"europe":false},{"key":"Central African Republic","alpha2":"CF","en":"Central African Republic","hu":"Közép-afrikai Köztársaság","ro":"Republica Centrafricană","aliases":[],"europe":false},{"key":"Chad","alpha2":"TD","en":"Chad","hu":"Csád","ro":"Ciad","aliases":["Republic of Chad"],"europe":false},{"key":"Chile","alpha2":"CL","en":"Chile","hu":"Chile","ro":"Chile","aliases":["Republic of Chile"],"europe":false},{"key":"China","alpha2":"CN","en":"China","hu":"Kína","ro":"China","aliases":["People's Republic of China"],"europe":false},{"key":"Chinese Taipei","alpha2":"TW-FA","en":"Chinese Taipei","hu":"Kínai Tajpej","ro":"Taipeiul Chinezesc","aliases":["Taiwan"],"europe":false},{"key":"Christmas Island","alpha2":"CX","en":"Christmas Island","hu":"Karácsony-sziget","ro":"Insula Christmas","aliases":[],"europe":false},{"key":"Cocos (Keeling) Islands","alpha2":"CC","en":"Cocos (Keeling) Islands","hu":"Kókusz (Keeling)-szigetek","ro":"Insulele Cocos (Keeling)","aliases":[],"europe":false},{"key":"Colombia","alpha2":"CO","en":"Colombia","hu":"Kolumbia","ro":"Columbia","aliases":["Republic of Colombia"],"europe":false},{"key":"Comoros","alpha2":"KM","en":"Comoros","hu":"Comore-szigetek","ro":"Comore","aliases":["Union of the Comoros"],"europe":false},{"key":"Congo - Brazzaville","alpha2":"CG","en":"Congo - Brazzaville","hu":"Kongó – Brazzaville","ro":"Congo - Brazzaville","aliases":["Congo","Republic of the Congo"],"europe":false},{"key":"Congo - Kinshasa","alpha2":"CD","en":"Congo - Kinshasa","hu":"Kongó – Kinshasa","ro":"Congo - Kinshasa","aliases":["Congo, The Democratic Republic of the","DR Congo","Democratic Republic of the Congo"],"europe":false},{"key":"Cook Islands","alpha2":"CK","en":"Cook Islands","hu":"Cook-szigetek","ro":"Insulele Cook","aliases":[],"europe":false},{"key":"Costa Rica","alpha2":"CR","en":"Costa Rica","hu":"Costa Rica","ro":"Costa Rica","aliases":["Republic of Costa Rica"],"europe":false},{"key":"Croatia","alpha2":"HR","en":"Croatia","hu":"Horvátország","ro":"Croația","aliases":["Republic of Croatia"],"europe":true},{"key":"Cuba","alpha2":"CU","en":"Cuba","hu":"Kuba","ro":"Cuba","aliases":["Republic of Cuba"],"europe":false},{"key":"Curaçao","alpha2":"CW","en":"Curaçao","hu":"Curaçao","ro":"Curaçao","aliases":[],"europe":false},{"key":"Cyprus","alpha2":"CY","en":"Cyprus","hu":"Ciprus","ro":"Cipru","aliases":["Republic of Cyprus"],"europe":true},{"key":"Czech Republic","alpha2":"CZ","en":"Czech Republic","hu":"Csehország","ro":"Cehia","aliases":["Czech Republic","Czechia"],"europe":true},{"key":"Côte d’Ivoire","alpha2":"CI","en":"Côte d’Ivoire","hu":"Elefántcsontpart","ro":"Côte d’Ivoire","aliases":["Cote d'Ivoire","Côte d'Ivoire","Ivory Coast","Republic of Côte d'Ivoire"],"europe":false},{"key":"Denmark","alpha2":"DK","en":"Denmark","hu":"Dánia","ro":"Danemarca","aliases":["Kingdom of Denmark"],"europe":true},{"key":"Djibouti","alpha2":"DJ","en":"Djibouti","hu":"Dzsibuti","ro":"Djibouti","aliases":["Republic of Djibouti"],"europe":false},{"key":"Dominica","alpha2":"DM","en":"Dominica","hu":"Dominika","ro":"Dominica","aliases":["Commonwealth of Dominica"],"europe":false},{"key":"Dominican Republic","alpha2":"DO","en":"Dominican Republic","hu":"Dominikai Köztársaság","ro":"Republica Dominicană","aliases":[],"europe":false},{"key":"Ecuador","alpha2":"EC","en":"Ecuador","hu":"Ecuador","ro":"Ecuador","aliases":["Republic of Ecuador"],"europe":false},{"key":"Egypt","alpha2":"EG","en":"Egypt","hu":"Egyiptom","ro":"Egipt","aliases":["Arab Republic of Egypt"],"europe":false},{"key":"El Salvador","alpha2":"SV","en":"El Salvador","hu":"Salvador","ro":"El Salvador","aliases":["Republic of El Salvador"],"europe":false},{"key":"England","alpha2":"GB-ENG","en":"England","hu":"Anglia","ro":"Anglia","aliases":["ENG"],"europe":true},{"key":"Equatorial Guinea","alpha2":"GQ","en":"Equatorial Guinea","hu":"Egyenlítői-Guinea","ro":"Guineea Ecuatorială","aliases":["Republic of Equatorial Guinea"],"europe":false},{"key":"Eritrea","alpha2":"ER","en":"Eritrea","hu":"Eritrea","ro":"Eritreea","aliases":["the State of Eritrea"],"europe":false},{"key":"Estonia","alpha2":"EE","en":"Estonia","hu":"Észtország","ro":"Estonia","aliases":["Republic of Estonia"],"europe":true},{"key":"Eswatini","alpha2":"SZ","en":"Eswatini","hu":"Szváziföld","ro":"Eswatini","aliases":["Kingdom of Eswatini","Swaziland"],"europe":false},{"key":"Ethiopia","alpha2":"ET","en":"Ethiopia","hu":"Etiópia","ro":"Etiopia","aliases":["Federal Democratic Republic of Ethiopia"],"europe":false},{"key":"Falkland Islands","alpha2":"FK","en":"Falkland Islands","hu":"Falkland-szigetek","ro":"Insulele Falkland","aliases":["Falkland Islands (Malvinas)"],"europe":false},{"key":"Faroe Islands","alpha2":"FO","en":"Faroe Islands","hu":"Feröer szigetek","ro":"Insulele Feroe","aliases":[],"europe":false},{"key":"Fiji","alpha2":"FJ","en":"Fiji","hu":"Fidzsi","ro":"Fiji","aliases":["Republic of Fiji"],"europe":false},{"key":"Finland","alpha2":"FI","en":"Finland","hu":"Finnország","ro":"Finlanda","aliases":["Republic of Finland"],"europe":true},{"key":"France","alpha2":"FR","en":"France","hu":"Franciaország","ro":"Franța","aliases":["French Republic"],"europe":true},{"key":"French Guiana","alpha2":"GF","en":"French Guiana","hu":"Francia Guyana","ro":"Guyana Franceză","aliases":[],"europe":false},{"key":"French Polynesia","alpha2":"PF","en":"French Polynesia","hu":"Francia Polinézia","ro":"Polinezia Franceză","aliases":[],"europe":false},{"key":"French Southern Territories","alpha2":"TF","en":"French Southern Territories","hu":"Francia Déli Területek","ro":"Teritoriile Australe și Antarctice Franceze","aliases":[],"europe":false},{"key":"Gabon","alpha2":"GA","en":"Gabon","hu":"Gabon","ro":"Gabon","aliases":["Gabonese Republic"],"europe":false},{"key":"Gambia","alpha2":"GM","en":"Gambia","hu":"Gambia","ro":"Gambia","aliases":["Republic of the Gambia"],"europe":false},{"key":"Georgia","alpha2":"GE","en":"Georgia","hu":"Grúzia","ro":"Georgia","aliases":[],"europe":true},{"key":"Germany","alpha2":"DE","en":"Germany","hu":"Németország","ro":"Germania","aliases":["Federal Republic of Germany"],"europe":true},{"key":"Ghana","alpha2":"GH","en":"Ghana","hu":"Ghána","ro":"Ghana","aliases":["Republic of Ghana"],"europe":false},{"key":"Gibraltar","alpha2":"GI","en":"Gibraltar","hu":"Gibraltár","ro":"Gibraltar","aliases":[],"europe":false},{"key":"Greece","alpha2":"GR","en":"Greece","hu":"Görögország","ro":"Grecia","aliases":["Hellenic Republic"],"europe":true},{"key":"Greenland","alpha2":"GL","en":"Greenland","hu":"Grönland","ro":"Groenlanda","aliases":[],"europe":false},{"key":"Grenada","alpha2":"GD","en":"Grenada","hu":"Grenada","ro":"Grenada","aliases":[],"europe":false},{"key":"Guadeloupe","alpha2":"GP","en":"Guadeloupe","hu":"Guadeloupe","ro":"Guadelupa","aliases":[],"europe":false},{"key":"Guam","alpha2":"GU","en":"Guam","hu":"Guam","ro":"Guam","aliases":[],"europe":false},{"key":"Guatemala","alpha2":"GT","en":"Guatemala","hu":"Guatemala","ro":"Guatemala","aliases":["Republic of Guatemala"],"europe":false},{"key":"Guernsey","alpha2":"GG","en":"Guernsey","hu":"Guernsey","ro":"Guernsey","aliases":[],"europe":false},{"key":"Guinea","alpha2":"GN","en":"Guinea","hu":"Guinea","ro":"Guineea","aliases":["Republic of Guinea"],"europe":false},{"key":"Guinea-Bissau","alpha2":"GW","en":"Guinea-Bissau","hu":"Bissau-Guinea","ro":"Guineea-Bissau","aliases":["Republic of Guinea-Bissau"],"europe":false},{"key":"Guyana","alpha2":"GY","en":"Guyana","hu":"Guyana","ro":"Guyana","aliases":["Republic of Guyana"],"europe":false},{"key":"Haiti","alpha2":"HT","en":"Haiti","hu":"Haiti","ro":"Haiti","aliases":["Republic of Haiti"],"europe":false},{"key":"Heard & McDonald Islands","alpha2":"HM","en":"Heard & McDonald Islands","hu":"Heard-sziget és McDonald-szigetek","ro":"Insula Heard și Insulele McDonald","aliases":["Heard Island and McDonald Islands"],"europe":false},{"key":"Honduras","alpha2":"HN","en":"Honduras","hu":"Honduras","ro":"Honduras","aliases":["Republic of Honduras"],"europe":false},{"key":"Hong Kong SAR China","alpha2":"HK","en":"Hong Kong SAR China","hu":"Hongkong KKT","ro":"R.A.S. Hong Kong, China","aliases":["Hong Kong","Hong Kong Special Administrative Region of China"],"europe":false},{"key":"Hungary","alpha2":"HU","en":"Hungary","hu":"Magyarország","ro":"Ungaria","aliases":[],"europe":true},{"key":"Iceland","alpha2":"IS","en":"Iceland","hu":"Izland","ro":"Islanda","aliases":["Republic of Iceland"],"europe":true},{"key":"India","alpha2":"IN","en":"India","hu":"India","ro":"India","aliases":["Republic of India"],"europe":false},{"key":"Indonesia","alpha2":"ID","en":"Indonesia","hu":"Indonézia","ro":"Indonezia","aliases":["Republic of Indonesia"],"europe":false},{"key":"Iran","alpha2":"IR","en":"Iran","hu":"Irán","ro":"Iran","aliases":["Iran","Iran, Islamic Republic of","Islamic Republic of Iran"],"europe":false},{"key":"Iraq","alpha2":"IQ","en":"Iraq","hu":"Irak","ro":"Irak","aliases":["Republic of Iraq"],"europe":false},{"key":"Ireland","alpha2":"IE","en":"Ireland","hu":"Írország","ro":"Irlanda","aliases":[],"europe":true},{"key":"Isle of Man","alpha2":"IM","en":"Isle of Man","hu":"Man-sziget","ro":"Insula Man","aliases":[],"europe":false},{"key":"Israel","alpha2":"IL","en":"Israel","hu":"Izrael","ro":"Israel","aliases":["State of Israel"],"europe":false},{"key":"Italy","alpha2":"IT","en":"Italy","hu":"Olaszország","ro":"Italia","aliases":["Italian Republic"],"europe":true},{"key":"Jamaica","alpha2":"JM","en":"Jamaica","hu":"Jamaica","ro":"Jamaica","aliases":[],"europe":false},{"key":"Japan","alpha2":"JP","en":"Japan","hu":"Japán","ro":"Japonia","aliases":[],"europe":false},{"key":"Jersey","alpha2":"JE","en":"Jersey","hu":"Jersey","ro":"Jersey","aliases":[],"europe":false},{"key":"Jordan","alpha2":"JO","en":"Jordan","hu":"Jordánia","ro":"Iordania","aliases":["Hashemite Kingdom of Jordan"],"europe":false},{"key":"Kazakhstan","alpha2":"KZ","en":"Kazakhstan","hu":"Kazahsztán","ro":"Kazahstan","aliases":["Republic of Kazakhstan"],"europe":false},{"key":"Kenya","alpha2":"KE","en":"Kenya","hu":"Kenya","ro":"Kenya","aliases":["Republic of Kenya"],"europe":false},{"key":"Kiribati","alpha2":"KI","en":"Kiribati","hu":"Kiribati","ro":"Kiribati","aliases":["Republic of Kiribati"],"europe":false},{"key":"Kosovo","alpha2":"XK","en":"Kosovo","hu":"Koszovó","ro":"Kosovo","aliases":["Kosova"],"europe":true},{"key":"Kuwait","alpha2":"KW","en":"Kuwait","hu":"Kuvait","ro":"Kuweit","aliases":["State of Kuwait"],"europe":false},{"key":"Kyrgyzstan","alpha2":"KG","en":"Kyrgyzstan","hu":"Kirgizisztán","ro":"Kârgâzstan","aliases":["Kyrgyz Republic"],"europe":false},{"key":"Laos","alpha2":"LA","en":"Laos","hu":"Laosz","ro":"Laos","aliases":["Lao People's Democratic Republic","Laos"],"europe":false},{"key":"Latvia","alpha2":"LV","en":"Latvia","hu":"Lettország","ro":"Letonia","aliases":["Republic of Latvia"],"europe":true},{"key":"Lebanon","alpha2":"LB","en":"Lebanon","hu":"Libanon","ro":"Liban","aliases":["Lebanese Republic"],"europe":false},{"key":"Lesotho","alpha2":"LS","en":"Lesotho","hu":"Lesotho","ro":"Lesotho","aliases":["Kingdom of Lesotho"],"europe":false},{"key":"Liberia","alpha2":"LR","en":"Liberia","hu":"Libéria","ro":"Liberia","aliases":["Republic of Liberia"],"europe":false},{"key":"Libya","alpha2":"LY","en":"Libya","hu":"Líbia","ro":"Libia","aliases":[],"europe":false},{"key":"Liechtenstein","alpha2":"LI","en":"Liechtenstein","hu":"Liechtenstein","ro":"Liechtenstein","aliases":["Principality of Liechtenstein"],"europe":true},{"key":"Lithuania","alpha2":"LT","en":"Lithuania","hu":"Litvánia","ro":"Lituania","aliases":["Republic of Lithuania"],"europe":true},{"key":"Luxembourg","alpha2":"LU","en":"Luxembourg","hu":"Luxemburg","ro":"Luxemburg","aliases":["Grand Duchy of Luxembourg"],"europe":true},{"key":"Macao SAR China","alpha2":"MO","en":"Macao SAR China","hu":"Makaó KKT","ro":"R.A.S. Macao, China","aliases":["Macao","Macao Special Administrative Region of China"],"europe":false},{"key":"Madagascar","alpha2":"MG","en":"Madagascar","hu":"Madagaszkár","ro":"Madagascar","aliases":["Republic of Madagascar"],"europe":false},{"key":"Malawi","alpha2":"MW","en":"Malawi","hu":"Malawi","ro":"Malawi","aliases":["Republic of Malawi"],"europe":false},{"key":"Malaysia","alpha2":"MY","en":"Malaysia","hu":"Malajzia","ro":"Malaysia","aliases":[],"europe":false},{"key":"Maldives","alpha2":"MV","en":"Maldives","hu":"Maldív-szigetek","ro":"Maldive","aliases":["Republic of Maldives"],"europe":false},{"key":"Mali","alpha2":"ML","en":"Mali","hu":"Mali","ro":"Mali","aliases":["Republic of Mali"],"europe":false},{"key":"Malta","alpha2":"MT","en":"Malta","hu":"Málta","ro":"Malta","aliases":["Republic of Malta"],"europe":true},{"key":"Marshall Islands","alpha2":"MH","en":"Marshall Islands","hu":"Marshall-szigetek","ro":"Insulele Marshall","aliases":["Republic of the Marshall Islands"],"europe":false},{"key":"Martinique","alpha2":"MQ","en":"Martinique","hu":"Martinique","ro":"Martinica","aliases":[],"europe":false},{"key":"Mauritania","alpha2":"MR","en":"Mauritania","hu":"Mauritánia","ro":"Mauritania","aliases":["Islamic Republic of Mauritania"],"europe":false},{"key":"Mauritius","alpha2":"MU","en":"Mauritius","hu":"Mauritius","ro":"Mauritius","aliases":["Republic of Mauritius"],"europe":false},{"key":"Mayotte","alpha2":"YT","en":"Mayotte","hu":"Mayotte","ro":"Mayotte","aliases":[],"europe":false},{"key":"Mexico","alpha2":"MX","en":"Mexico","hu":"Mexikó","ro":"Mexic","aliases":["United Mexican States"],"europe":false},{"key":"Micronesia","alpha2":"FM","en":"Micronesia","hu":"Mikronézia","ro":"Micronezia","aliases":["Federated States of Micronesia","Micronesia, Federated States of"],"europe":false},{"key":"Moldova","alpha2":"MD","en":"Moldova","hu":"Moldova","ro":"Republica Moldova","aliases":["Moldova","Moldova, Republic of","Republic of Moldova"],"europe":true},{"key":"Monaco","alpha2":"MC","en":"Monaco","hu":"Monaco","ro":"Monaco","aliases":["Principality of Monaco"],"europe":true},{"key":"Mongolia","alpha2":"MN","en":"Mongolia","hu":"Mongólia","ro":"Mongolia","aliases":[],"europe":false},{"key":"Montenegro","alpha2":"ME","en":"Montenegro","hu":"Montenegró","ro":"Muntenegru","aliases":[],"europe":true},{"key":"Montserrat","alpha2":"MS","en":"Montserrat","hu":"Montserrat","ro":"Montserrat","aliases":[],"europe":false},{"key":"Morocco","alpha2":"MA","en":"Morocco","hu":"Marokkó","ro":"Maroc","aliases":["Kingdom of Morocco"],"europe":false},{"key":"Mozambique","alpha2":"MZ","en":"Mozambique","hu":"Mozambik","ro":"Mozambic","aliases":["Republic of Mozambique"],"europe":false},{"key":"Myanmar (Burma)","alpha2":"MM","en":"Myanmar (Burma)","hu":"Mianmar","ro":"Myanmar (Birmania)","aliases":["Myanmar","Republic of Myanmar"],"europe":false},{"key":"Namibia","alpha2":"NA","en":"Namibia","hu":"Namíbia","ro":"Namibia","aliases":["Republic of Namibia"],"europe":false},{"key":"Nauru","alpha2":"NR","en":"Nauru","hu":"Nauru","ro":"Nauru","aliases":["Republic of Nauru"],"europe":false},{"key":"Nepal","alpha2":"NP","en":"Nepal","hu":"Nepál","ro":"Nepal","aliases":["Federal Democratic Republic of Nepal"],"europe":false},{"key":"Netherlands","alpha2":"NL","en":"Netherlands","hu":"Hollandia","ro":"Țările de Jos","aliases":["Kingdom of the Netherlands"],"europe":true},{"key":"New Caledonia","alpha2":"NC","en":"New Caledonia","hu":"Új-Kaledónia","ro":"Noua Caledonie","aliases":[],"europe":false},{"key":"New Zealand","alpha2":"NZ","en":"New Zealand","hu":"Új-Zéland","ro":"Noua Zeelandă","aliases":[],"europe":false},{"key":"Nicaragua","alpha2":"NI","en":"Nicaragua","hu":"Nicaragua","ro":"Nicaragua","aliases":["Republic of Nicaragua"],"europe":false},{"key":"Niger","alpha2":"NE","en":"Niger","hu":"Niger","ro":"Niger","aliases":["Republic of the Niger"],"europe":false},{"key":"Nigeria","alpha2":"NG","en":"Nigeria","hu":"Nigéria","ro":"Nigeria","aliases":["Federal Republic of Nigeria"],"europe":false},{"key":"Niue","alpha2":"NU","en":"Niue","hu":"Niue","ro":"Niue","aliases":[],"europe":false},{"key":"Norfolk Island","alpha2":"NF","en":"Norfolk Island","hu":"Norfolk-sziget","ro":"Insula Norfolk","aliases":[],"europe":false},{"key":"North Korea","alpha2":"KP","en":"North Korea","hu":"Észak-Korea","ro":"Coreea de Nord","aliases":["DPR Korea","Democratic People's Republic of Korea","Korea, Democratic People's Republic of","North Korea"],"europe":false},{"key":"North Macedonia","alpha2":"MK","en":"North Macedonia","hu":"Észak-Macedónia","ro":"Macedonia de Nord","aliases":["Macedonia","North Macedonia","Republic of North Macedonia"],"europe":true},{"key":"Northern Ireland","alpha2":"GB-NIR","en":"Northern Ireland","hu":"Észak-Írország","ro":"Irlanda de Nord","aliases":["NIR"],"europe":true},{"key":"Northern Mariana Islands","alpha2":"MP","en":"Northern Mariana Islands","hu":"Északi Mariana-szigetek","ro":"Insulele Mariane de Nord","aliases":["Commonwealth of the Northern Mariana Islands"],"europe":false},{"key":"Norway","alpha2":"NO","en":"Norway","hu":"Norvégia","ro":"Norvegia","aliases":["Kingdom of Norway"],"europe":true},{"key":"Oman","alpha2":"OM","en":"Oman","hu":"Omán","ro":"Oman","aliases":["Sultanate of Oman"],"europe":false},{"key":"Pakistan","alpha2":"PK","en":"Pakistan","hu":"Pakisztán","ro":"Pakistan","aliases":["Islamic Republic of Pakistan"],"europe":false},{"key":"Palau","alpha2":"PW","en":"Palau","hu":"Palau","ro":"Palau","aliases":["Republic of Palau"],"europe":false},{"key":"Palestinian Territories","alpha2":"PS","en":"Palestinian Territories","hu":"Palesztin Autonómia","ro":"Teritoriile Palestiniene","aliases":["Palestine","Palestine, State of","the State of Palestine"],"europe":false},{"key":"Panama","alpha2":"PA","en":"Panama","hu":"Panama","ro":"Panama","aliases":["Republic of Panama"],"europe":false},{"key":"Papua New Guinea","alpha2":"PG","en":"Papua New Guinea","hu":"Pápua Új-Guinea","ro":"Papua-Noua Guinee","aliases":["Independent State of Papua New Guinea"],"europe":false},{"key":"Paraguay","alpha2":"PY","en":"Paraguay","hu":"Paraguay","ro":"Paraguay","aliases":["Republic of Paraguay"],"europe":false},{"key":"Peru","alpha2":"PE","en":"Peru","hu":"Peru","ro":"Peru","aliases":["Republic of Peru"],"europe":false},{"key":"Philippines","alpha2":"PH","en":"Philippines","hu":"Fülöp-szigetek","ro":"Filipine","aliases":["Republic of the Philippines"],"europe":false},{"key":"Pitcairn Islands","alpha2":"PN","en":"Pitcairn Islands","hu":"Pitcairn-szigetek","ro":"Insulele Pitcairn","aliases":["Pitcairn"],"europe":false},{"key":"Poland","alpha2":"PL","en":"Poland","hu":"Lengyelország","ro":"Polonia","aliases":["Republic of Poland"],"europe":true},{"key":"Portugal","alpha2":"PT","en":"Portugal","hu":"Portugália","ro":"Portugalia","aliases":["Portuguese Republic"],"europe":true},{"key":"Puerto Rico","alpha2":"PR","en":"Puerto Rico","hu":"Puerto Rico","ro":"Puerto Rico","aliases":[],"europe":false},{"key":"Qatar","alpha2":"QA","en":"Qatar","hu":"Katar","ro":"Qatar","aliases":["State of Qatar"],"europe":false},{"key":"Romania","alpha2":"RO","en":"Romania","hu":"Románia","ro":"România","aliases":[],"europe":true},{"key":"Russia","alpha2":"RU","en":"Russia","hu":"Oroszország","ro":"Rusia","aliases":["Russia","Russian Federation"],"europe":true},{"key":"Rwanda","alpha2":"RW","en":"Rwanda","hu":"Ruanda","ro":"Rwanda","aliases":["Rwandese Republic"],"europe":false},{"key":"Réunion","alpha2":"RE","en":"Réunion","hu":"Réunion","ro":"Réunion","aliases":[],"europe":false},{"key":"Samoa","alpha2":"WS","en":"Samoa","hu":"Szamoa","ro":"Samoa","aliases":["Independent State of Samoa"],"europe":false},{"key":"San Marino","alpha2":"SM","en":"San Marino","hu":"San Marino","ro":"San Marino","aliases":["Republic of San Marino"],"europe":true},{"key":"Saudi Arabia","alpha2":"SA","en":"Saudi Arabia","hu":"Szaúd-Arábia","ro":"Arabia Saudită","aliases":["Kingdom of Saudi Arabia"],"europe":false},{"key":"Scotland","alpha2":"GB-SCT","en":"Scotland","hu":"Skócia","ro":"Scoția","aliases":["SCO"],"europe":true},{"key":"Senegal","alpha2":"SN","en":"Senegal","hu":"Szenegál","ro":"Senegal","aliases":["Republic of Senegal"],"europe":false},{"key":"Serbia","alpha2":"RS","en":"Serbia","hu":"Szerbia","ro":"Serbia","aliases":["Republic of Serbia"],"europe":true},{"key":"Seychelles","alpha2":"SC","en":"Seychelles","hu":"Seychelle-szigetek","ro":"Seychelles","aliases":["Republic of Seychelles"],"europe":false},{"key":"Sierra Leone","alpha2":"SL","en":"Sierra Leone","hu":"Sierra Leone","ro":"Sierra Leone","aliases":["Republic of Sierra Leone"],"europe":false},{"key":"Singapore","alpha2":"SG","en":"Singapore","hu":"Szingapúr","ro":"Singapore","aliases":["Republic of Singapore"],"europe":false},{"key":"Sint Maarten","alpha2":"SX","en":"Sint Maarten","hu":"Sint Maarten","ro":"Sint-Maarten","aliases":["Sint Maarten (Dutch part)"],"europe":false},{"key":"Slovakia","alpha2":"SK","en":"Slovakia","hu":"Szlovákia","ro":"Slovacia","aliases":["Slovak Republic"],"europe":true},{"key":"Slovenia","alpha2":"SI","en":"Slovenia","hu":"Szlovénia","ro":"Slovenia","aliases":["Republic of Slovenia"],"europe":true},{"key":"Solomon Islands","alpha2":"SB","en":"Solomon Islands","hu":"Salamon-szigetek","ro":"Insulele Solomon","aliases":[],"europe":false},{"key":"Somalia","alpha2":"SO","en":"Somalia","hu":"Szomália","ro":"Somalia","aliases":["Federal Republic of Somalia"],"europe":false},{"key":"South Africa","alpha2":"ZA","en":"South Africa","hu":"Dél-afrikai Köztársaság","ro":"Africa de Sud","aliases":["Republic of South Africa"],"europe":false},{"key":"South Georgia & South Sandwich Islands","alpha2":"GS","en":"South Georgia & South Sandwich Islands","hu":"Déli-Georgia és Déli-Sandwich-szigetek","ro":"Georgia de Sud și Insulele Sandwich de Sud","aliases":["South Georgia and the South Sandwich Islands"],"europe":false},{"key":"South Korea","alpha2":"KR","en":"South Korea","hu":"Dél-Korea","ro":"Coreea de Sud","aliases":["Korea Republic","Korea, Republic of","Republic of Korea","South Korea"],"europe":false},{"key":"South Sudan","alpha2":"SS","en":"South Sudan","hu":"Dél-Szudán","ro":"Sudanul de Sud","aliases":["Republic of South Sudan"],"europe":false},{"key":"Spain","alpha2":"ES","en":"Spain","hu":"Spanyolország","ro":"Spania","aliases":["Kingdom of Spain"],"europe":true},{"key":"Sri Lanka","alpha2":"LK","en":"Sri Lanka","hu":"Srí Lanka","ro":"Sri Lanka","aliases":["Democratic Socialist Republic of Sri Lanka"],"europe":false},{"key":"St. Barthélemy","alpha2":"BL","en":"St. Barthélemy","hu":"Saint-Barthélemy","ro":"Saint-Barthélemy","aliases":["Saint Barthélemy"],"europe":false},{"key":"St. Helena","alpha2":"SH","en":"St. Helena","hu":"Szent Ilona","ro":"Sfânta Elena","aliases":["Saint Helena, Ascension and Tristan da Cunha"],"europe":false},{"key":"St. Kitts & Nevis","alpha2":"KN","en":"St. Kitts & Nevis","hu":"Saint Kitts és Nevis","ro":"Saint Kitts și Nevis","aliases":["Saint Kitts and Nevis"],"europe":false},{"key":"St. Lucia","alpha2":"LC","en":"St. Lucia","hu":"Saint Lucia","ro":"Sfânta Lucia","aliases":["Saint Lucia"],"europe":false},{"key":"St. Martin","alpha2":"MF","en":"St. Martin","hu":"Saint Martin","ro":"Sfântul Martin","aliases":["Saint Martin (French part)"],"europe":false},{"key":"St. Pierre & Miquelon","alpha2":"PM","en":"St. Pierre & Miquelon","hu":"Saint-Pierre és Miquelon","ro":"Saint-Pierre și Miquelon","aliases":["Saint Pierre and Miquelon"],"europe":false},{"key":"St. Vincent & Grenadines","alpha2":"VC","en":"St. Vincent & Grenadines","hu":"Saint Vincent és a Grenadine-szigetek","ro":"Saint Vincent și Grenadinele","aliases":["Saint Vincent and the Grenadines"],"europe":false},{"key":"Sudan","alpha2":"SD","en":"Sudan","hu":"Szudán","ro":"Sudan","aliases":["Republic of the Sudan"],"europe":false},{"key":"Suriname","alpha2":"SR","en":"Suriname","hu":"Suriname","ro":"Suriname","aliases":["Republic of Suriname"],"europe":false},{"key":"Svalbard & Jan Mayen","alpha2":"SJ","en":"Svalbard & Jan Mayen","hu":"Svalbard és Jan Mayen","ro":"Svalbard și Jan Mayen","aliases":["Svalbard and Jan Mayen"],"europe":false},{"key":"Sweden","alpha2":"SE","en":"Sweden","hu":"Svédország","ro":"Suedia","aliases":["Kingdom of Sweden"],"europe":true},{"key":"Switzerland","alpha2":"CH","en":"Switzerland","hu":"Svájc","ro":"Elveția","aliases":["Swiss Confederation"],"europe":true},{"key":"Syria","alpha2":"SY","en":"Syria","hu":"Szíria","ro":"Siria","aliases":["Syria","Syrian Arab Republic"],"europe":false},{"key":"São Tomé & Príncipe","alpha2":"ST","en":"São Tomé & Príncipe","hu":"São Tomé és Príncipe","ro":"São Tomé și Príncipe","aliases":["Democratic Republic of Sao Tome and Principe","Sao Tome and Principe"],"europe":false},{"key":"Taiwan","alpha2":"TW","en":"Taiwan","hu":"Tajvan","ro":"Taiwan","aliases":["Taiwan, Province of China"],"europe":false},{"key":"Tajikistan","alpha2":"TJ","en":"Tajikistan","hu":"Tádzsikisztán","ro":"Tadjikistan","aliases":["Republic of Tajikistan"],"europe":false},{"key":"Tanzania","alpha2":"TZ","en":"Tanzania","hu":"Tanzánia","ro":"Tanzania","aliases":["Tanzania","Tanzania, United Republic of","United Republic of Tanzania"],"europe":false},{"key":"Thailand","alpha2":"TH","en":"Thailand","hu":"Thaiföld","ro":"Thailanda","aliases":["Kingdom of Thailand"],"europe":false},{"key":"Timor-Leste","alpha2":"TL","en":"Timor-Leste","hu":"Kelet-Timor","ro":"Timor-Leste","aliases":["Democratic Republic of Timor-Leste"],"europe":false},{"key":"Togo","alpha2":"TG","en":"Togo","hu":"Togo","ro":"Togo","aliases":["Togolese Republic"],"europe":false},{"key":"Tokelau","alpha2":"TK","en":"Tokelau","hu":"Tokelau","ro":"Tokelau","aliases":[],"europe":false},{"key":"Tonga","alpha2":"TO","en":"Tonga","hu":"Tonga","ro":"Tonga","aliases":["Kingdom of Tonga"],"europe":false},{"key":"Trinidad & Tobago","alpha2":"TT","en":"Trinidad & Tobago","hu":"Trinidad és Tobago","ro":"Trinidad și Tobago","aliases":["Republic of Trinidad and Tobago","Trinidad and Tobago"],"europe":false},{"key":"Tunisia","alpha2":"TN","en":"Tunisia","hu":"Tunézia","ro":"Tunisia","aliases":["Republic of Tunisia"],"europe":false},{"key":"Turkey","alpha2":"TR","en":"Turkey","hu":"Törökország","ro":"Turcia","aliases":["Republic of Türkiye","Turkiye","Türkiye"],"europe":true},{"key":"Turkmenistan","alpha2":"TM","en":"Turkmenistan","hu":"Türkmenisztán","ro":"Turkmenistan","aliases":[],"europe":false},{"key":"Turks & Caicos Islands","alpha2":"TC","en":"Turks & Caicos Islands","hu":"Turks- és Caicos-szigetek","ro":"Insulele Turks și Caicos","aliases":["Turks and Caicos Islands"],"europe":false},{"key":"Tuvalu","alpha2":"TV","en":"Tuvalu","hu":"Tuvalu","ro":"Tuvalu","aliases":[],"europe":false},{"key":"U.S. Outlying Islands","alpha2":"UM","en":"U.S. Outlying Islands","hu":"Az USA lakatlan külbirtokai","ro":"Insulele Îndepărtate ale S.U.A.","aliases":["United States Minor Outlying Islands"],"europe":false},{"key":"U.S. Virgin Islands","alpha2":"VI","en":"U.S. Virgin Islands","hu":"Amerikai Virgin-szigetek","ro":"Insulele Virgine Americane","aliases":["Virgin Islands of the United States","Virgin Islands, U.S."],"europe":false},{"key":"Uganda","alpha2":"UG","en":"Uganda","hu":"Uganda","ro":"Uganda","aliases":["Republic of Uganda"],"europe":false},{"key":"Ukraine","alpha2":"UA","en":"Ukraine","hu":"Ukrajna","ro":"Ucraina","aliases":[],"europe":true},{"key":"United Arab Emirates","alpha2":"AE","en":"United Arab Emirates","hu":"Egyesült Arab Emírségek","ro":"Emiratele Arabe Unite","aliases":[],"europe":false},{"key":"United Kingdom","alpha2":"GB","en":"United Kingdom","hu":"Egyesült Királyság","ro":"Regatul Unit","aliases":["Britain","Great Britain","UK","United Kingdom of Great Britain and Northern Ireland"],"europe":true},{"key":"United States","alpha2":"US","en":"United States","hu":"Egyesült Államok","ro":"Statele Unite ale Americii","aliases":["America","US","USA","United States of America"],"europe":false},{"key":"Uruguay","alpha2":"UY","en":"Uruguay","hu":"Uruguay","ro":"Uruguay","aliases":["Eastern Republic of Uruguay"],"europe":false},{"key":"Uzbekistan","alpha2":"UZ","en":"Uzbekistan","hu":"Üzbegisztán","ro":"Uzbekistan","aliases":["Republic of Uzbekistan"],"europe":false},{"key":"Vanuatu","alpha2":"VU","en":"Vanuatu","hu":"Vanuatu","ro":"Vanuatu","aliases":["Republic of Vanuatu"],"europe":false},{"key":"Vatican City","alpha2":"VA","en":"Vatican City","hu":"Vatikán","ro":"Statul Cetății Vaticanului","aliases":["Holy See (Vatican City State)"],"europe":true},{"key":"Venezuela","alpha2":"VE","en":"Venezuela","hu":"Venezuela","ro":"Venezuela","aliases":["Bolivarian Republic of Venezuela","Venezuela","Venezuela, Bolivarian Republic of"],"europe":false},{"key":"Vietnam","alpha2":"VN","en":"Vietnam","hu":"Vietnám","ro":"Vietnam","aliases":["Socialist Republic of Viet Nam","Viet Nam","Vietnam"],"europe":false},{"key":"Wales","alpha2":"GB-WLS","en":"Wales","hu":"Wales","ro":"Țara Galilor","aliases":["Cymru"],"europe":true},{"key":"Wallis & Futuna","alpha2":"WF","en":"Wallis & Futuna","hu":"Wallis és Futuna","ro":"Wallis și Futuna","aliases":["Wallis and Futuna"],"europe":false},{"key":"Western Sahara","alpha2":"EH","en":"Western Sahara","hu":"Nyugat-Szahara","ro":"Sahara Occidentală","aliases":[],"europe":false},{"key":"Yemen","alpha2":"YE","en":"Yemen","hu":"Jemen","ro":"Yemen","aliases":["Republic of Yemen"],"europe":false},{"key":"Zambia","alpha2":"ZM","en":"Zambia","hu":"Zambia","ro":"Zambia","aliases":["Republic of Zambia"],"europe":false},{"key":"Zimbabwe","alpha2":"ZW","en":"Zimbabwe","hu":"Zimbabwe","ro":"Zimbabwe","aliases":["Republic of Zimbabwe"],"europe":false},{"key":"Åland Islands","alpha2":"AX","en":"Åland Islands","hu":"Åland-szigetek","ro":"Insulele Åland","aliases":[],"europe":false}]);
 
   const TM_NATIONALITY_LAND_IDS = Object.freeze({
-    // Confirmed from the previous TM Scout V2 workflow. Other countries still work via
-    // global source pages + local nationality filtering, without risking wrong TM land_id values.
+    // Seed values kept from the earlier workflow. v21 auto-resolves the missing
+    // Transfermarkt land_id values from the live detailsuche country selector and caches them.
     "Romania": "140",
     "Hungary": "178"
   });
+
+  const TM_NATIONALITY_LAND_IDS_AUTO_CACHE_KEY = APP.cachePrefix + 'autoNationalityLandIds:v21';
+  const TM_NATIONALITY_LAND_IDS_AUTO_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+  let tmNationalityLandIdsRuntime = Object.create(null);
+  let tmNationalityLandIdsAutoPromise = null;
 
   const EUROPE_COMPETITION_CODE_SET = new Set([
     'GB1','GB2','GB3','SC1','SC2','SC3','ES1','ES2','IT1','IT2','IT3A','IT3B','IT3C',
@@ -2016,7 +2021,7 @@
       saveUiSettings(settings);
 
       setStatus(panel, isU21Mode(settings) ? 'U21 forrásoldalak előkészítése...' : 'Forrásoldalak előkészítése...', 2);
-      const sources = buildSourcePlan(settings);
+      const sources = await buildSourcePlan(settings);
       state.debug.sourceUrls = sources.map(function sourceToUrl(source) { return source.url; });
       if (!sources.length) throw new Error('Nincs source URL. Legalább egy Transfermarkt forrás kell.');
 
@@ -2472,12 +2477,13 @@
     });
   }
 
-  function buildSourcePlan(settings) {
+  async function buildSourcePlan(settings) {
     if (isU21Mode(settings)) return buildU21SourcePlan(settings);
     return buildContractSourcePlan(settings);
   }
 
-  function buildContractSourcePlan(settings) {
+  async function buildContractSourcePlan(settings) {
+    await ensureTransfermarktNationalityLandIdsForCountries(getContractSelectedCountryKeys(settings));
     const year = normalizeYear(settings.contractYear);
     const sourceFilters = buildSourceFilterCombos(settings);
     const selectedContractCountries = getContractSelectedCountryKeys(settings);
@@ -2731,13 +2737,23 @@
     if (settings.lowerLeaguePages) multiplier += 0.75;
     if (settings.includeFreeAgents) multiplier += 1.05;
     if (settings.includeFreeAgents && Number(settings.maxMv || 0) > 0 && Number(settings.maxMv || 0) <= 800000) multiplier += 0.55;
-    const nationalityCount = Math.max(1, getSelectedContractNationalityLandIds(settings).length || 1);
-    if (nationalityCount > 1) multiplier += Math.min(1.2, nationalityCount * 0.22);
+
+    // v20: nationalities without a known Transfermarkt land_id still need a wider
+    // global-source budget. v19 only counted known land_ids, so selecting Nigeria,
+    // Serbia, Portugal, etc. could keep the plan too narrow and lose candidates
+    // before the local nationality filter had a chance to verify them.
+    const selectedNationalityCount = getContractSelectedCountryKeys(settings).length;
+    const knownLandIdCount = getSelectedContractNationalityLandIds(settings).length;
+    const nationalityCount = Math.max(1, selectedNationalityCount || knownLandIdCount || 1);
+    const unknownLandIdCount = Math.max(0, selectedNationalityCount - knownLandIdCount);
+    if (nationalityCount > 1) multiplier += Math.min(1.45, nationalityCount * 0.24);
+    if (unknownLandIdCount > 0) multiplier += Math.min(0.95, 0.32 + (unknownLandIdCount * 0.18));
+
     if (filterCount > 1) multiplier += Math.min(1.5, filterCount * 0.18);
     multiplier *= searchDepthBudgetMultiplier(settings);
     multiplier *= candidateTargetBudgetMultiplier(settings, false);
     // This is a total source-page budget, not leagues × filters × pages.
-    return Math.max(8, Math.min(760, Math.round(requested * multiplier)));
+    return Math.max(8, Math.min(820, Math.round(requested * multiplier)));
   }
 
 
@@ -2759,7 +2775,92 @@
   function getTransfermarktNationalityLandId(countryKey) {
     const record = getCountryRecord(countryKey);
     const key = record ? record.key : cleanText(countryKey);
-    return TM_NATIONALITY_LAND_IDS[key] || '';
+    return TM_NATIONALITY_LAND_IDS[key] || tmNationalityLandIdsRuntime[key] || '';
+  }
+
+  async function ensureTransfermarktNationalityLandIdsForCountries(countryKeys) {
+    const requestedKeys = unique((countryKeys || []).map(getCountryCanonicalKey).filter(Boolean));
+    if (!requestedKeys.length) return;
+    const missingBefore = requestedKeys.filter(function missing(key) { return !getTransfermarktNationalityLandId(key); });
+    if (!missingBefore.length) return;
+
+    try {
+      await hydrateTransfermarktNationalityLandIdMap();
+    } catch (error) {
+      pushError('nationality land_id auto-resolve failed', stringifyError(error));
+    }
+
+    const stillMissing = requestedKeys.filter(function missing(key) { return !getTransfermarktNationalityLandId(key); });
+    if (stillMissing.length) {
+      state.debug.nationalityLandIdAutoMissing = unique((state.debug.nationalityLandIdAutoMissing || []).concat(stillMissing));
+    }
+  }
+
+  async function hydrateTransfermarktNationalityLandIdMap() {
+    if (tmNationalityLandIdsAutoPromise) return tmNationalityLandIdsAutoPromise;
+    tmNationalityLandIdsAutoPromise = (async function loadNationalityLandIds() {
+      const saved = await gmGet(TM_NATIONALITY_LAND_IDS_AUTO_CACHE_KEY, null);
+      if (saved && saved.map && Date.now() - Number(saved.savedAt || 0) < TM_NATIONALITY_LAND_IDS_AUTO_TTL_MS) {
+        tmNationalityLandIdsRuntime = Object.assign(Object.create(null), saved.map || {});
+        return tmNationalityLandIdsRuntime;
+      }
+
+      const urls = [
+        'https://www.transfermarkt.com/detailsuche/spielerdetail/suche',
+        'https://www.transfermarkt.com/spieler-statistik/wertvollstespieler/marktwertetop/mw/plus/1'
+      ];
+      const merged = Object.assign(Object.create(null), saved && saved.map ? saved.map : {});
+
+      for (const url of urls) {
+        try {
+          const html = await httpGetCached(url, 'text');
+          Object.assign(merged, parseTransfermarktNationalityLandIdsFromHtml(html));
+        } catch (error) {
+          pushError('nationality land_id source failed', { url: url, error: stringifyError(error) });
+        }
+      }
+
+      tmNationalityLandIdsRuntime = merged;
+      await gmSet(TM_NATIONALITY_LAND_IDS_AUTO_CACHE_KEY, { savedAt: Date.now(), map: merged });
+      state.debug.nationalityLandIdAutoResolvedCount = Object.keys(merged).length;
+      return merged;
+    })();
+    return tmNationalityLandIdsAutoPromise;
+  }
+
+  function parseTransfermarktNationalityLandIdsFromHtml(html) {
+    const out = Object.create(null);
+    const source = String(html || '');
+    const optionRegex = /<option\b([^>]*)>([\s\S]*?)<\/option>/gi;
+    let match;
+    while ((match = optionRegex.exec(source)) && Object.keys(out).length < 400) {
+      const attrs = String(match[1] || '');
+      const valueMatch = attrs.match(/\bvalue=["']?(\d{1,4})["']?/i);
+      if (!valueMatch) continue;
+      const id = String(valueMatch[1] || '').trim();
+      if (!id || id === '0') continue;
+      const label = decodeBasicHtmlEntities(String(match[2] || '').replace(/<[^>]*>/g, ' '));
+      const country = getCountryRecord(label);
+      if (country && !TM_NATIONALITY_LAND_IDS[country.key]) out[country.key] = id;
+    }
+    return out;
+  }
+
+  function decodeBasicHtmlEntities(value) {
+    const named = {
+      amp: '&', quot: '"', apos: "'", nbsp: ' ', lt: '<', gt: '>', auml: 'ä', ouml: 'ö', uuml: 'ü',
+      Auml: 'Ä', Ouml: 'Ö', Uuml: 'Ü', szlig: 'ß', eacute: 'é', Eacute: 'É', aacute: 'á', Aacute: 'Á',
+      iacute: 'í', Iacute: 'Í', oacute: 'ó', Oacute: 'Ó', uacute: 'ú', Uacute: 'Ú', ccedil: 'ç', Ccedil: 'Ç'
+    };
+    return cleanText(String(value || '').replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, function replaceEntity(full, code) {
+      const raw = String(code || '');
+      if (raw.charAt(0) === '#') {
+        const hex = raw.charAt(1).toLowerCase() === 'x';
+        const num = parseInt(hex ? raw.slice(2) : raw.slice(1), hex ? 16 : 10);
+        return Number.isFinite(num) ? String.fromCodePoint(num) : full;
+      }
+      return Object.prototype.hasOwnProperty.call(named, raw) ? named[raw] : full;
+    }));
   }
 
   function getSelectedU21NationalityLandIds(settings) {
@@ -2845,7 +2946,8 @@
     });
   }
 
-  function buildU21SourcePlan(settings) {
+  async function buildU21SourcePlan(settings) {
+    await ensureTransfermarktNationalityLandIdsForCountries(getU21SelectedCountryKeys(settings));
     const sourceFilters = buildU21CompactSourceFilters(settings);
     state.debug.sourceFilterCombos = sourceFilters.map(function debugCombo(combo) {
       return {
@@ -3719,7 +3821,7 @@
       if (candidate.marketValue < settings.minMv || candidate.marketValue > settings.maxMv) reasons.push('mv-out-of-range-source');
     }
 
-    if (!matchesSelectedNationality(candidate.nationality, settings.contractNationalities || [])) reasons.push('contract-nationality-disabled-source');
+    if (!matchesSelectedNationality(candidate.nationality, settings.contractNationalities || [], { allowUnknown: true })) reasons.push('contract-nationality-disabled-source');
 
     const mode = normalizePositionFilterMode(settings.positionFilterMode);
     const group = candidate.positionGroup || positionGroup(candidate.position);
@@ -3754,7 +3856,7 @@
     if (mv !== null && mv !== undefined && mv !== 0) {
       if (mv < settings.u21MinMv || mv > settings.u21MaxMv) reasons.push('u21-mv-out-of-range-source');
     }
-    if (!matchesU21Nationality(candidate.nationality, settings)) reasons.push('u21-nationality-disabled-source');
+    if (!matchesU21Nationality(candidate.nationality, settings, { allowUnknown: true })) reasons.push('u21-nationality-disabled-source');
 
     const mode = normalizePositionFilterMode(settings.positionFilterMode);
     const group = candidate.positionGroup || positionGroup(candidate.position);
@@ -5732,20 +5834,72 @@
     return unique(codes);
   }
 
-  function matchesSelectedNationality(nationality, selectedValues) {
-    const selected = getSelectedCountryKeys(selectedValues || []);
-    if (!selected.length) return true;
-    const raw = normalizeCountrySearch(nationality || '');
-    if (!raw) return true;
-    return selected.some(function match(country) {
-      const blob = countrySearchBlob(country);
-      const normalizedCountry = normalizeCountrySearch(country);
-      return blob.includes(raw) || raw.includes(normalizedCountry) || normalizedCountry.includes(raw);
-    });
+  function normalizedTextContainsCountry(raw, countryText) {
+    const haystack = normalizeCountrySearch(raw || '');
+    const needle = normalizeCountrySearch(countryText || '');
+    if (!haystack || !needle) return false;
+    if (haystack === needle) return true;
+    const paddedHaystack = ` ${haystack} `;
+    const paddedNeedle = ` ${needle} `;
+    if (paddedHaystack.includes(paddedNeedle)) return true;
+    // Alpha-2 / very short aliases must be exact tokens, otherwise e.g. "in" would
+    // accidentally match half the planet. Longer aliases may match compacted text too.
+    if (needle.length <= 3) return haystack.split(/\s+/).includes(needle);
+    return haystack.replace(/\s+/g, '').includes(needle.replace(/\s+/g, ''));
   }
 
-  function matchesU21Nationality(nationality, settings) {
-    return matchesSelectedNationality(nationality, (settings && settings.u21Nationalities) || []);
+  function detectCountryKeysFromNationalityText(nationality) {
+    const raw = cleanText(nationality || '');
+    const normalizedRaw = normalizeCountrySearch(raw);
+    if (!normalizedRaw) return [];
+
+    const keys = [];
+    const chunks = raw
+      .split(/\s*,\s*|\s*\/\s*|\s+\+\s+|\s+and\s+|\s+&\s+/i)
+      .map(cleanText)
+      .filter(Boolean);
+
+    chunks.forEach(function addChunk(chunk) {
+      const record = getCountryRecord(chunk);
+      if (record) keys.push(record.key);
+    });
+
+    COUNTRY_CATALOG.forEach(function scanCountry(country) {
+      const names = [country.key, country.en, country.hu, country.ro, country.alpha2].concat(country.aliases || []);
+      if (names.some(function nameMatches(name) { return normalizedTextContainsCountry(normalizedRaw, name); })) {
+        keys.push(country.key);
+      }
+    });
+
+    return unique(keys);
+  }
+
+  function countryMatchesRawNationality(raw, countryKey) {
+    const record = getCountryRecord(countryKey);
+    const names = record ? [record.key, record.en, record.hu, record.ro, record.alpha2].concat(record.aliases || []) : [countryKey];
+    return names.some(function matchName(name) { return normalizedTextContainsCountry(raw, name); });
+  }
+
+  function matchesSelectedNationality(nationality, selectedValues, options) {
+    const selected = getSelectedCountryKeys(selectedValues || []);
+    if (!selected.length) return true;
+
+    const raw = normalizeCountrySearch(nationality || '');
+    if (!raw) return Boolean(options && options.allowUnknown);
+
+    const selectedSet = new Set(selected);
+    const candidateKeys = detectCountryKeysFromNationalityText(nationality);
+    if (candidateKeys.length) {
+      return candidateKeys.some(function hasSelected(key) { return selectedSet.has(key); });
+    }
+
+    // Last-resort fallback for odd TM text fragments, but it stays country-name
+    // based instead of the old broad "blob.includes(raw)" fuzzy match.
+    return selected.some(function match(country) { return countryMatchesRawNationality(raw, country); });
+  }
+
+  function matchesU21Nationality(nationality, settings, options) {
+    return matchesSelectedNationality(nationality, (settings && settings.u21Nationalities) || [], options);
   }
 
   function formatU21Score(u21) {
