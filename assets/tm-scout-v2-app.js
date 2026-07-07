@@ -1,5 +1,5 @@
 /*
- * no-source-column-v12-20260707
+ * mv-extraction-deep-v17-20260707
  * export-table-typography-polish-20260706
  * Based on full-i18n-export-popup; keeps old export design, removes List column, improves table typography and export line breaks.
  * TM Scout V2 GitHub Pages build
@@ -8,7 +8,7 @@
  */
 (function installGithubPageShims(){
   'use strict';
-  // no-source-column-v12-20260707
+  // mv-extraction-deep-v17-20260707
 
   const TM_SCOUT_PROXY_ENDPOINT = 'https://tm-scout-v2-proxy.wc26-guesses.workers.dev';
 
@@ -113,12 +113,12 @@
 (function tmScoutV2CleanScope() {
   'use strict';
   // u21-own-team-filter-20260706: own-team exclusion visible and active in U21 mode too.
-  // no-source-column-v12-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
+  // mv-extraction-deep-v17-20260707: source plans are narrowed before fetching; U21 uses nationality/global MV sources, contract mode uses a focused source budget.
 
   const APP = Object.freeze({
     name: 'TM Scout V2',
     logPrefix: '[TM Scout V2]',
-    cachePrefix: 'tmScoutV2InteractiveHtmlExport:',
+    cachePrefix: 'tmScoutV2InteractiveHtmlExportV17:',
     ttlMs: 14 * 24 * 60 * 60 * 1000,
     launcherId: 'tm-scout-v2ihe-launcher',
     panelId: 'tm-scout-v2ihe-panel',
@@ -128,7 +128,7 @@
   });
 
 
-  // no-source-column-v12-20260707:
+  // mv-extraction-deep-v17-20260707:
   // A GitHub Pages frontend eddig minden TM oldalt külön Worker requestként vitt át.
   // A batch proxy most nagyobb, Worker-kímélő csomagokban dolgozik.
   // Fontos: a böngészőoldali concurrency is ehhez igazodik, különben a 24/48-as batch sosem telne meg.
@@ -145,6 +145,21 @@
   let tmScoutBatchMemoryCacheChars = 0;
   const tmScoutBatchMemoryCache = new Map();
   const tmScoutBatchPendingByKey = new Map();
+  const TM_SCOUT_BATCH_POST_DISABLE_MS = 10 * 60 * 1000;
+  let tmScoutBatchPostDisabledUntil = 0;
+  let tmScoutBatchFallbackWarningShown = false;
+
+  function isTmScoutBatchPostTemporarilyDisabled() {
+    return tmScoutBatchPostDisabledUntil && Date.now() < tmScoutBatchPostDisabledUntil;
+  }
+
+  function disableTmScoutBatchPostTemporarily(reason) {
+    tmScoutBatchPostDisabledUntil = Date.now() + TM_SCOUT_BATCH_POST_DISABLE_MS;
+    if (!tmScoutBatchFallbackWarningShown) {
+      tmScoutBatchFallbackWarningShown = true;
+      pushError('batch POST disabled temporarily', reason || 'Worker rejected batch POST');
+    }
+  }
 
   function tmScoutBatchEndpoint(){
     return String(TM_SCOUT_BATCH_PROXY_ENDPOINT || '').trim().replace(/\/$/, '');
@@ -416,6 +431,9 @@
     "Nem": "Nem",
     "Ismeretlen": "Ismeretlen",
     "ismeretlen": "ismeretlen",
+    "Nincs MV history": "Nincs MV history",
+    "MV history hiányzik": "MV history hiányzik",
+    "Aktuális MV": "Aktuális MV",
     "Free agent": "Szabadon igazolható",
     "Nem free agent": "Nem szabadon igazolható",
     "Aktív klub": "Aktív klub",
@@ -614,6 +632,9 @@
     "Nem": "No",
     "Ismeretlen": "Unknown",
     "ismeretlen": "unknown",
+    "Nincs MV history": "No MV history",
+    "MV history hiányzik": "MV history missing",
+    "Aktuális MV": "Current MV",
     "Free agent": "Free agent",
     "Nem free agent": "Non-free agent",
     "Aktív klub": "Active club",
@@ -812,6 +833,9 @@
     "Nem": "Nu",
     "Ismeretlen": "Necunoscut",
     "ismeretlen": "necunoscut",
+    "Nincs MV history": "Fără istoric MV",
+    "MV history hiányzik": "Istoricul MV lipsește",
+    "Aktuális MV": "MV actual",
     "Free agent": "Jucător liber",
     "Nem free agent": "Nu este jucător liber",
     "Aktív klub": "Club activ",
@@ -3781,7 +3805,7 @@
 
   async function enrichCandidate(candidate, settings) {
     const profile = await getProfileInfo(candidate);
-    const mvGraph = await getMarketValueGraph(candidate.playerId, settings.growthSince, settings.maxMvDropPct);
+    const mvGraph = await getMarketValueGraph(candidate, settings.growthSince, settings.maxMvDropPct);
     const playingTimeCandidate = Object.assign({}, candidate, {
       slug: candidate.slug || profile.slug,
       profileUrl: candidate.profileUrl || profile.profileUrl,
@@ -3791,6 +3815,14 @@
     const ownTeamExclusion = detectOwnTeamHistory(candidate, profile, playingTime, settings);
     const chosenPosition = chooseBestPosition(profile.position, candidate.position);
     const clubContext = buildClubLeagueContext(candidate, profile, playingTime, playingTimeCandidate.competitionCodes || []);
+
+    const normalizedMvGraph = normalizeMvGraphForDisplay(
+      mvGraph,
+      firstDefinedNumber(profile.currentMarketValue, mvGraph && mvGraph.latestValue, candidate.marketValue),
+      settings.growthSince,
+      settings.maxMvDropPct
+    );
+    const mergedCurrentMarketValue = firstDefinedNumber(profile.currentMarketValue, normalizedMvGraph.latestValue, candidate.marketValue);
 
     const merged = {
       playerId: candidate.playerId,
@@ -3814,10 +3846,10 @@
       sourceUrls: candidate.sourceUrls || [],
       competitionCodes: unique([].concat(playingTimeCandidate.competitionCodes || [], clubContext.leagueCode ? [clubContext.leagueCode] : [])),
       availability: buildAvailability(candidate, profile, clubContext),
-      currentMarketValue: firstDefinedNumber(profile.currentMarketValue, mvGraph.latestValue, candidate.marketValue),
+      currentMarketValue: mergedCurrentMarketValue,
       sourceMarketValue: candidate.marketValue,
       profileMarketValue: profile.currentMarketValue,
-      mv: mvGraph,
+      mv: normalizedMvGraph,
       playingTime: playingTime,
       ownTeamExclusion: ownTeamExclusion,
       futureTransferDetected: Boolean(profile.futureTransferDetected),
@@ -4007,48 +4039,210 @@
     return { detected: matches.length > 0, evidence: matches.join(' | ') };
   }
 
-  async function getMarketValueGraph(playerId, growthSince, maxMvDropPct) {
-    const url = `https://www.transfermarkt.com/ceapi/marketValueDevelopment/graph/${encodeURIComponent(playerId)}`;
-    let json = null;
-    try {
-      json = await httpGetCached(url, 'json');
-    } catch (error) {
-      pushError('mv graph failed', { playerId: playerId, error: stringifyError(error) });
-      return emptyMvGraph(growthSince, maxMvDropPct, true);
+  async function getMarketValueGraph(candidateOrPlayerId, growthSince, maxMvDropPct) {
+    const candidate = typeof candidateOrPlayerId === 'object' && candidateOrPlayerId !== null
+      ? candidateOrPlayerId
+      : { playerId: candidateOrPlayerId };
+    const playerId = String(candidate.playerId || candidateOrPlayerId || '').trim();
+    if (!playerId) return emptyMvGraph(growthSince, maxMvDropPct, true);
+
+    // v17: do not accept "unknown" after the first CEAPI miss. Transfermarkt sometimes
+    // serves the MV graph through slightly different JSON/HTML payloads, especially for
+    // free agents / recently moved players. We now try the CEAPI graph, tmapi fallbacks,
+    // and finally the player/profile MV-history HTML before giving up.
+    const jsonUrls = buildMarketValueJsonUrls(playerId);
+    for (const url of jsonUrls) {
+      try {
+        const json = await httpGetCached(url, 'json');
+        const points = uniqueMvPoints(extractMvPoints(json)).sort(function byDate(a, b) {
+          return a.dateMs - b.dateMs;
+        });
+        const graph = finishMvGraphFromPoints(points, growthSince, maxMvDropPct, `json:${shortMvSourceLabel(url)}`);
+        if (graph && graph.ok) return graph;
+      } catch (error) {
+        pushError('mv graph json fallback failed', { playerId: playerId, url: url, error: stringifyError(error) });
+      }
     }
 
-    const points = uniqueMvPoints(extractMvPoints(json)).sort(function byDate(a, b) {
-      return a.dateMs - b.dateMs;
-    });
+    const htmlUrls = buildMarketValueHtmlUrls(candidate, playerId);
+    for (const url of htmlUrls) {
+      try {
+        const html = await httpGetCached(url, 'text');
+        const points = uniqueMvPoints(extractMvPointsFromHtml(html)).sort(function byDate(a, b) {
+          return a.dateMs - b.dateMs;
+        });
+        const graph = finishMvGraphFromPoints(points, growthSince, maxMvDropPct, `html:${shortMvSourceLabel(url)}`);
+        if (graph && graph.ok) return graph;
+      } catch (error) {
+        pushError('mv graph html fallback failed', { playerId: playerId, url: url, error: stringifyError(error) });
+      }
+    }
 
-    if (!points.length) return emptyMvGraph(growthSince, maxMvDropPct, true);
-    const latest = points[points.length - 1];
-    const baseline = findBaselinePoint(points, growthSince) || points[0];
-    const absGrowth = latest.value - baseline.value;
-    const pctGrowth = baseline.value > 0 ? (absGrowth / baseline.value) * 100 : null;
+    return emptyMvGraph(growthSince, maxMvDropPct, true);
+  }
+
+  function buildMarketValueJsonUrls(playerId) {
+    const encoded = encodeURIComponent(playerId);
+    return unique([
+      `https://www.transfermarkt.com/ceapi/marketValueDevelopment/graph/${encoded}`,
+      `https://www.transfermarkt.de/ceapi/marketValueDevelopment/graph/${encoded}`,
+      `https://tmapi.transfermarkt.technology/player/${encoded}/market-value-development`,
+      `https://tmapi.transfermarkt.technology/player/${encoded}/market-value`,
+      `https://tmapi.transfermarkt.technology/player/${encoded}/marketValueDevelopment`
+    ]);
+  }
+
+  function buildMarketValueHtmlUrls(candidate, playerId) {
+    const slug = sanitizeTmSlug(candidate && candidate.slug ? candidate.slug : extractSlugFromProfileUrl(candidate && candidate.profileUrl));
+    const encoded = encodeURIComponent(playerId);
+    const urls = [];
+    if (candidate && candidate.profileUrl) urls.push(candidate.profileUrl);
+    if (slug) {
+      urls.push(`https://www.transfermarkt.com/${slug}/marktwertverlauf/spieler/${encoded}`);
+      urls.push(`https://www.transfermarkt.com/${slug}/market-value-history/spieler/${encoded}`);
+      urls.push(`https://www.transfermarkt.de/${slug}/marktwertverlauf/spieler/${encoded}`);
+    }
+    return unique(urls.filter(Boolean));
+  }
+
+  function sanitizeTmSlug(value) {
+    return String(value || '')
+      .replace(/^https?:\/\/[^/]+\//i, '')
+      .replace(/\?.*$/, '')
+      .replace(/#.*/, '')
+      .split('/')[0]
+      .trim();
+  }
+
+  function extractSlugFromProfileUrl(url) {
+    try {
+      const parsed = new URL(String(url || ''), window.location.href);
+      return sanitizeTmSlug(parsed.pathname.replace(/^\//, ''));
+    } catch (_error) {
+      const match = String(url || '').match(/transfermarkt\.[^/]+\/([^/?#]+)/i);
+      return match ? sanitizeTmSlug(match[1]) : '';
+    }
+  }
+
+  function shortMvSourceLabel(url) {
+    try {
+      const parsed = new URL(String(url || ''), window.location.href);
+      return parsed.hostname.replace(/^www\./, '') + parsed.pathname.replace(/\/\d+$/, '/:id');
+    } catch (_error) {
+      return 'fallback';
+    }
+  }
+
+  function finishMvGraphFromPoints(points, growthSince, maxMvDropPct, sourceLabel) {
+    const sorted = uniqueMvPoints(points || []).sort(function byDate(a, b) {
+      return Number(a.dateMs || 0) - Number(b.dateMs || 0);
+    });
+    if (!sorted.length) return null;
+    const latest = sorted[sorted.length - 1];
+    const baseline = findBaselinePoint(sorted, growthSince) || sorted[0];
+    if (!latest || !baseline || !Number.isFinite(Number(latest.value)) || !Number.isFinite(Number(baseline.value))) return null;
+    const absGrowth = Math.round(Number(latest.value) - Number(baseline.value));
+    const pctGrowth = Number(baseline.value) > 0 ? (absGrowth / Number(baseline.value)) * 100 : null;
     const dropPct = Number.isFinite(maxMvDropPct) ? Math.max(0, Math.min(90, Number(maxMvDropPct))) : 15;
-    const minAllowedValue = baseline.value > 0 ? Math.round(baseline.value * (1 - dropPct / 100)) : baseline.value;
-    const passedTrend = latest.value >= minAllowedValue;
-    const lastStep = findLastStepUp(points);
+    const minAllowedValue = Number(baseline.value) > 0 ? Math.round(Number(baseline.value) * (1 - dropPct / 100)) : Number(baseline.value);
+    const passedTrend = Number(latest.value) >= minAllowedValue;
+    const lastStep = findLastStepUp(sorted);
 
     return {
       ok: true,
       unknown: false,
+      fallbackNoHistory: false,
+      fallbackSource: sourceLabel || 'mv-history',
       growthSince: growthSince,
       maxMvDropPct: dropPct,
       minAllowedValue: minAllowedValue,
       latestDate: latest.date,
-      latestValue: latest.value,
+      latestValue: Math.round(Number(latest.value)),
       baselineDate: baseline.date,
-      baselineValue: baseline.value,
+      baselineValue: Math.round(Number(baseline.value)),
       absGrowth: absGrowth,
       pctGrowth: pctGrowth,
       grew: absGrowth > 0,
       passedTrend: passedTrend,
       droppedTooMuch: !passedTrend,
       lastStepUp: lastStep,
-      points: points
+      points: sorted
     };
+  }
+
+  function extractMvPointsFromHtml(html) {
+    const text = decodeHtmlEntities(String(html || ''));
+    const points = [];
+    points.push.apply(points, extractObjectishMvPoints(text));
+    points.push.apply(points, extractDateValueWindowMvPoints(text));
+    return uniqueMvPoints(points);
+  }
+
+  function extractObjectishMvPoints(text) {
+    const out = [];
+    const compact = String(text || '')
+      .replace(/\\\//g, '/')
+      .replace(/&quot;/g, '"')
+      .replace(/&#034;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&apos;/g, "'");
+    const objectRegex = /\{[^{}]{0,1800}(?:datum_mw|datumMw|mw_datum|mwDatum|marketValueDate|market_value_date|dateFormatted|date|x)[^{}]{0,1800}(?:mw|yFormatted|yformatted|marketValue|market_value|value|amount|y)[^{}]{0,1800}\}/gi;
+    let match;
+    while ((match = objectRegex.exec(compact)) && out.length < 500) {
+      const blob = match[0];
+      const dateCandidate = extractLooseObjectValue(blob, ['x', 'date', 'datum_mw', 'datumMw', 'mw_datum', 'mwDatum', 'marketValueDate', 'market_value_date', 'dateFormatted', 'date_formatted']);
+      const altDateCandidate = extractLooseObjectValue(blob, ['datum_mw', 'datumMw', 'mwdatum', 'mwDatum']);
+      const valueCandidate = extractLooseObjectValue(blob, ['y', 'value', 'amount', 'marketValue', 'market_value', 'mw', 'yFormatted', 'yformatted', 'marketValueFormatted', 'market_value_formatted']);
+      const altValueCandidate = extractLooseObjectValue(blob, ['mw', 'marketValueFormatted', 'market_value_formatted', 'yFormatted', 'yformatted']);
+      addLooseMvPoint(out, dateCandidate !== undefined ? dateCandidate : altDateCandidate, valueCandidate !== undefined ? valueCandidate : altValueCandidate, blob);
+    }
+    return out;
+  }
+
+  function extractLooseObjectValue(blob, names) {
+    const source = String(blob || '');
+    for (const name of names) {
+      const escaped = escapeRegExp(name);
+      const regexes = [
+        new RegExp("[\"']" + escaped + "[\"']\\s*:\\s*([\"'])(.*?)\\1", 'i'),
+        new RegExp("(?:^|[,\\s])" + escaped + "\\s*:\\s*([\"'])(.*?)\\1", 'i'),
+        new RegExp("[\"']" + escaped + "[\"']\\s*:\\s*([^,}]+)", 'i'),
+        new RegExp('(?:^|[,\\s])' + escaped + '\\s*:\\s*([^,}]+)', 'i')
+      ];
+      for (const regex of regexes) {
+        const match = source.match(regex);
+        if (!match) continue;
+        const raw = match[2] !== undefined ? match[2] : match[1];
+        const value = cleanText(String(raw || '').replace(/^['"]|['"]$/g, ''));
+        if (value) return value;
+      }
+    }
+    return undefined;
+  }
+
+  function extractDateValueWindowMvPoints(text) {
+    const out = [];
+    const source = cleanText(String(text || '').replace(/<[^>]+>/g, ' '));
+    const dateRegex = '(?:\\d{4}-\\d{2}-\\d{2}|\\d{1,2}\\.\\d{1,2}\\.\\d{4}|\\d{1,2}/\\d{1,2}/\\d{4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{1,2},?\\s+\\d{4}|\\d{1,2}\\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{4})';
+    const valueRegex = '€\\s*[0-9]+(?:[.,][0-9]+)?\\s*(?:bn|b|m|mil\\.?|k|th\\.?|thousand)?|[0-9]+(?:[.,][0-9]+)?\\s*(?:bn|b|m|mil\\.?|k|th\\.?|thousand)\\s*€';
+    const dateThenValue = new RegExp('(' + dateRegex + ')[^€]{0,180}(' + valueRegex + ')', 'gi');
+    const valueThenDate = new RegExp('(' + valueRegex + ')[^0-9A-Za-z]{0,80}(?:[^0-9A-Za-z]{0,80})(' + dateRegex + ')', 'gi');
+    let match;
+    while ((match = dateThenValue.exec(source)) && out.length < 500) addLooseMvPoint(out, match[1], match[2], match[0]);
+    while ((match = valueThenDate.exec(source)) && out.length < 500) addLooseMvPoint(out, match[2], match[1], match[0]);
+    return out;
+  }
+
+  function addLooseMvPoint(out, dateCandidate, valueCandidate, raw) {
+    const dateInfo = parseMvDate(dateCandidate);
+    const value = parseMarketValueAny(valueCandidate);
+    if (!dateInfo || value === null || value === undefined || !Number.isFinite(Number(value)) || Number(value) <= 0) return;
+    out.push({
+      date: dateInfo.iso,
+      dateMs: dateInfo.ms,
+      value: Math.round(Number(value)),
+      raw: raw
+    });
   }
 
   function emptyMvGraph(growthSince, maxMvDropPct, passWhenUnknown) {
@@ -4071,6 +4265,99 @@
       lastStepUp: null,
       points: []
     };
+  }
+
+
+  function normalizeMvGraphForDisplay(mvGraph, currentMarketValue, growthSince, maxMvDropPct) {
+    const dropPct = Number.isFinite(maxMvDropPct) ? Math.max(0, Math.min(90, Number(maxMvDropPct))) : 15;
+    const current = Number(currentMarketValue);
+    const hasCurrent = Number.isFinite(current) && current > 0;
+    const base = Object.assign(emptyMvGraph(growthSince, dropPct, true), mvGraph || {});
+    const points = Array.isArray(base.points) ? base.points.slice().sort(function byDate(a, b) { return Number(a.dateMs || 0) - Number(b.dateMs || 0); }) : [];
+
+    function completeFromValues(baselineValue, latestValue, baselineDate, latestDate, sourceLabel) {
+      const baseline = Number(baselineValue);
+      const latest = Number(latestValue);
+      if (!Number.isFinite(baseline) || baseline <= 0 || !Number.isFinite(latest) || latest <= 0) return null;
+      const absGrowth = Math.round(latest - baseline);
+      const pctGrowth = baseline > 0 ? (absGrowth / baseline) * 100 : null;
+      const minAllowedValue = Math.round(baseline * (1 - dropPct / 100));
+      const passedTrend = latest >= minAllowedValue;
+      return Object.assign({}, base, {
+        ok: true,
+        unknown: false,
+        fallbackNoHistory: false,
+        fallbackSource: sourceLabel || base.fallbackSource || '',
+        growthSince: growthSince,
+        maxMvDropPct: dropPct,
+        minAllowedValue: minAllowedValue,
+        latestDate: latestDate || base.latestDate || '',
+        latestValue: latest,
+        baselineDate: baselineDate || base.baselineDate || '',
+        baselineValue: baseline,
+        absGrowth: absGrowth,
+        pctGrowth: pctGrowth,
+        grew: absGrowth > 0,
+        passedTrend: passedTrend,
+        droppedTooMuch: !passedTrend,
+        points: points
+      });
+    }
+
+    if (points.length) {
+      const latestPoint = points[points.length - 1];
+      const baselinePoint = findBaselinePoint(points, growthSince) || points[0];
+      const fromPoints = completeFromValues(
+        baselinePoint && baselinePoint.value,
+        hasCurrent ? current : latestPoint && latestPoint.value,
+        baselinePoint && baselinePoint.date,
+        hasCurrent ? '' : latestPoint && latestPoint.date,
+        hasCurrent ? 'current-market-value-fallback' : 'points'
+      );
+      if (fromPoints) return fromPoints;
+    }
+
+    const directBaseline = Number(base.baselineValue);
+    const directLatest = Number(base.latestValue);
+    const direct = completeFromValues(
+      directBaseline,
+      hasCurrent ? current : directLatest,
+      base.baselineDate,
+      hasCurrent ? '' : base.latestDate,
+      hasCurrent && (!Number.isFinite(directLatest) || directLatest <= 0) ? 'current-market-value-fallback' : 'direct'
+    );
+    if (direct) return direct;
+
+    if (hasCurrent) {
+      return Object.assign({}, base, {
+        ok: false,
+        unknown: false,
+        fallbackNoHistory: true,
+        fallbackSource: 'current-market-value-only',
+        growthSince: growthSince,
+        maxMvDropPct: dropPct,
+        latestValue: current,
+        latestDate: base.latestDate || '',
+        baselineValue: null,
+        baselineDate: '',
+        absGrowth: null,
+        pctGrowth: null,
+        grew: false,
+        passedTrend: true,
+        droppedTooMuch: false,
+        points: points
+      });
+    }
+
+    return Object.assign({}, base, {
+      unknown: true,
+      fallbackNoHistory: true,
+      growthSince: growthSince,
+      maxMvDropPct: dropPct,
+      passedTrend: true,
+      droppedTooMuch: false,
+      points: points
+    });
   }
 
   function extractMvPoints(json) {
@@ -5938,6 +6225,7 @@
         players: 'játékos',
         sort: 'Rendezés',
         reset: 'Reset',
+        backToFilters: 'Vissza a filterekhez',
         noResults: 'Nincs találat.',
         noExportRows: 'Nincs exportálható találat.',
         clientNote: 'A szűrés és rendezés kliensoldali. Nem indít új scrapinget.',
@@ -5999,6 +6287,7 @@
         app: 'meccs',
         min: 'perc',
         unknown: 'ismeretlen',
+        noMvHistory: 'Nincs MV history',
         other: 'Other/unknown'
       },
       en: {
@@ -6015,6 +6304,7 @@
         players: 'players',
         sort: 'Sort',
         reset: 'Reset',
+        backToFilters: 'Back to filters',
         noResults: 'No results.',
         noExportRows: 'No exportable results.',
         clientNote: 'Filtering and sorting are client-side. No new scraping is started.',
@@ -6076,6 +6366,7 @@
         app: 'app',
         min: 'min',
         unknown: 'unknown',
+        noMvHistory: 'No MV history',
         other: 'Other/unknown'
       },
       ro: {
@@ -6092,6 +6383,7 @@
         players: 'jucători',
         sort: 'Sortare',
         reset: 'Resetare',
+        backToFilters: 'Înapoi la filtre',
         noResults: 'Nu există rezultate.',
         noExportRows: 'Nu există rezultate exportabile.',
         clientNote: 'Filtrarea și sortarea sunt locale. Nu pornește o nouă scanare.',
@@ -6153,6 +6445,7 @@
         app: 'meci',
         min: 'min',
         unknown: 'necunoscut',
+        noMvHistory: 'Fără istoric MV',
         other: 'Altul/necunoscut'
       }
     };
@@ -6297,8 +6590,11 @@
     }
 
     function renderGrowth(mv) {
-      if (!mv || mv.absGrowth === null || mv.absGrowth === undefined) {
-        return `<div class="growth-cell"><span class="muted">${escapeHtml(mv && mv.unknown ? ex('unknown') : '—')}</span></div>`;
+      if (!mv || mv.absGrowth === null || mv.absGrowth === undefined || !Number.isFinite(Number(mv.absGrowth))) {
+        const current = mv && Number.isFinite(Number(mv.latestValue)) && Number(mv.latestValue) > 0 ? Number(mv.latestValue) : null;
+        const label = mv && (mv.fallbackNoHistory || mv.unknown) ? ex('noMvHistory') : '—';
+        const currentLine = current ? `<span class="muted-line">${escapeHtml(ex('currentMv'))}: ${escapeHtml(formatEuro(current))}</span>` : '';
+        return `<div class="growth-cell"><span class="muted">${escapeHtml(label)}</span>${currentLine}</div>`;
       }
       const pct = mv.pctGrowth === null || mv.pctGrowth === undefined ? '—' : `${mv.pctGrowth >= 0 ? '+' : ''}${mv.pctGrowth.toFixed(1)}%`;
       const cls = mv.absGrowth >= 0 ? 'growth-positive' : 'growth-negative';
@@ -6372,7 +6668,7 @@
       ? ['<label>' + ex('sort') + '<select id="sortBy"><option value="scoreDesc">' + ex('scoreSort') + '</option><option value="matchDesc">' + ex('matchSort') + '</option><option value="mvGrowthDesc">' + ex('absGrowth') + '</option><option value="mvDesc">' + ex('mvNowSort') + '</option><option value="ageAsc">' + ex('youngerFirst') + '</option><option value="nameAsc">' + ex('nameAZ') + '</option></select></label>', '<label>' + ex('broadPos') + '<select id="broadFilter"><option value="all">' + ex('allBroad') + '</option><option value="GK">GK</option><option value="DEF">DEF</option><option value="MID">MID</option><option value="FWD">ATT/FWD</option></select></label>', '<label>' + ex('detailPos') + '<select id="detailFilter"><option value="all">' + ex('allDetail') + '</option><option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="DM">DM</option><option value="CM">CM</option><option value="AM">AM</option><option value="LM">LM</option><option value="RM">RM</option><option value="LW">Left Winger</option><option value="RW">Right Winger</option><option value="WING">Winger</option><option value="CF">CF/ST</option><option value="SS">SS</option><option value="OTHER">' + ex('other') + '</option></select></label>', '<label>' + ex('nationality') + '<select id="nationalityFilter"><option value="all">' + ex('allNationalities') + '</option>' + nationalityOptions + '</select></label>'].join('\n')
       : ['<label>' + ex('sort') + '<select id="sortBy"><option value="absDesc">' + ex('absGrowth') + '</option><option value="mvDesc">' + ex('mvNowSort') + '</option><option value="pctDesc">' + ex('pctImprove') + '</option><option value="pctAsc">' + ex('pctDrop') + '</option><option value="nameAsc">' + ex('nameAZ') + '</option></select></label>', '<label>' + ex('availabilityFilter') + '<select id="freeFilter"><option value="all">' + ex('allPlayers') + '</option><option value="free">' + ex('freeAgentsOnly') + '</option><option value="nonfree">' + ex('nonFreeOnly') + '</option></select></label>', '<label>' + ex('broadPos') + '<select id="broadFilter"><option value="all">' + ex('allBroad') + '</option><option value="GK">GK</option><option value="DEF">DEF</option><option value="MID">MID</option><option value="FWD">ATT/FWD</option></select></label>', '<label>' + ex('detailPos') + '<select id="detailFilter"><option value="all">' + ex('allDetail') + '</option><option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="DM">DM</option><option value="CM">CM</option><option value="AM">AM</option><option value="LM">LM</option><option value="RM">RM</option><option value="LW">Left Winger</option><option value="RW">Right Winger</option><option value="WING">Winger</option><option value="CF">CF/ST</option><option value="SS">SS</option><option value="OTHER">' + ex('other') + '</option></select></label>'].join('\n');
 
-    const filterControls = ['<section class="export-controls" aria-label="' + escapeAttr(ex('filtersAndSorting')) + '">', '<div class="export-control-head"><strong>' + escapeHtml(ex('filtersAndSorting')) + '</strong><span><b id="visibleCount">' + escapeHtml(String(results.length)) + '</b> / <b id="totalCount">' + escapeHtml(String(results.length)) + '</b> ' + escapeHtml(ex('players')) + '</span></div>', '<div class="export-control-grid">', controls, '<button type="button" id="resetFilters">' + escapeHtml(ex('reset')) + '</button>', '</div>', '<p class="export-control-note">' + escapeHtml(ex('clientNote')) + '</p>', '</section>'].join('\n');
+    const filterControls = ['<section id="exportFilters" class="export-controls" aria-label="' + escapeAttr(ex('filtersAndSorting')) + '">', '<div class="export-control-head"><strong>' + escapeHtml(ex('filtersAndSorting')) + '</strong><span><b id="visibleCount">' + escapeHtml(String(results.length)) + '</b> / <b id="totalCount">' + escapeHtml(String(results.length)) + '</b> ' + escapeHtml(ex('players')) + '</span></div>', '<div class="export-control-grid">', controls, '<button type="button" id="resetFilters">' + escapeHtml(ex('reset')) + '</button>', '</div>', '<p class="export-control-note">' + escapeHtml(ex('clientNote')) + '</p>', '</section>'].join('\n');
 
     const headers = mode === 'u21'
       ? ['player','position','age','nationality','u21Status','clubTeam','currentMv','mvChange','playingTime','recentSeasons','profile']
@@ -6381,15 +6677,18 @@
       ? ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link']
       : ['player','position','age','nation','availability','club','mvnow','growth','playing','season','link'];
 
-    return ['<!doctype html>', `<html lang="${escapeAttr(lang)}">`, '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${escapeHtml(ex('exportTitle'))}</title>`, '<style>', exportCss(), '</style>', '</head>', '<body>', '<main>', '<section class="hero">', '<div class="topline">', '<div>', `<div class="kicker">${escapeHtml(ex('scoutExport'))}</div>`, '<h1>TM Scout V2</h1>', `<p>${escapeHtml(mode === 'u21' ? ex('u21Export') : ex('contractExport'))} · ${escapeHtml(new Date().toLocaleString(locale))}</p>`, '</div>', `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`, '</div>', '<div class="stats">', `<div class="stat"><span>${escapeHtml(ex('results'))}</span><strong>${escapeHtml(String(results.length))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('checkedPlayers'))}</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('enriched'))}</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('mode'))}</span><strong>${escapeHtml(mode === 'u21' ? 'U21' : 'Contract')}</strong></div>`, '</div>', '</section>', filterControls, '<section class="table-wrap">', '<table>', `<colgroup>${colClasses.map(function cc(cls) { return `<col class="${escapeAttr(cls)}">`; }).join('')}</colgroup>`, `<thead><tr>${headers.map(function h(key) { const label = ex(key); return `<th title="${escapeAttr(label)}">${escapeHtml(label)}</th>`; }).join('')}</tr></thead>`, `<tbody data-export-body>${rows || '<tr><td colspan="11">' + escapeHtml(ex('noResults')) + '</td></tr>'}</tbody>`, '</table>', '</section>', '</main>', '<script>', exportScript(mode), '</script>', '</body>', '</html>'].join('\n');
+    return ['<!doctype html>', `<html lang="${escapeAttr(lang)}">`, '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${escapeHtml(ex('exportTitle'))}</title>`, '<style>', exportCss(), '</style>', '</head>', '<body>', '<main>', '<section class="hero">', '<div class="topline">', '<div>', `<div class="kicker">${escapeHtml(ex('scoutExport'))}</div>`, '<h1>TM Scout V2</h1>', `<p>${escapeHtml(mode === 'u21' ? ex('u21Export') : ex('contractExport'))} · ${escapeHtml(new Date().toLocaleString(locale))}</p>`, '</div>', `<div class="criteria">${criteria.map(function criterion(text) { return `<span>${escapeHtml(text)}</span>`; }).join('')}</div>`, '</div>', '<div class="stats">', `<div class="stat"><span>${escapeHtml(ex('results'))}</span><strong>${escapeHtml(String(results.length))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('checkedPlayers'))}</span><strong>${escapeHtml(String(state.rawCandidates.length || debug.rawCandidates || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('enriched'))}</span><strong>${escapeHtml(String(state.enrichedCount || debug.enriched || 0))}</strong></div>`, `<div class="stat"><span>${escapeHtml(ex('mode'))}</span><strong>${escapeHtml(mode === 'u21' ? 'U21' : 'Contract')}</strong></div>`, '</div>', '</section>', filterControls, '<section class="table-wrap">', '<table>', `<colgroup>${colClasses.map(function cc(cls) { return `<col class="${escapeAttr(cls)}">`; }).join('')}</colgroup>`, `<thead><tr>${headers.map(function h(key) { const label = ex(key); return `<th title="${escapeAttr(label)}">${escapeHtml(label)}</th>`; }).join('')}</tr></thead>`, `<tbody data-export-body>${rows || '<tr><td colspan="11">' + escapeHtml(ex('noResults')) + '</td></tr>'}</tbody>`, '</table>', '</section>', '</main>', '<button type="button" id="jumpToFilters" class="filter-jump" aria-label="' + escapeAttr(ex('backToFilters')) + '">↑ ' + escapeHtml(ex('backToFilters')) + '</button>', '<script>', exportScript(mode), exportMobileJumpScript(), '</script>', '</body>', '</html>'].join('\n');
   }
 
   function exportCss() {
     return [
       ':root{color-scheme:dark;--bg:#071018;--panel:#0b1722;--panel2:#0e1f2e;--line:rgba(125,166,200,.24);--line2:rgba(125,166,200,.14);--text:#eef7ff;--muted:#9fb3c7;--green:#56f097;--blue:#9bd2ff;--red:#ff8b8b}',
       '*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(86,240,151,.13),transparent 34rem),radial-gradient(circle at top right,rgba(80,140,220,.14),transparent 32rem),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.42}main{width:min(1820px,calc(100% - 28px));margin:0 auto;padding:22px 0 42px}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.hero,.export-controls,.table-wrap{border:1px solid var(--line);border-radius:22px;background:rgba(11,23,34,.88);box-shadow:0 22px 70px rgba(0,0,0,.25)}.hero{padding:22px;margin-bottom:14px}.topline{display:flex;justify-content:space-between;gap:22px;align-items:flex-start}.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:900}h1{margin:5px 0 7px;font-size:clamp(30px,4.8vw,56px);letter-spacing:-.055em;line-height:.95}.hero p{margin:0;color:var(--muted)}.criteria{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:720px}.criteria span{border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);padding:6px 10px;color:#dceafa;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}.stat{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.045);padding:13px}.stat span{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:11px}.stat strong{display:block;font-size:26px;margin-top:3px}.export-controls{padding:14px 16px;margin-bottom:14px}.export-control-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px;color:#dceafa}.export-control-head strong{font-size:14px}.export-control-head span{font-size:12px;color:var(--muted)}.export-control-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:10px;align-items:end}.export-controls label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;color:#9fb6c9;text-transform:uppercase;letter-spacing:.04em}.export-controls select{width:100%;border:1px solid var(--line);border-radius:10px;background:#071018;color:#eef6ff;padding:8px 10px;font:700 12px/1.2 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.export-controls button{height:35px;border:1px solid var(--line);border-radius:10px;background:#102235;color:#eaf4ff;font-weight:800;cursor:pointer;padding:0 14px}.export-controls button:hover{background:#16314a}.export-control-note{margin:10px 0 0;color:#849aaf;font-size:11.5px}.table-wrap{overflow:auto}table{width:100%;min-width:1540px;border-collapse:collapse;table-layout:fixed}th,td{padding:13px 10px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left;overflow-wrap:anywhere}th{position:sticky;top:0;background:#102235;color:#dceafa;font-size:10.2px;text-transform:uppercase;letter-spacing:.035em;z-index:1;white-space:normal;word-break:normal;overflow-wrap:normal;hyphens:auto;line-height:1.18}tr:nth-child(even) td{background:rgba(255,255,255,.025)}.rank-line{color:var(--green);font-size:16px;font-weight:950;line-height:1;margin-bottom:4px}.player-cell strong{display:block;font-size:19px;line-height:1.16;letter-spacing:-.018em}.profile-mini{display:inline-block;font-size:12px;line-height:1.12;font-weight:800;margin-top:3px}.open-link{font-weight:800}.position-code{font-weight:950;font-size:15px;line-height:1.18}.position-detail{display:block;font-weight:900;color:#dceafa;margin-top:3px;font-size:14px;line-height:1.2}.position-label,.muted,.muted-line,.date-line{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.25}.availability-cell strong,.availability-cell span,.playing-cell span{display:block}.availability-cell strong{margin-bottom:3px}.playing-cell{display:flex;flex-direction:column;gap:2px}.season-list{display:flex;flex-direction:column;gap:7px;min-width:0}.season-row{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;align-items:start;line-height:1.24}.season-row span{display:block}.season-row strong{font-size:14.6px;color:#eef7ff;white-space:nowrap;font-weight:950}.season-stats{display:flex!important;flex-wrap:wrap;gap:2px 10px;color:#e8f4ff;font-size:14.1px;font-weight:850}.season-stats span{white-space:nowrap}.plain-list{font-weight:700}.growth-positive{color:var(--green);font-weight:950}.growth-negative{color:var(--red);font-weight:950}.mv-route{display:flex;gap:7px;color:#f0f8ff;font-size:14.5px;font-weight:950;line-height:1.18;letter-spacing:-.01em}.mv-route span{white-space:nowrap}.growth-line{font-size:15.2px;line-height:1.16;margin-top:4px}.playing-cell strong{color:#fff}.season-row{font-size:14px;color:#e8f4ff}col.player{width:175px}col.position{width:130px}col.age{width:82px}col.nation{width:150px}col.availability{width:285px}col.club{width:165px}col.mvnow{width:100px}col.growth{width:160px}col.playing{width:135px}col.season{width:300px}col.link{width:92px}.club-col strong{display:block;line-height:1.24}.availability-cell{line-height:1.28}.availability-cell strong{font-size:14px;line-height:1.25}.mv-now-col strong{font-size:16px}.player-col{font-weight:800}.is-hidden{display:none!important}',
-      '@media(max-width:900px){main{width:100%;padding:12px 8px 28px}.hero{padding:17px;border-radius:16px}.topline{display:block}.criteria{justify-content:flex-start;margin-top:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.export-control-grid{grid-template-columns:1fr 1fr}.export-control-grid button{grid-column:1/-1}.export-control-head{align-items:flex-start;flex-direction:column}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 12px;border:1px solid var(--line);border-radius:16px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:112px 1fr;gap:10px;border-bottom:1px solid var(--line2);padding:11px;background:#0b1824!important}td::before{content:attr(data-label);font-weight:800;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.06em}}',
-      '@media(max-width:540px){.stats,.export-control-grid{grid-template-columns:1fr}td{grid-template-columns:1fr;gap:4px}.criteria span{font-size:11px}}'
+      '@media(max-width:900px){body{font-size:13px;line-height:1.34;padding-bottom:72px}main{width:100%;padding:10px 7px calc(92px + env(safe-area-inset-bottom))}.hero{padding:13px;border-radius:15px;margin-bottom:10px}.topline{display:block}.kicker{font-size:9.5px;letter-spacing:.11em}h1{font-size:clamp(24px,8vw,34px);margin:3px 0 5px}.hero p{font-size:11.5px;line-height:1.32}.criteria{justify-content:flex-start;margin-top:9px;gap:6px}.criteria span{font-size:10.5px;padding:4px 7px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:12px}.stat{padding:9px;border-radius:13px}.stat span{font-size:9.5px;letter-spacing:.055em}.stat strong{font-size:20px}.export-controls{padding:11px;border-radius:15px;margin-bottom:10px}.export-control-head{align-items:flex-start;flex-direction:column;gap:6px;margin-bottom:9px}.export-control-head strong{font-size:12.5px}.export-control-head span{font-size:10.8px}.export-control-grid{grid-template-columns:1fr 1fr;gap:8px}.export-control-grid button{grid-column:1/-1}.export-controls label{font-size:9.8px;gap:4px;letter-spacing:.035em}.export-controls select{padding:7px 8px;border-radius:9px;font-size:11px;line-height:1.15}.export-controls button{height:32px;font-size:11px;padding:0 10px}.export-control-note{font-size:10.5px;line-height:1.28;margin-top:8px}.table-wrap{border:0;background:transparent;overflow:visible;box-shadow:none}table,thead,tbody,tr,td{display:block;min-width:0;width:100%}colgroup,thead{display:none}tr{margin:0 0 9px;border:1px solid var(--line);border-radius:14px;background:#0b1824;overflow:hidden}td{display:grid;grid-template-columns:98px 1fr;gap:8px;border-bottom:1px solid var(--line2);padding:9px 9px;background:#0b1824!important;font-size:12.2px;line-height:1.3}td::before{content:attr(data-label);font-weight:850;color:var(--muted);text-transform:uppercase;font-size:8.9px;letter-spacing:.045em;line-height:1.18}.rank-line{font-size:13px}.player-cell strong{font-size:15.5px;line-height:1.13}.profile-mini{font-size:10.5px}.position-code{font-size:12.8px}.position-detail{font-size:12px}.position-label,.muted,.muted-line,.date-line{font-size:10.5px;line-height:1.22}.availability-cell strong{font-size:12px}.mv-now-col strong{font-size:13.5px}.mv-route{font-size:12.4px;gap:5px}.growth-line{font-size:12.8px}.season-list{gap:5px}.season-row{grid-template-columns:52px minmax(0,1fr);column-gap:7px;font-size:11.6px}.season-row strong{font-size:12.2px}.season-stats{font-size:11.7px;gap:1px 7px}.plain-list{font-size:11.8px}.filter-jump{display:block;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;border:1px solid rgba(86,240,151,.55);border-radius:999px;background:#102235;color:#eef7ff;box-shadow:0 14px 40px rgba(0,0,0,.48);height:42px;font:900 12px/1 Inter,system-ui,-apple-system,Segoe UI,sans-serif;letter-spacing:.02em;cursor:pointer}.filter-jump:active{transform:translateY(1px)}}',
+      '@media(min-width:901px){.filter-jump{display:none!important}}',
+      '@media(max-width:540px){body{font-size:12px}.stats,.export-control-grid{grid-template-columns:1fr}.hero{padding:11px}.criteria span{font-size:9.8px}.stat strong{font-size:18px}td{grid-template-columns:1fr;gap:4px;padding:8px;font-size:11.4px}td::before{font-size:8.4px}.player-cell strong{font-size:14.5px}.season-row{grid-template-columns:1fr;gap:2px}.season-stats{font-size:11.1px}.filter-jump{height:39px;font-size:11.2px}}',
+      '@media(max-width:900px),(pointer:coarse){html{font-size:10px!important}body{font-size:10.5px!important;line-height:1.22!important;padding-bottom:58px!important}main{width:100%!important;padding:6px 5px calc(64px + env(safe-area-inset-bottom))!important}.hero{padding:9px!important;border-radius:12px!important;margin-bottom:7px!important}.topline{display:block!important}.kicker{font-size:7.8px!important;letter-spacing:.11em!important}h1{font-size:22px!important;line-height:.98!important;margin:2px 0 4px!important;letter-spacing:-.045em!important}.hero p{font-size:9.8px!important;line-height:1.25!important}.criteria{justify-content:flex-start!important;margin-top:7px!important;gap:4px!important}.criteria span{font-size:8.9px!important;line-height:1.15!important;padding:3px 6px!important}.stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin-top:8px!important}.stat{padding:7px 8px!important;border-radius:11px!important}.stat span{font-size:7.8px!important;letter-spacing:.055em!important}.stat strong{font-size:16px!important;margin-top:1px!important}.export-controls{padding:8px!important;border-radius:12px!important;margin-bottom:7px!important}.export-control-head{gap:3px!important;margin-bottom:6px!important}.export-control-head strong{font-size:11px!important;line-height:1.15!important}.export-control-head span{font-size:9.4px!important}.export-control-grid{grid-template-columns:1fr 1fr!important;gap:6px!important}.export-controls label{font-size:7.9px!important;line-height:1.1!important;gap:3px!important;letter-spacing:.03em!important}.export-controls select{min-height:28px!important;height:28px!important;padding:5px 7px!important;border-radius:8px!important;font-size:9.5px!important;line-height:1.12!important}.export-controls button{grid-column:1/-1!important;height:29px!important;font-size:9.8px!important;border-radius:8px!important;padding:0 8px!important}.export-control-note{display:none!important}.table-wrap{border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}table,thead,tbody,tr,td{display:block!important;min-width:0!important;width:100%!important}colgroup,thead{display:none!important}tr{margin:0 0 6px!important;border:1px solid var(--line)!important;border-radius:11px!important;background:#0b1824!important;overflow:hidden!important}td{display:grid!important;grid-template-columns:82px minmax(0,1fr)!important;gap:5px!important;align-items:start!important;border-bottom:1px solid var(--line2)!important;padding:6px 7px!important;background:#0b1824!important;font-size:10.4px!important;line-height:1.18!important}td::before{content:attr(data-label)!important;font-size:7.4px!important;line-height:1.08!important;letter-spacing:.035em!important;font-weight:900!important;color:var(--muted)!important;text-transform:uppercase!important}.rank-line{font-size:10.5px!important;margin-bottom:2px!important}.player-cell strong{font-size:13.1px!important;line-height:1.06!important;letter-spacing:-.01em!important}.profile-mini{font-size:9.1px!important;margin-top:2px!important}.position-code{font-size:10.8px!important;line-height:1.1!important}.position-detail{font-size:10px!important;margin-top:2px!important;line-height:1.12!important}.position-label,.muted,.muted-line,.date-line{font-size:8.9px!important;line-height:1.15!important;margin-top:2px!important}.availability-cell{line-height:1.15!important}.availability-cell strong{font-size:10.2px!important;line-height:1.14!important;margin-bottom:2px!important}.availability-cell span{font-size:9.8px!important;line-height:1.14!important}.club-col strong{font-size:10.8px!important;line-height:1.15!important}.mv-now-col strong{font-size:11.2px!important}.mv-route{font-size:10.5px!important;gap:4px!important;line-height:1.12!important}.growth-line{font-size:10.8px!important;line-height:1.12!important;margin-top:2px!important}.playing-cell{gap:1px!important}.playing-cell span,.playing-cell strong{font-size:10.4px!important;line-height:1.12!important}.season-list{gap:4px!important}.season-row{grid-template-columns:46px minmax(0,1fr)!important;column-gap:5px!important;font-size:9.8px!important;line-height:1.12!important}.season-row strong{font-size:10.2px!important}.season-stats{font-size:9.8px!important;gap:1px 5px!important;line-height:1.12!important}.plain-list{font-size:10px!important}.open-link{font-size:10.4px!important}.filter-jump{display:block!important;position:fixed!important;left:8px!important;right:8px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;z-index:999!important;height:36px!important;border-radius:999px!important;font:900 10.5px/1 Inter,system-ui,-apple-system,Segoe UI,sans-serif!important}}',
+      '@media(max-width:420px),(pointer:coarse){td{grid-template-columns:74px minmax(0,1fr)!important;padding:5px 6px!important;font-size:9.9px!important}td::before{font-size:7px!important}.player-cell strong{font-size:12.6px!important}h1{font-size:20px!important}.criteria span{font-size:8.4px!important}.stat strong{font-size:15px!important}.season-row{grid-template-columns:42px minmax(0,1fr)!important}.season-stats{font-size:9.3px!important}.availability-cell strong{font-size:9.8px!important}.filter-jump{height:34px!important;font-size:10px!important}}'
     ].join('');
   }
 
@@ -6399,6 +6698,13 @@
     }
     return `(function(){const tbody=document.querySelector('[data-export-body]');if(!tbody)return;const rows=Array.from(tbody.querySelectorAll('tr[data-row]'));const sortBy=document.getElementById('sortBy');const freeFilter=document.getElementById('freeFilter');const broadFilter=document.getElementById('broadFilter');const detailFilter=document.getElementById('detailFilter');const visibleCount=document.getElementById('visibleCount');const reset=document.getElementById('resetFilters');function num(row,key){const value=Number(row.dataset[key]);return Number.isFinite(value)?value:-999999999999;}function name(row){return String(row.dataset.playerName||'');}function compareRows(a,b){const mode=sortBy?sortBy.value:'absDesc';if(mode==='mvDesc')return num(b,'mvNow')-num(a,'mvNow')||num(b,'mvAbs')-num(a,'mvAbs')||name(a).localeCompare(name(b));if(mode==='pctDesc')return num(b,'mvPct')-num(a,'mvPct')||num(b,'mvAbs')-num(a,'mvAbs')||name(a).localeCompare(name(b));if(mode==='pctAsc')return num(a,'mvPct')-num(b,'mvPct')||num(a,'mvAbs')-num(b,'mvAbs')||name(a).localeCompare(name(b));if(mode==='nameAsc')return name(a).localeCompare(name(b));return num(b,'mvAbs')-num(a,'mvAbs')||num(b,'mvPct')-num(a,'mvPct')||num(b,'mvNow')-num(a,'mvNow')||name(a).localeCompare(name(b));}function passes(row){const freeMode=freeFilter?freeFilter.value:'all';if(freeMode==='free'&&row.dataset.freeAgent!=='true')return false;if(freeMode==='nonfree'&&row.dataset.freeAgent==='true')return false;const detail=detailFilter?detailFilter.value:'all';const broad=broadFilter?broadFilter.value:'all';if(detail&&detail!=='all')return row.dataset.detailPos===detail;if(broad&&broad!=='all')return row.dataset.broadPos===broad;return true;}function apply(){const filtered=rows.filter(passes).sort(compareRows);rows.forEach(function(row){row.classList.add('is-hidden');});filtered.forEach(function(row,index){row.classList.remove('is-hidden');tbody.appendChild(row);const rank=row.querySelector('[data-rank]');if(rank)rank.textContent='#'+(index+1);});if(visibleCount)visibleCount.textContent=String(filtered.length);}[sortBy,freeFilter,broadFilter,detailFilter].forEach(function(el){if(el)el.addEventListener('change',apply);});if(reset)reset.addEventListener('click',function(){if(sortBy)sortBy.value='absDesc';if(freeFilter)freeFilter.value='all';if(broadFilter)broadFilter.value='all';if(detailFilter)detailFilter.value='all';apply();});apply();})();`;
   }
+
+
+
+  function exportMobileJumpScript() {
+    return `(function(){const button=document.getElementById('jumpToFilters');const filters=document.getElementById('exportFilters');if(!button||!filters)return;function jump(){filters.scrollIntoView({behavior:'smooth',block:'start'});}button.addEventListener('click',jump);button.addEventListener('touchend',function(event){event.preventDefault();jump();},{passive:false});})();`;
+  }
+
 
 
 
@@ -6555,8 +6861,8 @@
       tmScoutBatchTimer = window.setTimeout(flushTmScoutBatchProxyQueue, TM_SCOUT_BATCH_DELAY_MS);
     }
 
-    if (!endpoint) {
-      batch.forEach(function fallbackNoEndpoint(item) {
+    if (!endpoint || isTmScoutBatchPostTemporarilyDisabled()) {
+      batch.forEach(function fallbackNoEndpointOrPostDisabled(item) {
         httpGetDirect(item.url, item.responseKind).then(function(value){ tmScoutBatchMemorySet(item.key, value); item.resolve(value); }).catch(item.reject);
       });
       return;
@@ -6583,7 +6889,11 @@
       })
     }).then(async function onBatchResponse(response) {
       window.clearTimeout(timeout);
-      if (!response.ok) throw new Error(`Batch proxy HTTP ${response.status}`);
+      if (!response.ok) {
+        const error = new Error(`Batch proxy HTTP ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
       const payload = await response.json();
       const results = Array.isArray(payload && payload.results) ? payload.results : [];
       if (results.length !== batch.length) throw new Error('Batch proxy result count mismatch');
@@ -6610,9 +6920,17 @@
       });
     }).catch(function onBatchError(error) {
       window.clearTimeout(timeout);
-      // Worker nincs még frissítve / batch endpoint ideiglenesen hibázik: ne álljon meg a keresés,
-      // csak menjen vissza a régi egyenkénti proxyra.
-      pushError('batch proxy fallback', stringifyError(error));
+      // If the deployed Worker is still an older GET-only build, the batch POST returns 405.
+      // Do not keep hammering the root endpoint with POST for every batch; switch this browser tab
+      // to the old single-GET proxy path for a few minutes. After deploying the v13 Worker, refresh
+      // and batch mode will work again.
+      const status = Number(error && error.status ? error.status : 0);
+      if (status === 405 || status === 404 || status === 415 || status === 501) {
+        disableTmScoutBatchPostTemporarily(`Batch proxy HTTP ${status}`);
+      } else if (!tmScoutBatchFallbackWarningShown) {
+        tmScoutBatchFallbackWarningShown = true;
+        pushError('batch proxy fallback', stringifyError(error));
+      }
       batch.forEach(function fallbackBatchItem(item) {
         httpGetDirect(item.url, item.responseKind).then(function(value){ tmScoutBatchMemorySet(item.key, value); item.resolve(value); }).catch(item.reject);
       });
@@ -6739,7 +7057,9 @@
       @media(max-width:1100px){.tm-scout-v2-body{grid-template-columns:420px minmax(0,1fr)}}
       .tm-scout-v2-html-modal{position:fixed!important;inset:18px!important;z-index:2147483647!important;display:flex!important;flex-direction:column!important;background:#071018!important;border:1px solid rgba(125,166,200,.35)!important;border-radius:18px!important;box-shadow:0 30px 90px rgba(0,0,0,.55)!important;overflow:hidden!important}.tm-scout-v2-html-modal-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:10px 12px!important;background:#102235!important;color:#eef7ff!important}.tm-scout-v2-html-modal-head button{border:1px solid rgba(125,166,200,.35)!important;border-radius:9px!important;background:#0a1722!important;color:#eef7ff!important;font-weight:800!important;padding:7px 10px!important;cursor:pointer!important}.tm-scout-v2-html-modal iframe{width:100%!important;height:100%!important;border:0!important;background:#071018!important}
       @media(max-width:900px){#tmScoutMount .tm-scout-v2-panel,.tm-scout-v2-panel{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important}.tm-scout-v2-shell{height:auto!important;min-height:0!important;overflow:visible!important;border-radius:18px!important}.tm-scout-v2-body{display:block!important}.tm-scout-v2-controls{max-height:none!important;overflow:visible!important;border-right:0!important;border-bottom:1px solid rgba(125,166,200,.18)!important;padding:12px!important;scroll-padding-bottom:0!important}.tm-scout-v2-output{overflow:visible!important}.tm-scout-v2-table-wrap{max-height:68vh!important;overflow:auto!important}.tm-scout-v2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.tm-scout-v2-head{display:block;padding:15px!important}.tm-scout-v2-head-actions{margin-top:12px;justify-content:flex-start!important}.tm-scout-v2-head-lang select{min-width:0;width:100%}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:repeat(2,minmax(0,1fr))!important}.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr 1fr}.tm-scout-v2-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.tm-scout-v2-panel.tm-scout-v2-running .tm-scout-v2-table-wrap{display:none!important}}
-      @media(max-width:560px){.tm-scout-v2-head h2{font-size:24px!important}.tm-scout-v2-head p{font-size:12px!important;line-height:1.4!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:1fr!important}.tm-scout-v2-checks,.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr!important}.tm-scout-v2-stats{grid-template-columns:1fr 1fr!important;padding:10px!important}.tm-scout-v2-statusbar{padding:12px!important}.tm-scout-v2-actions{grid-template-columns:1fr 1fr!important}.tm-scout-v2-table{min-width:980px!important}.tm-scout-v2-table th,.tm-scout-v2-table td{font-size:11px!important;padding:8px!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{min-height:180px!important;max-height:260px!important}}    `;
+      @media(max-width:560px){.tm-scout-v2-head h2{font-size:24px!important}.tm-scout-v2-head p{font-size:12px!important;line-height:1.4!important}.tm-scout-v2-controls fieldset:not(.tm-scout-v2-checks){grid-template-columns:1fr!important}.tm-scout-v2-checks,.tm-scout-v2-broad-options,.tm-scout-v2-detail-options{grid-template-columns:1fr!important}.tm-scout-v2-stats{grid-template-columns:1fr 1fr!important;padding:10px!important}.tm-scout-v2-statusbar{padding:12px!important}.tm-scout-v2-actions{grid-template-columns:1fr 1fr!important}.tm-scout-v2-table{min-width:980px!important}.tm-scout-v2-table th,.tm-scout-v2-table td{font-size:11px!important;padding:8px!important}.tm-scout-v2-controls select[multiple],.tm-scout-v2-controls .tm-scout-v2-multi-select{min-height:180px!important;max-height:260px!important}}
+      @media(max-width:900px),(pointer:coarse){.tm-scout-v2-html-modal{inset:4px!important;border-radius:12px!important}.tm-scout-v2-html-modal-head{padding:6px 8px!important;gap:8px!important}.tm-scout-v2-html-modal-head strong{font-size:13px!important;line-height:1.1!important}.tm-scout-v2-html-modal-head button{border-radius:8px!important;font-size:11px!important;line-height:1!important;padding:6px 8px!important}.tm-scout-v2-html-modal iframe{min-height:0!important}}
+    `;
     (document.head || document.documentElement).appendChild(style);
   }
 
@@ -6784,7 +7104,15 @@
   }
 
   function formatGrowth(mv) {
-    if (!mv || mv.absGrowth === null || mv.absGrowth === undefined) return mv && mv.unknown ? 'unknown' : '—';
+    if (!mv || mv.absGrowth === null || mv.absGrowth === undefined || !Number.isFinite(Number(mv.absGrowth))) {
+      if (mv && (mv.fallbackNoHistory || mv.unknown)) {
+        const current = Number(mv.latestValue);
+        return Number.isFinite(current) && current > 0
+          ? `${ex('noMvHistory')} · ${ex('currentMv')}: ${formatEuro(current)}`
+          : ex('noMvHistory');
+      }
+      return '—';
+    }
     const pct = mv.pctGrowth === null || mv.pctGrowth === undefined ? '' : ` (${mv.pctGrowth >= 0 ? '+' : ''}${mv.pctGrowth.toFixed(1)}%)`;
     return `${formatEuro(mv.baselineValue)} → ${formatEuro(mv.latestValue)} · ${mv.absGrowth >= 0 ? '+' : ''}${formatEuro(mv.absGrowth)}${pct}`;
   }

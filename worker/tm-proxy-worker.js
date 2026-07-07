@@ -18,7 +18,7 @@ const ALLOWED_HOSTS = new Set([
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Requested-With',
+  'Access-Control-Allow-Headers': 'Content-Type, Accept, Accept-Language, X-Requested-With, Authorization',
   'Access-Control-Max-Age': '86400'
 };
 
@@ -33,11 +33,16 @@ const MAX_CACHEABLE_BODY_CHARS = 1_400_000;
 export default {
   async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+    if (request.method === 'HEAD') return new Response(null, { headers: CORS });
 
     try {
       if (request.method === 'POST') return handleBatch(request, ctx);
-      if (request.method === 'GET') return handleSingle(request, ctx);
-      return json({ ok: false, error: 'Only GET, POST and OPTIONS are allowed' }, 405);
+      if (request.method === 'GET') {
+        const reqUrl = new URL(request.url);
+        if (reqUrl.searchParams.has('urls')) return handleBatchGet(request, ctx);
+        return handleSingle(request, ctx);
+      }
+      return json({ ok: false, error: 'Only GET, POST, HEAD and OPTIONS are allowed' }, 405);
     } catch (error) {
       return json({ ok: false, error: stringifyError(error) }, 500);
     }
@@ -60,6 +65,25 @@ async function handleSingle(request, ctx) {
     statusText: result.statusText,
     headers
   });
+}
+
+async function handleBatchGet(request, ctx) {
+  const reqUrl = new URL(request.url);
+  const raw = reqUrl.searchParams.get('urls') || '';
+  let urls = [];
+  try {
+    urls = JSON.parse(raw);
+  } catch (_error) {
+    urls = raw.split('\n').map((item) => item.trim()).filter(Boolean);
+  }
+
+  const items = Array.isArray(urls) ? urls.map((url) => ({ url, kind: 'text' })) : [];
+  const cloned = new Request(request.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    body: JSON.stringify({ items })
+  });
+  return handleBatch(cloned, ctx);
 }
 
 async function handleBatch(request, ctx) {
